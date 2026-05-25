@@ -3,56 +3,70 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class efetuarCompraModels {
+  #produtoId;
+  #quantidade;
+  #dataValidade;
+  #numeroLote;
 
-    #produtoId;
-    #quantidade;
-    #dataValidade;
-    #numeroLote;
+  get produtoId() {
+    return this.#produtoId;
+  }
+  set produtoId(value) {
+    this.#produtoId = value;
+  }
 
-    get produtoId() {
-        return this.#produtoId;
-    }
-    set produtoId(value) {
-        this.#produtoId = value;
-    }
+  get quantidade() {
+    return this.#quantidade;
+  }
+  set quantidade(value) {
+    this.#quantidade = value;
+  }
 
-    get quantidade() {
-        return this.#quantidade;
-    }
-    set quantidade(value) {
-        this.#quantidade = value;
-    }
+  get dataValidade() {
+    return this.#dataValidade;
+  }
+  set dataValidade(value) {
+    this.#dataValidade = value;
+  }
 
-    get dataValidade() {
-        return this.#dataValidade;
-    }
-    set dataValidade(value) {
-        this.#dataValidade = value;
-    }
+  get numeroLote() {
+    return this.#numeroLote;
+  }
+  set numeroLote(value) {
+    this.#numeroLote = value;
+  }
 
-    get numeroLote() {
-        return this.#numeroLote;
-    }
-    set numeroLote(value) {
-        this.#numeroLote = value;
-    }
+  constructor(produtoId, quantidade, dataValidade, numeroLote) {
+    this.#produtoId = produtoId;
+    this.#quantidade = quantidade;
+    this.#dataValidade = dataValidade;
+    this.#numeroLote = numeroLote;
+  }
 
-    constructor(produtoId, quantidade, dataValidade, numeroLote){
-        this.#produtoId = produtoId;
-        this.#quantidade = quantidade;
-        this.#dataValidade = dataValidade;
-        this.#numeroLote = numeroLote;
-    }
+  async registrarCompra() {
+    let sql = `INSERT INTO tb_Lotes_Estoque(lot_id_produto, lot_qtd, lot_data_validade, lot_num_lote) VALUES(?, ?, ?, ?)`;
 
-    async registrarCompra(){
+    let valores = [
+      this.#produtoId,
+      this.#quantidade,
+      this.#dataValidade,
+      this.#numeroLote,
+    ];
 
-        let sql = `INSERT INTO tb_Lotes_Estoque(lot_id_produto, lot_qtd, lot_data_validade, lot_num_lote) VALUES(?, ?, ?, ?)`;
+    return await banco.ExecutaComandoNonQuery(sql, valores);
+  }
 
-        let valores = [this.#produtoId, this.#quantidade, this.#dataValidade, this.#numeroLote];    
+  async buscarItensPedido(pedidoId) {
+    let sql = `
+        SELECT *
+        FROM pedido_item
+        WHERE pedidoId = ?
+    `;
 
-        return await banco.ExecutaComandoNonQuery(sql, valores);
-    }
+    let rows = await banco.ExecutaComando(sql, [pedidoId]);
 
+    return rows;
+  }
 }
 
 module.exports = efetuarCompraModels;

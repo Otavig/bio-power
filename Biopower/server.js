@@ -8,7 +8,7 @@ const storeRoutes = require("./routes/StoreRoutes");
 const aboutUsRoutes = require("./routes/AboutUsRoutes");
 const autentificacaoRoutes = require("./routes/AutentificacaoRoutes");
 const servicesRoutes = require("./routes/ServicesRoutes");
-const recebimentoRoutes = require("./routes/recebimentoRoutes");
+// const recebimentoRoutes = require("./routes/recebimentoRoutes");
 
 const adminRoutes = require("./routes/AdminRoutes");
 const server = express();
@@ -40,7 +40,7 @@ server.use("/dashboard", adminRoutes);
 server.use("/store", storeRoutes);
 server.use("/about-us", aboutUsRoutes);
 server.use("/", servicesRoutes);
-server.use("/", recebimentoRoutes);
+// server.use("/", recebimentoRoutes);
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });

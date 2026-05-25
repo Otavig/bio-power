@@ -2,7 +2,6 @@ const efetuarCompraModel = require("../models/efetuarCompraModels");
 const pedidoCompraModels = require("../models/pedidoCompraModels");
 const produtoModels = require("../models/produtoModels");
 
-
 class efetuarCompraController {
   async cadastrar(req, res) {
     console.log("Pedidos de compra para serem realizados", req.body);
@@ -14,20 +13,21 @@ class efetuarCompraController {
       let pedidoId = await pedidoCompra.gravar();
       pedidoCompra.pedidoValorTotal = 0;
       if (pedidoId) {
-        let produtoPedido = new produtoModels();
+        let produtoModels = new produtoModels();
         for (let i = 0; i < req.body.length; i++) {
-          produtoPedido = await produtoPedido.buscarProduto(req.body[i].id);
+          let produtoPedido = await produtoModels.buscarProduto(req.body[i].id);
           let item = new efetuarCompraModel();
-          item.pedidoId = pedidoCompraId;
+          item.pedidoId = pedidoId;
           item.produtoId = produtoPedido.produtoId;
           item.pedidoItemQuantidade = req.body[i].quantidade;
           item.pedidoItemValor = produtoPedido.produtoValor;
-          item.pedidoItemValorTotal = item.pedidoItemQuantidade * item.pedidoItemValor;
+          item.pedidoItemValorTotal =
+            item.pedidoItemQuantidade * item.pedidoItemValor;
           await item.registrarCompra();
           pedidoCompra.pedidoValorTotal += item.pedidoItemValorTotal;
         }
 
-        await pedido.atualizar();
+        await pedidoCompra.atualizar();
         ok = true;
         msg = "Pedido gerado com sucesso!";
       } else {
@@ -44,6 +44,5 @@ class efetuarCompraController {
     res.render("recebimento");
   }
 }
-
 
 module.exports = efetuarCompraController;
