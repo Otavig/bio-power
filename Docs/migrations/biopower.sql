@@ -487,19 +487,38 @@ DROP TABLE IF EXISTS `tb_Usuarios`;
 CREATE TABLE `tb_Usuarios` (
   `usu_id` int NOT NULL AUTO_INCREMENT,
   `usu_nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `usu_cpf_cnpj` char(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_sobrenome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `usu_email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `usu_senha` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `usu_cpf_cnpj` char(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_data_nascimento` date DEFAULT NULL,
+  `usu_estado_civil` TINYINT(1) DEFAULT 0,
+  `usu_cep` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_logradouro` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_numero` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_bairro` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_cidade` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_uf` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_complemento` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usu_genero` TINYINT(1) NOT NULL DEFAULT 0,
   `usu_typ_id` int NOT NULL,
   `usu_ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
   PRIMARY KEY (`usu_id`),
   UNIQUE KEY `usu_email` (`usu_email`),
   UNIQUE KEY `usu_cpf_cnpj` (`usu_cpf_cnpj`),
   KEY `usu_typ_id` (`usu_typ_id`),
-  CONSTRAINT `tb_Usuarios_ibfk_1` FOREIGN KEY (`usu_typ_id`) REFERENCES `tb_typeUser` (`typ_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  CONSTRAINT `tb_Usuarios_ibfk_1`
+    FOREIGN KEY (`usu_typ_id`)
+    REFERENCES `tb_typeUser` (`typ_id`)
+) ENGINE=InnoDB
+AUTO_INCREMENT=13
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -508,7 +527,7 @@ CREATE TABLE `tb_Usuarios` (
 
 LOCK TABLES `tb_Usuarios` WRITE;
 /*!40000 ALTER TABLE `tb_Usuarios` DISABLE KEYS */;
-INSERT INTO `tb_Usuarios` VALUES (1,'Breno','breno@gmail.com','123456','12345678900',1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),(2,'Admin','admin@biopower.com','admin123','11111111111',1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),(3,'Mariana Souza','mariana.souza@biopower.com','admin123','22222222222',1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(4,'Carlos Pereira','carlos.pereira@biopower.com','func123','33333333333',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(5,'Fernanda Lima','fernanda.lima@biopower.com','func123','44444444444',2,1,'2026-03-25 17:２０:57','２０２６－０３－２５ １７：２０：５７'),(6,'João Silva','joao.silva@biopower.com','cliente１２３','５５５５５５５５５５５',３,１,'２０２６－０３－２５ １７：２０：５７','２０２６－０３－２５ １７：２０：５７'),(７,'Ana Paula','ana.paula@biopower.com','cliente１２３','６６６６６６６６６６６',３,１,'２０２６－０３－２５ １７：２０：５７','２０２６－０３－２５ １７：２０：５７'),(８,'Ricardo Mendes','ricardo.mendes@biopower.com','cliente１２３','７７７７７７７７７７７',３,０,'２０２６－０３－２５ １７：２０：５７','２０２６－０３－２５ １７：２０：５７'),(９,'Assis','assis@biopower.com','１２３４５６','１２３４５６７８９９８',１,０,'２０２６－０３－２６ １４：０８：３３','２０２６－０３－２６ １４：０８：４５'),(１１,'Breno Passarela','passarela@gmail.com','１₂₃₄₅₆','７₀₉₃₄₈₉₆₃₂₁',₁,₀,'₂₀₂₆₋₀₃₋₂₆ ₁₄:₁₈:₀₈','₂₀₂₆₋₀₃₋₂₆ ₁₄:₄₃:₅₃'),(₁₂,'Breno H','brenof@gmail.com','₁₂₃₄₅₆','46².7₀⁹.348-9³',₂,₁,'₂₀₂₆₋₀₃₋₂₆ ₁⁴:³⁹:³⁷','₂₀₂₶₋₀³₋₂₶ ₁⁴:³⁹:³⁷');
+INSERT INTO `tb_Usuarios` (`usu_id`,`usu_nome`,`usu_sobrenome`,`usu_email`,`usu_senha`,`usu_cpf_cnpj`,`usu_genero`,`usu_typ_id`,`usu_ativo`,`created_at`,`updated_at`)VALUES (1,'Breno','Freguglia','breno@gmail.com','123456','12345678900',1,1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),(2,'Admin','Sistema','admin@biopower.com','admin123','11111111111',1,1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),(3,'Mariana','Souza','mariana.souza@biopower.com','admin123','22222222222',2,1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(4,'Carlos','Pereira','carlos.pereira@biopower.com','func123','33333333333',1,2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(5,'Fernanda','Lima','fernanda.lima@biopower.com','func123','44444444444',2,2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(6,'João','Silva','joao.silva@biopower.com','cliente123','55555555555',1,3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(7,'Ana','Paula','ana.paula@biopower.com','cliente123','66666666666',2,3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(8,'Ricardo','Mendes','ricardo.mendes@biopower.com','cliente123','77777777777',1,3,0,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(9,'Assis','Santos','assis@biopower.com','123456','12345678998',1,1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),(11,'Breno','Passarela','passarela@gmail.com','123456','70934896321',1,1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),(12,'Breno','H','brenof@gmail.com','123456','46270934893',2,1,1,'2026-03-26 14:39:37','2026-03-26 14:39:37');
 /*!40000 ALTER TABLE `tb_Usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 

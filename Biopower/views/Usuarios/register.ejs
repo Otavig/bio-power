@@ -232,11 +232,9 @@
                       <div class="form-floating flex-grow-1">
                         <select id="genero" class="form-select">
                           <option value="" selected disabled hidden></option>
-                          <option value="nao_informado">
-                            Prefiro não informar
-                          </option>
-                          <option value="feminino">Feminino</option>
-                          <option value="masculino">Masculino</option>
+                          <option value="0">Prefiro não informar</option>
+                          <option value="1">Feminino</option>
+                          <option value="2">Masculino</option>
                         </select>
                         <label for="genero">Gênero Biológico</label>
                       </div>
@@ -322,15 +320,13 @@
                       ></span>
                       <div class="form-floating flex-grow-1">
                         <select id="estadoCivil" class="form-select">
-                          <option value="" selected disabled hidden></option>
-                          <option value="solteiro">Solteiro(a)</option>
-                          <option value="casado">Casado(a)</option>
-                          <option value="divorciado">Divorciado(a)</option>
-                          <option value="viuvo">Viúvo(a)</option>
-                          <option value="uniao_estavel">União Estável</option>
-                          <option value="prefiro_nao_informar">
-                            Prefiro não informar
-                          </option>
+                          <option value="0" selected disabled hidden></option>
+                          <option value="1">Solteiro(a)</option>
+                          <option value="2">Casado(a)</option>
+                          <option value="3">Divorciado(a)</option>
+                          <option value="4">Viúvo(a)</option>
+                          <option value="5">União Estável</option>
+                          <option value="6">Prefiro não informar</option>
                         </select>
                         <label for="estadoCivil">Estado Civil</label>
                       </div>
@@ -762,7 +758,7 @@
                 <button
                   type="submit"
                   class="btn btn-step-submit"
-                  id="btn-register"
+                  id="btnRegister"
                 >
                   <i class="fas fa-user-plus me-1"></i> Criar Minha Conta
                 </button>
@@ -782,6 +778,6 @@
     <script src="../assets/js/utils/valid-docs.js"></script>
     <script src="../assets/js/toggle-password-login.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/screens/register.js"></script>
+    <script src="/assets/js/Usuario/registro.js"></script>
   </body>
 </html>

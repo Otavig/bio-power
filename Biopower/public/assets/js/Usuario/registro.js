@@ -25,15 +25,37 @@ const form = {
 };
 
 const fieldOrder = [
-  "nome", "sobrenome", "cpf", "genero", "email", "telefone",
-  "data", "estadoCivil",
-  "cep", "cidade", "estado", "bairro", "rua", "numero", "complemento",
-  "senha", "confirmarSenha",
+  "nome",
+  "sobrenome",
+  "cpf",
+  "genero",
+  "email",
+  "telefone",
+  "data",
+  "estadoCivil",
+  "cep",
+  "cidade",
+  "estado",
+  "bairro",
+  "rua",
+  "numero",
+  "complemento",
+  "senha",
+  "confirmarSenha",
 ];
 
 // Campos por etapa — usados na validação parcial
 const stepFields = {
-  1: ["nome", "sobrenome", "cpf", "genero", "email", "telefone", "data", "estadoCivil"],
+  1: [
+    "nome",
+    "sobrenome",
+    "cpf",
+    "genero",
+    "email",
+    "telefone",
+    "data",
+    "estadoCivil",
+  ],
   2: ["cep", "cidade", "estado", "bairro", "rua", "numero", "complemento"],
   3: ["senha", "confirmarSenha"],
 };
@@ -41,7 +63,7 @@ const stepFields = {
 // Mapeamento campo → etapa (para navegar ao erro correto)
 const fieldStepMap = {};
 Object.entries(stepFields).forEach(([step, fields]) =>
-  fields.forEach((f) => (fieldStepMap[f] = Number(step)))
+  fields.forEach((f) => (fieldStepMap[f] = Number(step))),
 );
 
 const NAME_MIN_LENGTH = 3;
@@ -82,7 +104,7 @@ function isValidCEP(cep) {
 function buildErrorList(errors) {
   const ul = document.createElement("ul");
   ul.classList.add("mb-0", "ps-3");
-  errors.forEach(err => {
+  errors.forEach((err) => {
     const li = document.createElement("li");
     li.textContent = err;
     ul.appendChild(li);
@@ -118,7 +140,10 @@ function setFieldError(fieldId, message) {
 function clearErrors() {
   fieldOrder.forEach((f) => setFieldError(f, null));
   const termsFb = document.getElementById("error-terms");
-  if (termsFb) { termsFb.innerHTML = ""; termsFb.style.display = "none"; }
+  if (termsFb) {
+    termsFb.innerHTML = "";
+    termsFb.style.display = "none";
+  }
   document.getElementById("termsCheck")?.classList.remove("is-invalid");
 }
 
@@ -126,7 +151,7 @@ function applyMasks() {
   const cpf = document.getElementById("cpf");
   const tel = document.getElementById("telefone");
   const cep = document.getElementById("cep");
-  cpf?.addEventListener("input", e => {
+  cpf?.addEventListener("input", (e) => {
     let v = e.target.value.replace(/\D/g, "").slice(0, 11);
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
@@ -134,18 +159,15 @@ function applyMasks() {
     e.target.value = v;
   });
 
-  tel?.addEventListener("input", e => {
+  tel?.addEventListener("input", (e) => {
     let v = e.target.value.replace(/\D/g, "").slice(0, 11);
-    if (v.length > 6)
-      v = v.replace(/^(\d{2})(\d{5})(\d{1,4})$/, "($1) $2-$3");
-    else if (v.length > 2)
-      v = v.replace(/^(\d{2})(\d{1,4})$/, "($1) $2");
-    else if (v.length > 0)
-      v = v.replace(/^(\d{1,2})$/, "($1");
+    if (v.length > 6) v = v.replace(/^(\d{2})(\d{5})(\d{1,4})$/, "($1) $2-$3");
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{1,4})$/, "($1) $2");
+    else if (v.length > 0) v = v.replace(/^(\d{1,2})$/, "($1");
     e.target.value = v;
   });
 
-  cep?.addEventListener("input", e => {
+  cep?.addEventListener("input", (e) => {
     let v = e.target.value.replace(/\D/g, "").slice(0, 8);
     v = v.replace(/(\d{5})(\d{1,3})$/, "$1-$2");
     e.target.value = v;
@@ -153,12 +175,18 @@ function applyMasks() {
 }
 
 function normalizeSpaces(str) {
-  return str.trim().split(" ").filter((e) => e != "").join(" ");
+  return str
+    .trim()
+    .split(" ")
+    .filter((e) => e != "")
+    .join(" ");
 }
 
 function collectFormValues() {
-  form.nome = normalizeSpaces(document.getElementById('nome')?.value || "");
-  form.sobrenome = normalizeSpaces(document.getElementById('sobrenome')?.value || "");
+  form.nome = normalizeSpaces(document.getElementById("nome")?.value || "");
+  form.sobrenome = normalizeSpaces(
+    document.getElementById("sobrenome")?.value || "",
+  );
   form.cpf = document.getElementById("cpf")?.value || "";
   form.genero = document.getElementById("genero")?.value || "";
   form.email = normalizeSpaces(document.getElementById("email")?.value || "");
@@ -171,9 +199,47 @@ function collectFormValues() {
   form.bairro = normalizeSpaces(document.getElementById("bairro")?.value || "");
   form.rua = normalizeSpaces(document.getElementById("rua")?.value || "");
   form.numero = document.getElementById("numero")?.value || "";
-  form.complemento = normalizeSpaces(document.getElementById("complemento")?.value || "");
+  form.complemento = normalizeSpaces(
+    document.getElementById("complemento")?.value || "",
+  );
   form.senha = document.getElementById("senha")?.value || "";
   form.confirmarSenha = document.getElementById("confirmarSenha")?.value || "";
+}
+
+function buildRegisterPayload() {
+  return {
+    nome: form.nome,
+    sobrenome: form.sobrenome,
+    email: form.email.toLowerCase(),
+    senha: form.senha,
+    cpfCnpj: form.cpf.replace(/\D/g, ""),
+    telefone: form.telefone.replace(/\D/g, ""),
+    dataNascimento: form.data,
+    estadoCivil: Number(form.estadoCivil),
+    cep: form.cep.replace(/\D/g, ""),
+    logradouro: form.rua,
+    numero: form.numero,
+    bairro: form.bairro,
+    cidade: form.cidade,
+    uf: form.estado,
+    complemento: form.complemento,
+    genero: Number(form.genero),
+    typeId: 3,
+    ativo: 1,
+  };
+}
+
+function setRegisterButtonLoading(loading) {
+  const btn = document.getElementById("btn-register");
+  if (!btn) return;
+
+  btn.disabled = loading;
+  if (!btn.dataset.originalText) {
+    btn.dataset.originalText = btn.innerHTML;
+  }
+  btn.innerHTML = loading
+    ? '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...'
+    : btn.dataset.originalText;
 }
 
 function validateFields() {
@@ -189,7 +255,9 @@ function validateFields() {
     errors.nome.push("Informe o nome");
   } else {
     if (form.nome.length < NAME_MIN_LENGTH)
-      errors.nome.push(`Nome deve ter pelo menos ${NAME_MIN_LENGTH} caracteres.`);
+      errors.nome.push(
+        `Nome deve ter pelo menos ${NAME_MIN_LENGTH} caracteres.`,
+      );
 
     if (!NAME_REGEX.test(form.nome))
       errors.nome.push("Nome deve conter apenas letras e espaços simples");
@@ -202,10 +270,14 @@ function validateFields() {
     errors.sobrenome.push("Informe o sobrenome");
   } else {
     if (form.sobrenome.length < NAME_MIN_LENGTH)
-      errors.sobrenome.push(`Sobrenome deve ter pelo menos ${NAME_MIN_LENGTH} caracteres.`);
+      errors.sobrenome.push(
+        `Sobrenome deve ter pelo menos ${NAME_MIN_LENGTH} caracteres.`,
+      );
 
     if (!NAME_REGEX.test(form.sobrenome))
-      errors.sobrenome.push("Sobrenome deve conter apenas letras e espaços simples");
+      errors.sobrenome.push(
+        "Sobrenome deve conter apenas letras e espaços simples",
+      );
   }
   if (errors.sobrenome.length === 0) delete errors.sobrenome;
 
@@ -226,7 +298,7 @@ function validateFields() {
   } else {
     if (!PASSWORD_REGEX.test(form.senha))
       errors.senha.push(
-        "A senha precisa ter 8 caracteres, incluindo letra maiúscula, minúscula, número e símbolo"
+        "A senha precisa ter 8 caracteres, incluindo letra maiúscula, minúscula, número e símbolo",
       );
   }
   if (errors.senha.length === 0) delete errors.senha;
@@ -246,8 +318,7 @@ function validateFields() {
   if (!rawCPF) {
     errors.cpf.push("Informe o CPF");
   } else {
-    if (!isValidCPF(rawCPF))
-      errors.cpf.push("CPF inválido");
+    if (!isValidCPF(rawCPF)) errors.cpf.push("CPF inválido");
   }
   if (errors.cpf.length === 0) delete errors.cpf;
 
@@ -256,8 +327,7 @@ function validateFields() {
   if (!rawCEP) {
     errors.cep.push("Informe o CEP");
   } else {
-    if (!isValidCEP(rawCEP))
-      errors.cep.push("CEP inválido");
+    if (!isValidCEP(rawCEP)) errors.cep.push("CEP inválido");
   }
   if (errors.cep.length === 0) delete errors.cep;
 
@@ -266,11 +336,9 @@ function validateFields() {
   if (!form.cidade) {
     errors.cidade.push("Informe a cidade");
   } else {
-    if (form.cidade.length < 3)
-      errors.cidade.push("Cidade muito curta");
+    if (form.cidade.length < 3) errors.cidade.push("Cidade muito curta");
 
-    if (!CITY_REGEX.test(form.cidade))
-      errors.cidade.push("Cidade inválida");
+    if (!CITY_REGEX.test(form.cidade)) errors.cidade.push("Cidade inválida");
   }
   if (errors.cidade.length === 0) delete errors.cidade;
 
@@ -284,8 +352,7 @@ function validateFields() {
   if (!form.bairro) {
     errors.bairro.push("Informe o bairro");
   } else {
-    if (form.bairro.length < 3)
-      errors.bairro.push("Bairro inválido");
+    if (form.bairro.length < 3) errors.bairro.push("Bairro inválido");
   }
   if (errors.bairro.length === 0) delete errors.bairro;
 
@@ -294,8 +361,7 @@ function validateFields() {
   if (!form.rua) {
     errors.rua.push("Informe o endereço");
   } else {
-    if (!STREET_REGEX.test(form.rua))
-      errors.rua.push("Endereço inválido");
+    if (!STREET_REGEX.test(form.rua)) errors.rua.push("Endereço inválido");
   }
   if (errors.rua.length === 0) delete errors.rua;
 
@@ -321,23 +387,19 @@ function validateFields() {
     errors.data.push("Informe a data");
   } else {
     const birth = new Date(`${form.data}T00:00:00`);
-    if (Number.isNaN(birth.getTime()))
-      errors.data.push("Data inválida");
-    else if (birth > new Date())
-      errors.data.push("Data futura não permitida");
+    if (Number.isNaN(birth.getTime())) errors.data.push("Data inválida");
+    else if (birth > new Date()) errors.data.push("Data futura não permitida");
   }
   if (errors.data.length === 0) delete errors.data;
 
   // GÊNERO
   errors.genero = [];
-  if (!form.genero)
-    errors.genero.push("Selecione o gênero");
+  if (!form.genero) errors.genero.push("Selecione o gênero");
   if (errors.genero.length === 0) delete errors.genero;
 
   // ESTADO CIVIL
   errors.estadoCivil = [];
-  if (!form.estadoCivil)
-    errors.estadoCivil.push("Selecione o estado civil");
+  if (!form.estadoCivil) errors.estadoCivil.push("Selecione o estado civil");
   if (errors.estadoCivil.length === 0) delete errors.estadoCivil;
 
   // CONFIRMAR SENHA
@@ -365,7 +427,7 @@ function validateStep(stepNum) {
 
 // Limpar campos no load
 window.addEventListener("load", () => {
-  fieldOrder.forEach(field => {
+  fieldOrder.forEach((field) => {
     const input = document.getElementById(field);
     if (!input) return;
     input.value = "";
@@ -401,11 +463,26 @@ function initPasswordStrength() {
   if (!senhaInput) return;
 
   const reqs = {
-    length: { el: document.getElementById("req-length"), test: (v) => v.length >= 8 },
-    upper: { el: document.getElementById("req-upper"), test: (v) => /[A-Z]/.test(v) },
-    lower: { el: document.getElementById("req-lower"), test: (v) => /[a-z]/.test(v) },
-    number: { el: document.getElementById("req-number"), test: (v) => /[0-9]/.test(v) },
-    symbol: { el: document.getElementById("req-symbol"), test: (v) => /[^A-Za-z0-9]/.test(v) },
+    length: {
+      el: document.getElementById("req-length"),
+      test: (v) => v.length >= 8,
+    },
+    upper: {
+      el: document.getElementById("req-upper"),
+      test: (v) => /[A-Z]/.test(v),
+    },
+    lower: {
+      el: document.getElementById("req-lower"),
+      test: (v) => /[a-z]/.test(v),
+    },
+    number: {
+      el: document.getElementById("req-number"),
+      test: (v) => /[0-9]/.test(v),
+    },
+    symbol: {
+      el: document.getElementById("req-symbol"),
+      test: (v) => /[^A-Za-z0-9]/.test(v),
+    },
   };
 
   senhaInput.addEventListener("input", () => {
@@ -417,9 +494,14 @@ function initPasswordStrength() {
       if (ok) score++;
       r.el.classList.toggle("req-ok", ok);
       r.el.classList.toggle("req-fail", v.length > 0 && !ok);
-      r.el.querySelector("i").className = ok ? "fas fa-check-circle" : "fas fa-circle";
+      r.el.querySelector("i").className = ok
+        ? "fas fa-check-circle"
+        : "fas fa-circle";
     });
-    if (!v) { strengthBar?.classList.add("d-none"); return; }
+    if (!v) {
+      strengthBar?.classList.add("d-none");
+      return;
+    }
     strengthBar?.classList.remove("d-none");
     const levels = [
       { pct: "20%", color: "#ef3538", text: "Muito fraca" },
@@ -429,8 +511,14 @@ function initPasswordStrength() {
       { pct: "100%", color: "#2e7d32", text: "Forte" },
     ];
     const lvl = levels[score - 1] || levels[0];
-    if (fill) { fill.style.width = lvl.pct; fill.style.background = lvl.color; }
-    if (labelEl) { labelEl.textContent = lvl.text; labelEl.style.color = lvl.color; }
+    if (fill) {
+      fill.style.width = lvl.pct;
+      fill.style.background = lvl.color;
+    }
+    if (labelEl) {
+      labelEl.textContent = lvl.text;
+      labelEl.style.color = lvl.color;
+    }
   });
 }
 
@@ -454,8 +542,12 @@ function _updateProgress(step) {
 
 function _goToStep(step) {
   document.getElementById("step-" + _currentStep)?.classList.add("d-none");
-  document.getElementById("step-item-" + _currentStep)?.classList.remove("active");
-  document.getElementById("step-item-" + _currentStep)?.classList.add("completed");
+  document
+    .getElementById("step-item-" + _currentStep)
+    ?.classList.remove("active");
+  document
+    .getElementById("step-item-" + _currentStep)
+    ?.classList.add("completed");
   _currentStep = step;
   const panel = document.getElementById("step-" + _currentStep);
   if (panel) {
@@ -470,10 +562,14 @@ function _goToStep(step) {
 
 function _goBack(step) {
   document.getElementById("step-" + _currentStep)?.classList.add("d-none");
-  document.getElementById("step-item-" + _currentStep)?.classList.remove("active");
+  document
+    .getElementById("step-item-" + _currentStep)
+    ?.classList.remove("active");
   _currentStep = step;
   document.getElementById("step-" + _currentStep)?.classList.remove("d-none");
-  document.getElementById("step-item-" + _currentStep)?.classList.remove("completed");
+  document
+    .getElementById("step-item-" + _currentStep)
+    ?.classList.remove("completed");
   document.getElementById("step-item-" + _currentStep)?.classList.add("active");
   _updateProgress(_currentStep);
 }
@@ -510,8 +606,12 @@ function initStepper() {
     _goToStep(3);
   });
 
-  document.getElementById("back-2")?.addEventListener("click", () => _goBack(1));
-  document.getElementById("back-3")?.addEventListener("click", () => _goBack(2));
+  document
+    .getElementById("back-2")
+    ?.addEventListener("click", () => _goBack(1));
+  document
+    .getElementById("back-3")
+    ?.addEventListener("click", () => _goBack(2));
 }
 
 // ─── CEP — ViaCEP ─────────────────────────────────────────────────────────────
@@ -522,7 +622,10 @@ function initCepLookup() {
   cepInput.addEventListener("blur", async function () {
     const digits = this.value.replace(/\D/g, "");
     if (!digits) return;
-    if (!isValidCEP(digits)) { setFieldError("cep", "CEP inválido."); return; }
+    if (!isValidCEP(digits)) {
+      setFieldError("cep", "CEP inválido.");
+      return;
+    }
 
     this.disabled = true;
     try {
@@ -531,7 +634,11 @@ function initCepLookup() {
       const data = await res.json();
       if (data.erro) throw new Error("não encontrado");
 
-      const mapa = { cidade: data.localidade || "", bairro: data.bairro || "", rua: data.logradouro || "" };
+      const mapa = {
+        cidade: data.localidade || "",
+        bairro: data.bairro || "",
+        rua: data.logradouro || "",
+      };
       Object.entries(mapa).forEach(([id, val]) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -606,7 +713,47 @@ document.addEventListener("DOMContentLoaded", () => {
       if (f !== "terms") setFieldError(f, msg);
     });
 
-    if (Object.keys(errors).length === 0) { formEl.submit(); return; }
+    if (Object.keys(errors).length === 0) {
+      setRegisterButtonLoading(true);
+
+      fetch("/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(buildRegisterPayload()),
+      })
+        .then(async (res) => {
+          const contentType = res.headers.get("content-type") || "";
+          const body = contentType.includes("application/json")
+            ? await res.json()
+            : { ok: false, msg: await res.text() };
+
+          return { ok: res.ok, body };
+        })
+        .then(({ ok, body }) => {
+          if (ok && body.ok) {
+            alert(body.msg || "Cadastro realizado com sucesso.");
+            window.location.href = body.redirectTo || "/login";
+            return;
+          }
+
+          if (body?.errors) {
+            Object.entries(body.errors).forEach(([field, message]) => {
+              setFieldError(field, message);
+            });
+          }
+
+          alert(body?.msg || "Não foi possível concluir o cadastro.");
+        })
+        .catch(() => {
+          alert("Erro ao enviar o cadastro. Tente novamente.");
+        })
+        .finally(() => setRegisterButtonLoading(false));
+
+      return;
+    }
 
     // Navega à etapa do primeiro erro e foca o campo
     const firstErrField = fieldOrder.find((f) => errors[f]);

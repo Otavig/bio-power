@@ -11,7 +11,7 @@ const servicesRoutes = require("./routes/ServicesRoutes");
 
 const adminRoutes = require("./routes/AdminRoutes");
 const server = express();
-const PORT = 5000;
+const PORT = 5001;
 server.set("view engine", "ejs");
 server.set("layout", "./layout.ejs");
 server.use(express.static("public"));
