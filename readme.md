@@ -1,6 +1,6 @@
 <div align="center">
 
-![Bio Power Logo](website/src/imgs/img-logo-bio-power.png)
+![Bio Power Logo](Biopower/public/assets/imgs/img-logo-bio-power.png)
 
 </div>
 
