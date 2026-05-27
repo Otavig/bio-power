@@ -10,6 +10,7 @@ const autentificacaoRoutes = require("./routes/AutentificacaoRoutes");
 const servicesRoutes = require("./routes/ServicesRoutes");
 
 const adminRoutes = require("./routes/AdminRoutes");
+const recebimentoRouter = require("./routes/recebimentoRouter");
 const server = express();
 const PORT = 5000;
 server.set("view engine", "ejs");
@@ -39,6 +40,7 @@ server.use("/dashboard", adminRoutes);
 server.use("/store", storeRoutes);
 server.use("/about-us", aboutUsRoutes);
 server.use("/", servicesRoutes);
+server.use("/recebimento", recebimentoRouter);
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });
