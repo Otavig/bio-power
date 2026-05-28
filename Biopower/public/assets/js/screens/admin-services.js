@@ -199,10 +199,15 @@ document.addEventListener("DOMContentLoaded", function () {
   function filtrarContratos() {
     if (!tabelaContratos) return;
     const statusFiltro = filtroStatusContrato?.value || "";
-    const linhas = tabelaContratos.querySelectorAll("tbody tr");
+    const linhas = tabelaContratos.querySelectorAll("tbody tr.js-contract-row");
     linhas.forEach((tr) => {
       const status = tr.dataset.status || "";
-      tr.style.display = !statusFiltro || status === statusFiltro ? "table-row" : "none";
+      const visivel = !statusFiltro || status === statusFiltro;
+      tr.style.display = visivel ? "table-row" : "none";
+      const detalhe = tr.nextElementSibling;
+      if (detalhe && detalhe.classList.contains("adm-contract-detail") && !visivel) {
+        detalhe.style.display = "none";
+      }
     });
   }
 
@@ -211,16 +216,15 @@ document.addEventListener("DOMContentLoaded", function () {
     select.className = "adm-input adm-select-status js-contrato-status status-" + (select.value || "");
   }
 
+  function syncToggleIcon(row, expanded) {
+    const icon = row?.querySelector(".adm-contract-toggle");
+    if (!icon) return;
+    icon.textContent = expanded ? "▼" : "▲";
+  }
+
   if (tabelaContratos) {
     // inicializa classes de status
     tabelaContratos.querySelectorAll(".js-contrato-status").forEach(syncStatusClasses);
-
-    tabelaContratos.addEventListener("click", function (e) {
-      const btn = e.target.closest(".js-atualizar-contrato");
-      if (!btn) return;
-      const row = btn.closest("tr");
-      atualizarContrato(row);
-    });
 
     tabelaContratos.addEventListener("change", function (e) {
       const select = e.target.closest(".js-contrato-status");
@@ -229,8 +233,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (row) row.dataset.status = select.value;
         syncStatusClasses(select);
         filtrarContratos();
+        if (row) atualizarContrato(row);
       }
     });
+
+    tabelaContratos.addEventListener("click", function (e) {
+      if (e.target.closest(".js-contrato-status") || e.target.closest(".js-contrato-obs")) return;
+      const row = e.target.closest("tr.js-contract-row");
+      if (!row) return;
+      const detalhe = row.nextElementSibling;
+      if (!detalhe || !detalhe.classList.contains("adm-contract-detail")) return;
+      const expandido = detalhe.style.display === "none" || !detalhe.style.display;
+      detalhe.style.display = expandido ? "table-row" : "none";
+      syncToggleIcon(row, expandido);
+    });
+
+    tabelaContratos.querySelectorAll("tr.js-contract-row").forEach((row) => syncToggleIcon(row, false));
   }
 
   if (filtroStatusContrato) {
