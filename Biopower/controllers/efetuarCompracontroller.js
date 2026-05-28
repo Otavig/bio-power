@@ -1,6 +1,6 @@
 const efetuarCompraModel = require("../models/efetuarCompraModels");
 const pedidoCompraModels = require("../models/pedidoCompraModels");
-const produtoModels = require("../models/produtoModels");
+const produtosModels = require("../models/produtosModels");
 
 class efetuarCompraController {
   async cadastrar(req, res) {
@@ -13,9 +13,9 @@ class efetuarCompraController {
       let pedidoId = await pedidoCompra.gravar();
       pedidoCompra.pedidoValorTotal = 0;
       if (pedidoId) {
-        let produtoModels = new produtoModels();
+        let produtosModels = new produtosModels();
         for (let i = 0; i < req.body.length; i++) {
-          let produtoPedido = await produtoModels.buscarProduto(req.body[i].id);
+          let produtoPedido = await produtosModels.buscarProduto(req.body[i].id);
           let item = new efetuarCompraModel();
           item.pedidoId = pedidoId;
           item.produtoId = produtoPedido.produtoId;
@@ -41,7 +41,7 @@ class efetuarCompraController {
   }
 
   abrirTela(req, res) {
-    res.render("recebimento");
+    res.render("efetuarCompra");
   }
 }
 

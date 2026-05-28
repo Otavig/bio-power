@@ -343,6 +343,88 @@ class AdminController {
 
     return res.redirect("/dashboard?flash=servico-contrato-atualizado#services");
   }
+
+  async efetuarCompra(req, res) {
+    console.log("Pedidos de compra para serem realizados", req.body);
+    let ok = false;
+    let msg = "";
+
+    if (req.body.length > 0) {
+      let pedidoCompra = new pedidoCompraModels();
+      let pedidoId = await pedidoCompra.gravar();
+      pedidoCompra.pedidoValorTotal = 0;
+      if (pedidoId) {
+        let produtosModels = new produtosModels();
+        for (let i = 0; i < req.body.length; i++) {
+          let produtoPedido = await produtosModels.buscarProduto(req.body[i].id);
+          let item = new efetuarCompraModel();
+          item.pedidoId = pedidoId;
+          item.produtoId = produtoPedido.produtoId;
+          item.pedidoItemQuantidade = req.body[i].quantidade;
+          item.pedidoItemValor = produtoPedido.produtoValor;
+          item.pedidoItemValorTotal =
+            item.pedidoItemQuantidade * item.pedidoItemValor;
+          await item.registrarCompra();
+          pedidoCompra.pedidoValorTotal += item.pedidoItemValorTotal;
+        }
+
+        await pedidoCompra.atualizar();
+        ok = true;
+        msg = "Pedido gerado com sucesso!";
+      } else {
+        msg = "Erro ao gerar pedido.";
+      }
+    } else {
+      msg = "Nenhum produto enviado!";
+    }
+
+    res.send({ ok, msg });
+  }
+
+  abrirTela(req, res) {
+    res.render("efetuarCompra");
+  }
+
+   async recebimentoCompras(req, res) {
+    console.log("Compras recebidas:", req.body);
+
+    let ok = false;
+    let msg = "";
+
+    let pedidoId = req.body.pedidoId;
+
+    if (pedidoId > 0) {
+      let itensPedidoCompraModels = new efetuarCompraModels();
+
+      let itens = await itensPedidoCompraModels.buscarItensPedido(pedidoId);
+
+      if (itens.length > 0) {
+        let produtoModels = new produtoModels();
+        for (let i = 0; i < itens.length; i++) {
+          let produto = await produtoModels.buscarProduto(itens[i].produtoId);
+
+          produto.produtoQuantidade += itens[i].pedidoItemQuantidade;
+          await produto.atualizar();
+        }
+        let pedidoCompra = new pedidoCompraModels();
+
+        pedidoCompra.pedidoId = pedidoId;
+        pedidoCompra.pedidoStatus = "Recebido";
+        await pedidoCompra.atualizar();
+
+        ok = true;
+        msg = "Compra recebida com sucesso!";
+      } else {
+        msg = "Nenhum item encontrado para o pedido.";
+      }
+    } else {
+      msg = "ID do pedido inválido.";
+    }
+    res.send({ ok, msg });
+  }
+  abrirTela(req, res) {
+    res.render("recebimento");
+  }
 }
 
 module.exports = AdminController;

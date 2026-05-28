@@ -1,5 +1,5 @@
 const pedidoCompraModels = require("../models/pedidoCompraModels");
-const produtoModels = require("../models/produtoModels");
+const produtoModels = require("../models/produtosModels");
 const efetuarCompraModel = require("../models/efetuarCompraModels");
 
 class recebimentoCompraController {

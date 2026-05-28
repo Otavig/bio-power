@@ -1,0 +1,395 @@
+<div id="novaCompra" class="modal nova-compra-modal">
+  <div class="modal-content nova-compra-card">
+    <button type="button" id="fecharNovaCompra" class="modal-close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="nova-compra-header">
+      <span class="nova-compra-tag">Nova compra</span>
+      <h2>Registrar nova compra</h2>
+      <p>Escolha os produtos que deseja comprar e informe a quantidade antes de finalizar.</p>
+    </div>
+
+    <form action="/efetuar-compra" method="POST" class="nova-compra-form" id="novaCompraForm">
+      <div class="form-row">
+        <label for="abrirPickerProdutos">Produtos</label>
+        <button type="button" id="abrirPickerProdutos" class="picker-input">
+          Clique para selecionar produtos
+        </button>
+      </div>
+
+      <div class="selected-items-wrapper">
+        <div class="section-title">
+          <h3>Produtos selecionados</h3>
+          <p>Ajuste a quantidade dos itens escolhidos.</p>
+        </div>
+        <div id="novaCompraSelectedList" class="selected-items">
+          <p class="empty-state">Nenhum produto selecionado.</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="totalQuantidade">Quantidade total</label>
+          <input id="totalQuantidade" type="number" name="totalQuantidade" readonly placeholder="0" />
+        </div>
+      </div>
+
+      <input type="hidden" name="selectedProducts" id="novaCompraSelectedProducts" />
+      <p id="novaCompraError" class="form-error"></p>
+
+      <div class="form-actions">
+        <button type="button" id="btnConfirmarCompra" class="btn-submit">Confirmar compra</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="productPickerModal" class="modal product-picker-modal">
+  <div class="modal-content product-picker-card">
+    <button type="button" id="fecharProductPicker" class="modal-close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="nova-compra-header">
+      <span class="nova-compra-tag">Selecionar produtos</span>
+      <h2>Produtos da loja</h2>
+      <p>Escolha os produtos que serão adicionados ao pedido.</p>
+    </div>
+    <div class="product-list" id="productPickerList">
+      <% (products || []).forEach((produto, index) => { %>
+        <article class="product-card" data-index="<%= index %>">
+          <div class="product-summary">
+            <div>
+              <strong><%= produto.nome %></strong>
+              <span><%= produto.categoria %> • <%= produto.marca %></span>
+            </div>
+            <div class="product-stock-info">
+              <span class="product-stock <%= produto.estoque < 5 ? 'stock-low' : '' %>">Estoque: <%= produto.estoque %></span>
+              <% if (produto.estoque < 5) { %>
+                <span class="stock-warning">Estoque baixo</span>
+              <% } %>
+            </div>
+          </div>
+          <div class="product-actions">
+            <span class="product-price"><%= produto.preco %></span>
+            <button type="button" class="btn-select-product" data-index="<%= index %>">Selecionar</button>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<div id="resumoCompraModal" class="modal resumo-compra-modal">
+  <div class="modal-content resumo-compra-card">
+    <button type="button" id="fecharResumoCompra" class="modal-close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="nova-compra-header">
+      <span class="nova-compra-tag">Resumo da compra</span>
+      <h2>Produtos escolhidos</h2>
+      <p>Confira os produtos e quantidades antes de finalizar.</p>
+    </div>
+    <div id="resumoCompraList" class="selected-items"></div>
+    <div class="resumo-infos">
+      <p><strong>Lote:</strong> <span id="resumoLote"></span></p>
+      <p><strong>Validade:</strong> <span id="resumoValidade"></span></p>
+      <p><strong>Quantidade total:</strong> <span id="resumoTotal"></span></p>
+    </div>
+    <div class="form-actions">
+      <button type="button" id="btnCancelarResumo" class="adm-btn adm-btn--secondary">Editar</button>
+      <button type="button" id="btnFinalizarCompra" class="btn-submit">Finalizar compra</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .nova-compra-modal,
+  .product-picker-modal,
+  .resumo-compra-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.55);
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .nova-compra-card,
+  .product-picker-card,
+  .resumo-compra-card {
+    width: min(100%, 960px);
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.16);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #f8fafc;
+    color: #111827;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .modal-close:hover {
+    background: #e2e8f0;
+  }
+
+  .nova-compra-header {
+    display: grid;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+  }
+
+  .nova-compra-tag {
+    display: inline-flex;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 0.82rem;
+  }
+
+  .nova-compra-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+
+  .nova-compra-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .selected-items,
+  .product-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .product-card,
+  .selected-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px 18px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .product-summary,
+  .selected-product-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .product-summary strong,
+  .selected-product-summary strong {
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .product-summary span,
+  .selected-product-summary span {
+    color: #475569;
+    font-size: 0.95rem;
+  }
+
+  .product-stock-info,
+  .selected-item-details {
+    display: grid;
+    gap: 8px;
+  }
+
+  .product-stock {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .stock-low {
+    color: #b91c1c;
+  }
+
+  .stock-warning {
+    color: #b91c1c;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .product-actions,
+  .selected-product-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .product-price {
+    color: #1d4ed8;
+    font-weight: 700;
+  }
+
+  .btn-select-product,
+  .btn-remove-product {
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 14px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-remove-product {
+    background: #ef4444;
+  }
+
+  .btn-select-product:hover {
+    background: #1d4ed8;
+  }
+
+  .btn-remove-product:hover {
+    background: #dc2626;
+  }
+
+  .selected-item input {
+    width: 100px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 1rem;
+    background: #ffffff;
+  }
+
+  .empty-state {
+    margin: 0;
+    color: #64748b;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 10px;
+  }
+
+  .picker-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    color: #111827;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .picker-input:hover {
+    border-color: #2563eb;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .form-row label {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.96rem;
+  }
+
+  .form-row input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    color: #111827;
+    font-size: 1rem;
+  }
+
+  .form-row input:focus,
+  .picker-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .form-error {
+    color: #b91c1c;
+    font-size: 0.95rem;
+    margin: 0;
+    min-height: 20px;
+  }
+
+  .btn-submit {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    background: #1d4ed8;
+  }
+
+  .resumo-infos {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+    color: #475569;
+  }
+
+  .resumo-infos p {
+    margin: 0;
+  }
+
+  @media (max-width: 720px) {
+    .nova-compra-card,
+    .product-picker-card,
+    .resumo-compra-card {
+      margin: 24px auto;
+      padding: 24px;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
