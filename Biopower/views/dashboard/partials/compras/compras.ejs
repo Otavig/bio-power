@@ -1,0 +1,520 @@
+<!--compras-->
+<section id="compras" class="adm-section">
+  <div class="adm-page-header">
+    <div>
+      <h1>Compras</h1>
+      <p>Gerenciamento de compras a serem realizadas e recebidas.</p>
+    </div>
+
+    <button class="adm-btn adm-btn--primary" id="abrirNovaCompra">
+      <i class="fa-solid fa-plus"></i> Nova compra
+    </button>
+    
+    <div class="adm-card">
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Compra</th>
+              <th>Fornecedor</th>
+              <th>Data</th>
+              <th>Itens</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#C-2026-001</td>
+              <td>NutriSuplementos Ltda.</td>
+              <td>10/03/2026</td>
+              <td>9 itens</td>
+              <td>R$ 1.250,00</td>
+              <td><span class="adm-badge adm-badge--warning">Pendente</span></td>
+              <td><button class="adm-btn-icon" id="abrirDetalheCompra"><i class="fa-solid fa-info"></i></button></td>
+            </tr>
+            <tr>
+              <td>#C-2026-002</td>
+              <td>Suplementos Brasil S.A.</td>
+              <td>12/03/2026</td>
+              <td>3 itens</td>
+              <td>R$ 750,00</td>
+              <td><span class="adm-badge adm-badge--success">Recebida</span></td>
+              <td><button class="adm-btn-icon"><i class="fa-solid fa-info"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    #compras .adm-card {
+      margin: 0 auto;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    #compras .adm-table-wrap {
+      max-width: 100%;
+    }
+
+    #compras .adm-table {
+      min-width: 700px;
+    }
+  </style>
+
+  <main>
+    <%- include('./detalhesCompra') %>
+    <%- include('./confirmarRecebimento') %>
+    <%- include('./novaCompra') %>
+  </main>
+
+  <script>
+    const modal = document.getElementById("detalheCompra");
+    const btnAbrir = document.getElementById("abrirDetalheCompra");
+    const spanFechar = document.querySelector("#detalheCompra .fechar");
+    const btnReceberCompra = document.getElementById("receberCompraBtn");
+    const statusDetalheCompra = document.getElementById("statusDetalheCompra");
+    const rowStatus = btnAbrir ? btnAbrir.closest("tr")?.querySelector("span.adm-badge") : null;
+
+    const confirmModal = document.getElementById("confirmarRecebimento");
+    const confirmForm = document.getElementById("confirmarRecebimentoForm");
+    const loteInput = document.getElementById("loteProduto");
+    const validadeInput = document.getElementById("validadeProduto");
+    const btnFecharConfirm = document.getElementById("fecharConfirmarRecebimento");
+
+    const errorModal = document.getElementById("erroValidadeModal");
+    const errorMessage = document.getElementById("erroValidadeMensagem");
+    const btnFecharErro = document.getElementById("fecharErroValidade");
+
+    const dashboardProducts = <%- JSON.stringify(products || []) %>;
+  const modalNovaCompra = document.getElementById("novaCompra");
+  const btnAbrirNovaCompra = document.getElementById("abrirNovaCompra");
+  const btnFecharNovaCompra = document.getElementById("fecharNovaCompra");
+
+  const productPickerModal = document.getElementById("productPickerModal");
+  const btnAbrirPickerProdutos = document.getElementById("abrirPickerProdutos");
+  const btnFecharProductPicker = document.getElementById("fecharProductPicker");
+
+  const resumoCompraModal = document.getElementById("resumoCompraModal");
+  const btnFecharResumoCompra = document.getElementById("fecharResumoCompra");
+  const btnCancelarResumo = document.getElementById("btnCancelarResumo");
+    const btnFinalizarCompra = document.getElementById("btnFinalizarCompra");
+    const resumoCompraList = document.getElementById("resumoCompraList");
+    // const resumoLote = document.getElementById("resumoLote");
+    // const resumoValidade = document.getElementById("resumoValidade");
+    const resumoTotal = document.getElementById("resumoTotal");
+    let selectedProducts = [];
+    let productPickerEventsAttached = false;
+
+    const today = new Date();
+    const todayIso = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    function exibirErroValidacao(mensagem) {
+      if (errorMessage) {
+        errorMessage.textContent = mensagem;
+      }
+      if (errorModal) {
+        errorModal.style.display = "block";
+      }
+    }
+
+    function setNovaCompraError(mensagem) {
+      if (novaCompraError) {
+        novaCompraError.textContent = mensagem;
+      }
+    }
+
+    function clearNovaCompraError() {
+      if (novaCompraError) {
+        novaCompraError.textContent = "";
+      }
+    }
+
+    function atualizarStatusRecebido() {
+      if (statusDetalheCompra) {
+        statusDetalheCompra.textContent = "Recebida";
+        statusDetalheCompra.classList.remove("adm-badge--warning");
+        statusDetalheCompra.classList.add("adm-badge--success");
+      }
+
+      if (rowStatus) {
+        rowStatus.textContent = "Recebida";
+        rowStatus.classList.remove("adm-badge--warning");
+        rowStatus.classList.add("adm-badge--success");
+      }
+
+      if (btnReceberCompra) {
+        btnReceberCompra.style.display = "none";
+        btnReceberCompra.disabled = true;
+      }
+    }
+
+    function atualizarQuantidadeTotal() {
+      const total = selectedProducts.reduce((sum, item) => sum + Number(item.quantidade), 0);
+      if (totalQuantidadeInput) {
+        totalQuantidadeInput.value = total || "0";
+      }
+    }
+
+    function atualizarInputSelecionados() {
+      if (selectedProductsInput) {
+        selectedProductsInput.value = JSON.stringify(selectedProducts.map(item => ({
+          nome: item.nome,
+          quantidade: item.quantidade,
+          estoque: item.estoque,
+          categoria: item.categoria,
+          marca: item.marca,
+        })));
+      }
+    }
+
+    function renderSelectedProducts() {
+      if (!selectedList) return;
+
+      if (selectedProducts.length === 0) {
+        selectedList.innerHTML = '<p class="empty-state">Nenhum produto selecionado.</p>';
+        atualizarQuantidadeTotal();
+        atualizarInputSelecionados();
+        return;
+      }
+
+      selectedList.innerHTML = selectedProducts.map((product) => {
+        const baixoEstoque = product.estoque < 3;
+        return `
+          <article class="selected-item">
+            <div class="selected-product-summary">
+              <div>
+                <strong>${product.nome}</strong>
+                <span>${product.categoria} • ${product.marca}</span>
+              </div>
+              <div class="selected-item-details">
+                <span class="product-stock ${baixoEstoque ? 'stock-low' : ''}">Estoque atual: ${product.estoque}</span>
+                ${baixoEstoque ? '<span class="stock-warning">Atenção: estoque baixo</span>' : ''}
+              </div>
+            </div>
+            <div class="selected-product-actions">
+              <label>
+                Quantidade
+                <input type="number" min="1" value="${product.quantidade}" data-index="${product.index}" class="selected-quantity" />
+              </label>
+              <button type="button" class="btn-remove-product" data-index="${product.index}">Remover</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      selectedList.querySelectorAll(".selected-quantity").forEach(input => {
+        input.addEventListener("change", function () {
+          const index = Number(this.dataset.index);
+          const quantidade = Math.max(1, Number(this.value) || 1);
+          const selected = selectedProducts.find(item => item.index === index);
+          if (selected) {
+            selected.quantidade = quantidade;
+            this.value = quantidade;
+            atualizarQuantidadeTotal();
+            atualizarInputSelecionados();
+          }
+        });
+      });
+
+      selectedList.querySelectorAll(".btn-remove-product").forEach(button => {
+        button.addEventListener("click", function () {
+          const index = Number(this.dataset.index);
+          selectedProducts = selectedProducts.filter(item => item.index !== index);
+          renderSelectedProducts();
+        });
+      });
+
+      atualizarQuantidadeTotal();
+      atualizarInputSelecionados();
+    }
+
+    function attachProductPickerEvents() {
+      if (!productPickerList || productPickerEventsAttached) return;
+      productPickerEventsAttached = true;
+      productPickerList.querySelectorAll(".btn-select-product").forEach(button => {
+        button.addEventListener("click", function () {
+          const index = Number(this.dataset.index);
+          const produto = dashboardProducts[index];
+          if (!produto) return;
+
+          const existing = selectedProducts.find(item => item.index === index);
+          if (existing) {
+            existing.quantidade += 1;
+          } else {
+            selectedProducts.push({
+              index,
+              nome: produto.nome,
+              categoria: produto.categoria,
+              marca: produto.marca,
+              estoque: produto.estoque,
+              quantidade: 1,
+            });
+          }
+
+          if (productPickerModal) {
+            productPickerModal.style.display = "none";
+          }
+          if (modalNovaCompra) {
+            modalNovaCompra.style.display = "block";
+          }
+          clearNovaCompraError();
+          renderSelectedProducts();
+        });
+      });
+    }
+
+    function renderResumoCompra() {
+      if (!resumoCompraList || !resumoLote || !resumoValidade || !resumoTotal) return;
+
+      resumoCompraList.innerHTML = selectedProducts.map((product) => {
+        return `
+          <article class="selected-item">
+            <div class="selected-product-summary">
+              <div>
+                <strong>${product.nome}</strong>
+                <span>${product.categoria} • ${product.marca}</span>
+              </div>
+              <div class="selected-item-details">
+                <span>Quantidade: ${product.quantidade}</span>
+                <span>Estoque atual: ${product.estoque}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      resumoLote.textContent = document.getElementById("numeroLote")?.value || "-";
+      resumoValidade.textContent = document.getElementById("dataValidade")?.value || "-";
+      resumoTotal.textContent = totalQuantidadeInput?.value || "0";
+    }
+
+    if (btnAbrir && modal) {
+      btnAbrir.addEventListener("click", function () {
+        modal.style.display = "block";
+        if (statusDetalheCompra && statusDetalheCompra.textContent.trim() === "Recebida") {
+          btnReceberCompra.style.display = "none";
+        }
+      });
+    }
+
+    if (spanFechar && modal) {
+      spanFechar.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+    }
+
+    if (btnReceberCompra) {
+      if (statusDetalheCompra && statusDetalheCompra.textContent.trim() === "Recebida") {
+        btnReceberCompra.style.display = "none";
+      }
+
+      btnReceberCompra.addEventListener("click", function () {
+        if (confirmModal) {
+          confirmModal.style.display = "block";
+        }
+      });
+    }
+
+    if (btnFecharConfirm && confirmModal) {
+      btnFecharConfirm.addEventListener("click", function () {
+        confirmModal.style.display = "none";
+      });
+    }
+
+    if (confirmForm) {
+      confirmForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const lote = loteInput?.value.trim();
+        const validade = validadeInput?.value;
+        const validadeDate = validade ? new Date(validade + "T23:59:59") : null;
+
+        if (!lote || !validade) {
+          exibirErroValidacao("Preencha o lote e a data de validade antes de confirmar.");
+          return;
+        }
+
+        if (!validadeDate || validadeDate < todayIso) {
+          exibirErroValidacao("A data de validade é inconsistente. Informe uma data válida no futuro ou hoje.");
+          return;
+        }
+
+        if (confirmModal) {
+          confirmModal.style.display = "none";
+        }
+
+        atualizarStatusRecebido();
+      });
+    }
+
+    if (btnFecharErro && errorModal) {
+      btnFecharErro.addEventListener("click", function () {
+        errorModal.style.display = "none";
+      });
+    }
+
+     // ===== ABRIR MODAL NOVA COMPRA =====
+
+   if (btnAbrirNovaCompra && modalNovaCompra) {
+    btnAbrirNovaCompra.addEventListener("click", () => {
+      modalNovaCompra.style.display = "flex";
+
+      // reset opcional
+      selectedProducts = [];
+      renderSelectedProducts();
+      clearNovaCompraError();
+
+      console.log("Modal Nova Compra aberto");
+    });
+  }
+
+// ===== FECHAR MODAL NOVA COMPRA =====
+  if (btnFecharNovaCompra && modalNovaCompra) {
+    btnFecharNovaCompra.addEventListener("click", () => {
+      modalNovaCompra.style.display = "none";
+
+      console.log("Modal Nova Compra fechado");
+    });
+  }
+
+ // ===== ABRIR PICKER DE PRODUTOS =====
+  if (btnAbrirPickerProdutos && productPickerModal) {
+    btnAbrirPickerProdutos.addEventListener("click", () => {
+      productPickerModal.style.display = "flex";
+
+      // esconde modal principal
+      if (modalNovaCompra) {
+        modalNovaCompra.style.display = "none";
+      }
+
+      attachProductPickerEvents();
+
+      console.log("Picker de produtos aberto");
+    });
+  }
+
+
+  // ===== FECHAR PICKER =====
+  if (btnFecharProductPicker && productPickerModal) {
+    btnFecharProductPicker.addEventListener("click", () => {
+      productPickerModal.style.display = "none";
+
+      // volta modal principal
+      if (modalNovaCompra) {
+        modalNovaCompra.style.display = "flex";
+      }
+
+      console.log("Picker fechado");
+    });
+  }
+    if (btnConfirmarCompra) {
+      btnConfirmarCompra.addEventListener("click", function () {
+        setNovaCompraError("");
+        if (selectedProducts.length === 0) {
+          setNovaCompraError("Selecione pelo menos um produto antes de confirmar.");
+          return;
+        }
+
+        // const loteValor = document.getElementById("numeroLote")?.value.trim();
+        // const validadeValor = document.getElementById("dataValidade")?.value;
+        // if (!loteValor || !validadeValor) {
+        //   setNovaCompraError("Informe lote e validade antes de confirmar.");
+        //   return;
+        // }
+
+        renderResumoCompra();
+        if (resumoCompraModal) {
+          resumoCompraModal.style.display = "block";
+        }
+      });
+    }
+
+    // ===== FECHAR RESUMO =====
+  if (btnFecharResumoCompra && resumoCompraModal) {
+    btnFecharResumoCompra.addEventListener("click", () => {
+      resumoCompraModal.style.display = "none";
+    });
+  }
+
+   // ===== BOTÃO EDITAR RESUMO =====
+  if (btnCancelarResumo && resumoCompraModal) {
+    btnCancelarResumo.addEventListener("click", () => {
+      resumoCompraModal.style.display = "none";
+
+      if (modalNovaCompra) {
+        modalNovaCompra.style.display = "flex";
+      }
+    });
+  }
+
+   // ===== FECHAR AO CLICAR FORA =====
+  const modais = [
+    modalNovaCompra,
+    productPickerModal,
+    resumoCompraModal
+  ];
+
+  modais.forEach((modal) => {
+    if (!modal) return;
+
+    modal.addEventListener("click", (event) => {
+      // fecha apenas clicando no fundo
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+
+
+    if (btnFinalizarCompra && document.getElementById("novaCompraForm")) {
+      btnFinalizarCompra.addEventListener("click", function () {
+        if (selectedProducts.length === 0) {
+          setNovaCompraError("Selecione pelo menos um produto antes de finalizar.");
+          return;
+        }
+        if (selectedProductsInput) {
+          atualizarInputSelecionados();
+        }
+        document.getElementById("novaCompraForm").submit();
+      });
+    }
+
+    if (document.getElementById("novaCompraForm")) {
+      document.getElementById("novaCompraForm").addEventListener("submit", function (event) {
+        setNovaCompraError("");
+        if (selectedProducts.length === 0) {
+          event.preventDefault();
+          setNovaCompraError("Selecione pelo menos um produto antes de enviar a compra.");
+          return;
+        }
+        atualizarInputSelecionados();
+      });
+    }
+
+    // window.addEventListener("click", function (event) {
+    //   if (
+    //     event.target === modal ||
+    //     event.target === confirmModal ||
+    //     event.target === errorModal ||
+    //     event.target === modalNovaCompra ||
+    //     event.target === productPickerModal ||
+    //     event.target === resumoCompraModal
+    //   ) {
+    //     event.target.style.display = "none";
+    //   }
+    // });
+
+      // ===== DEBUG =====
+  console.log({
+    modalNovaCompra,
+    btnAbrirNovaCompra,
+    btnFecharNovaCompra,
+    productPickerModal,
+    resumoCompraModal
+  });
+  </script>
+     

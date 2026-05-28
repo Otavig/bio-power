@@ -9,6 +9,8 @@ const storeRoutes = require("./routes/StoreRoutes");
 const aboutUsRoutes = require("./routes/AboutUsRoutes");
 const autentificacaoRoutes = require("./routes/AutentificacaoRoutes");
 const servicesRoutes = require("./routes/ServicesRoutes");
+const recebimentoCompraRoutes = require("./routes/recebimentoCompraRoutes");
+const efetuarCompraRoutes = require("./routes/efetuarCompraroutes");
 
 const adminRoutes = require("./routes/AdminRoutes");
 const recebimentoRouter = require("./routes/recebimentoRouter");
@@ -42,6 +44,8 @@ server.use("/dashboard", adminRoutes);
 server.use("/store", storeRoutes);
 server.use("/about-us", aboutUsRoutes);
 server.use("/", servicesRoutes);
+server.use("/receber-compra", recebimentoCompraRoutes);
+server.use("/efetuar-compra", efetuarCompraRoutes);
 server.use("/recebimento", recebimentoRouter);
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);

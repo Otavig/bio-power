@@ -1,0 +1,111 @@
+<!--detalhes das compras-->
+
+<div id="detalheCompra" class="modal">
+  <div class="modal-content">
+    <span class="fechar">&times;</span>
+    <h2>Detalhes da compra</h2>
+    <p>Informações detalhadas sobre a compra realizada.</p>
+
+    <button type="button" class="adm-btn adm-btn--secondary" onclick="document.getElementById('detalheCompra').style.display='none'">
+      <i class="fa-solid fa-arrow-left"></i> Voltar
+    </button>
+
+    <div class="adm-card">
+      <h2>Informações da Compra</h2>
+      <p><strong>Fornecedor:</strong> NutriSuplementos Ltda.</p>
+      <p><strong>Data da Compra:</strong> 12/03/2026</p>
+      <p><strong>Status:</strong> <span id="statusDetalheCompra" class="adm-badge adm-badge--warning">Pendente</span></p>
+
+      <h3>Itens Comprados</h3>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Preço Unitário</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Whey Protein Concentrado 1kg</td>
+              <td>2</td>
+              <td>R$ 150,00</td>
+              <td>R$ 300,00</td>
+            </tr>
+            <tr>
+              <td>Aminoácidos BCAA 500g</td>
+              <td>1</td>
+              <td>R$ 200,00</td>
+              <td>R$ 200,00</td>
+            </tr>
+            <tr>
+              <td>Creatina Monohidratada 300g</td>
+              <td>6</td>
+              <td>R$ 125,00</td>
+              <td>R$ 750,00</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3">Total da Compra:</th>
+              <th>R$ 1.250,00</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="adm-btn adm-btn--primary" id="receberCompraBtn">
+          <i class="fa-solid fa-box-open"></i> Confirmar recebimento
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 6% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 900px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .fechar {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .fechar:hover,
+  .fechar:focus {
+    color: #000;
+  }
+
+  .modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+</style>
+

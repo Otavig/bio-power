@@ -1,0 +1,140 @@
+<div id="confirmarRecebimento" class="modal confirmar-recebimento-modal">
+  <div class="modal-content confirmar-recebimento-card">
+    <span id="fecharConfirmarRecebimento" class="fechar">&times;</span>
+    <h2>Confirmar recebimento</h2>
+    <p>Informe o lote e a validade dos produtos para concluir o recebimento.</p>
+
+    <form id="confirmarRecebimentoForm" class="confirmar-recebimento-form">
+      <div class="form-row">
+        <label for="loteProduto">Numero do lote</label>
+        <input
+          id="loteProduto"
+          name="loteProduto"
+          type="text"
+          required
+          placeholder="Digite o numero do lote"
+        />
+      </div>
+
+      <div class="form-row">
+        <label for="validadeProduto">Data de validade</label>
+        <input
+          id="validadeProduto"
+          name="validadeProduto"
+          type="date"
+          required
+        />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="adm-btn adm-btn--primary">
+          Confirmar recebimento
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="erroValidadeModal" class="modal erro-validade-modal">
+  <div class="modal-content erro-validade-card">
+    <span id="fecharErroValidade" class="fechar">&times;</span>
+    <h2>Erro de validação</h2>
+    <p id="erroValidadeMensagem">
+      A data de validade informada é inconsistente.
+    </p>
+    <div class="form-actions">
+      <button
+        type="button"
+        class="adm-btn adm-btn--secondary"
+        onclick="
+          document.getElementById('erroValidadeModal').style.display = 'none'
+        "
+      >
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .confirmar-recebimento-card,
+  .erro-validade-card {
+    background-color: #ffffff;
+    margin: 8% auto;
+    padding: 26px 28px;
+    border: 1px solid #dde3eb;
+    width: min(100%, 560px);
+    border-radius: 20px;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.16);
+  }
+
+  .confirmar-recebimento-modal,
+  .erro-validade-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(15, 23, 42, 0.65);
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  #confirmarRecebimento h2,
+  #erroValidadeModal h2 {
+    margin-top: 0;
+    font-size: 1.8rem;
+    color: #111827;
+  }
+
+  #confirmarRecebimento p,
+  #erroValidadeModal p {
+    color: #475569;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .confirmar-recebimento-form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 8px;
+  }
+
+  .form-row label {
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .form-row input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    color: #111827;
+    font-size: 1rem;
+  }
+
+  .form-row input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  @media (max-width: 620px) {
+    .confirmar-recebimento-card,
+    .erro-validade-card {
+      margin: 16% auto;
+      padding: 22px;
+    }
+  }
+</style>
