@@ -14,8 +14,8 @@ class Database {
     this.#conexao = mysql.createPool({
       host: "127.0.0.1",
       database: "bio_sys_db",
-      user: "dev",
-      password: "1234",
+      user: "rootbio",
+      password: "root",
       port: 3306,
       idleTimeout: 30000,
       connectionLimit: 50,
