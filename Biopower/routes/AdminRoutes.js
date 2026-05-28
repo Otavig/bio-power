@@ -34,6 +34,9 @@ router.get("/", ensureAdmin, (req, res, next) => {
 });
 // rota legado para /dashboard/dashboard
 router.get("/dashboard", ensureAdmin, (req, res) => res.redirect("/dashboard"));
+router.get("/reports/pdf", ensureAdmin, (req, res, next) =>
+  Promise.resolve(controller.exportReportPdf(req, res)).catch(next),
+);
 router.post("/products", ensureAdmin, upload.single("imagem"), (req, res, next) =>
   Promise.resolve(controller.addProduct(req, res)).catch(next),
 );

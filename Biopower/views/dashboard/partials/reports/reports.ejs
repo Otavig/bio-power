@@ -1,16 +1,228 @@
 <!-- RELATÓRIOS -->
 <section class="adm-section" id="reports">
+  <!-- PAGE HEADER -->
   <div class="adm-page-header">
     <div>
       <h1>Relatórios & Métricas</h1>
       <p>Análise estratégica de desempenho da operação.</p>
     </div>
-    <button class="adm-btn adm-btn--ghost">
-      <i class="fa-solid fa-download"></i> Exportar CSV
-    </button>
+    <div class="adm-page-header-actions">
+      <button class="adm-btn adm-btn--ghost">
+        <i class="fa-solid fa-download"></i> Exportar CSV
+      </button>
+    </div>
   </div>
-  <div class="adm-card adm-card--chart" style="margin-bottom: 1.5rem">
-    <div class="adm-card-header"><h3>Vendas mensais — 2026</h3></div>
+
+  <!-- FILTROS RÁPIDOS -->
+  <div class="adm-card" style="margin-bottom: 24px;">
+    <div class="adm-card-header">
+      <h3>Período de análise</h3>
+    </div>
+    <div class="adm-filters">
+      <div class="adm-form-group" style="min-width: 160px;">
+        <label>Data inicial</label>
+        <input type="date" class="adm-input adm-input--date" />
+      </div>
+      <div class="adm-form-group" style="min-width: 160px;">
+        <label>Data final</label>
+        <input type="date" class="adm-input adm-input--date" />
+      </div>
+      <button class="adm-btn adm-btn--primary" style="margin-top: 22px;">
+        <i class="fa-solid fa-filter"></i> Filtrar
+      </button>
+    </div>
+  </div>
+
+  <!-- RELATÓRIOS DE PRODUTOS E ESTOQUE -->
+  <h2 style="font-size: 1rem; font-weight: 700; margin: 28px 0 16px; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; color: var(--color-text-muted);">
+    <i class="fa-solid fa-box"></i> Gestão de Estoque
+  </h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <!-- PRODUTOS PRÓXIMOS AO VENCIMENTO -->
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-calendar-xmark" style="color: var(--color-primary); font-size: 1.1rem;"></i>
+          <h3>Produtos próximos ao vencimento</h3>
+        </div>
+      </div>
+      <form action="/dashboard/reports/pdf" method="get" class="adm-form" style="display: flex; flex-direction: column; gap: 18px; min-height: 340px;">
+        <input type="hidden" name="report" value="products" />
+        
+        <div class="adm-form-group">
+          <label>Período</label>
+          <select name="period" class="adm-select">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Categoria</label>
+          <select name="productType" class="adm-select">
+            <option value="">Todas as categorias</option>
+            <% categorias.forEach(cat => { %>
+              <option value="<%= cat.nome %>"><%= cat.nome %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <button class="adm-btn adm-btn--primary" type="submit" style="margin-top: auto; width: 100%;">
+          <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        </button>
+      </form>
+    </div>
+
+    <!-- RELATÓRIO DE ESTOQUE -->
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-warehouse" style="color: var(--color-primary); font-size: 1.1rem;"></i>
+          <h3>Relatório de estoque</h3>
+        </div>
+      </div>
+      <form action="/dashboard/reports/pdf" method="get" class="adm-form" style="display: flex; flex-direction: column; gap: 18px; min-height: 340px;">
+        <input type="hidden" name="report" value="inventory" />
+        
+        <div class="adm-form-group">
+          <label>Período</label>
+          <select name="period" class="adm-select">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Movimento</label>
+          <select name="movementType" class="adm-select">
+            <option value="">Todos</option>
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Categoria</label>
+          <select name="itemType" class="adm-select">
+            <option value="">Todas as categorias</option>
+            <% categorias.forEach(cat => { %>
+              <option value="<%= cat.nome %>"><%= cat.nome %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <button class="adm-btn adm-btn--primary" type="submit" style="margin-top: auto; width: 100%;">
+          <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- RELATÓRIOS FINANCEIROS -->
+  <h2 style="font-size: 1rem; font-weight: 700; margin: 28px 0 16px; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; color: var(--color-text-muted);">
+    <i class="fa-solid fa-money-bill"></i> Gestão Financeira
+  </h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <!-- CONTAS A PAGAR -->
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-credit-card" style="color: var(--color-warning); font-size: 1.1rem;"></i>
+          <h3>Contas a pagar</h3>
+        </div>
+      </div>
+      <form action="/dashboard/reports/pdf" method="get" class="adm-form" style="display: flex; flex-direction: column; gap: 18px; min-height: 400px;">
+        <input type="hidden" name="report" value="payables" />
+        
+        <div class="adm-form-group">
+          <label>Período</label>
+          <select name="period" class="adm-select">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Tipo de despesa</label>
+          <input type="text" name="expenseType" placeholder="Descrição" class="adm-input" />
+        </div>
+
+        <div class="adm-form-group">
+          <label>Fornecedor</label>
+          <select name="supplier" class="adm-select">
+            <option value="">Todos os fornecedores</option>
+            <% fornecedores.forEach(f => { %>
+              <option value="<%= f.nome %>"><%= f.nome %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <button class="adm-btn adm-btn--primary" type="submit" style="margin-top: auto; width: 100%;">
+          <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        </button>
+      </form>
+    </div>
+
+    <!-- CONTAS A RECEBER -->
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-hand-holding-dollar" style="color: var(--color-success); font-size: 1.1rem;"></i>
+          <h3>Contas a receber</h3>
+        </div>
+      </div>
+      <form action="/dashboard/reports/pdf" method="get" class="adm-form" style="display: flex; flex-direction: column; gap: 18px; min-height: 400px;">
+        <input type="hidden" name="report" value="receivables" />
+        
+        <div class="adm-form-group">
+          <label>Período</label>
+          <select name="period" class="adm-select">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Tipo de receita</label>
+          <input type="text" name="revenueType" placeholder="Descrição" class="adm-input" />
+        </div>
+
+        <div class="adm-form-group">
+          <label>Cliente</label>
+          <select name="client" class="adm-select">
+            <option value="">Todos os clientes</option>
+            <% clientes.forEach(c => { %>
+              <option value="<%= c.nome %>"><%= c.nome %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <button class="adm-btn adm-btn--primary" type="submit" style="margin-top: auto; width: 100%;">
+          <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS E ANÁLISES -->
+  <h2 style="font-size: 1rem; font-weight: 700; margin: 28px 0 16px; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; color: var(--color-text-muted);">
+    <i class="fa-solid fa-chart-line"></i> Análise de Desempenho
+  </h2>
+
+  <!-- GRÁFICO VENDAS MENSAIS -->
+  <div class="adm-card adm-card--chart" style="margin-bottom: 16px;">
+    <div class="adm-card-header--between">
+      <h3>Vendas mensais — 2026</h3>
+      <select class="adm-select" style="width: auto; min-width: 140px;">
+        <option>Últimos 12 meses</option>
+        <option>Últimos 6 meses</option>
+        <option>Últimos 3 meses</option>
+      </select>
+    </div>
     <div class="adm-chart-placeholder">
       <div class="adm-chart-empty">
         <i class="fa-regular fa-chart-bar"></i>
@@ -18,16 +230,23 @@
       </div>
     </div>
   </div>
-  <div class="adm-grid-2">
+
+  <!-- GRÁFICOS SECUNDÁRIOS -->
+  <div class="adm-grid-2" style="gap: 16px;">
+    <!-- VENDAS POR CATEGORIA -->
     <div class="adm-card adm-card--chart">
-      <div class="adm-card-header"><h3>Vendas por categoria</h3></div>
+      <div class="adm-card-header">
+        <h3>Vendas por categoria</h3>
+      </div>
       <div class="adm-chart-placeholder adm-chart-placeholder--sm">
         <div class="adm-chart-empty adm-chart-empty--sm">
           <i class="fa-solid fa-chart-pie"></i>
-          <p>Sem dados</p>
+          <p>Sem dados disponíveis</p>
         </div>
       </div>
     </div>
+
+    <!-- NOVOS CLIENTES -->
     <div class="adm-card adm-card--chart">
       <div class="adm-card-header">
         <h3>Novos clientes por mês</h3>
@@ -35,7 +254,7 @@
       <div class="adm-chart-placeholder adm-chart-placeholder--sm">
         <div class="adm-chart-empty adm-chart-empty--sm">
           <i class="fa-solid fa-chart-line"></i>
-          <p>Sem dados</p>
+          <p>Sem dados disponíveis</p>
         </div>
       </div>
     </div>

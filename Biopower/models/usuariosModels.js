@@ -95,6 +95,11 @@ class UsuariosModels {
     return lista;
   }
 
+  async listarClientes() {
+    const sql = `SELECT usu_id AS id, usu_nome AS nome FROM tb_Usuarios WHERE usu_typ_id = 3 ORDER BY usu_nome`;
+    return banco.ExecutaComando(sql, []);
+  }
+
   async buscarPorId(id) {
     const sql = "select * from tb_Usuarios where usu_id = ?";
     const rows = await banco.ExecutaComando(sql, [id]);
