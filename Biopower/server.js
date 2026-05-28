@@ -1,6 +1,7 @@
 const express = require("express");
 const expressEjsLayout = require("express-ejs-layouts");
 const session = require("express-session");
+const path = require("path");
 
 /* Paginas */
 const homeRoutes = require("./routes/HomeRoutes");
@@ -12,11 +13,13 @@ const recebimentoCompraRoutes = require("./routes/recebimentoCompraRoutes");
 const efetuarCompraRoutes = require("./routes/efetuarCompraroutes");
 
 const adminRoutes = require("./routes/AdminRoutes");
+const recebimentoRouter = require("./routes/recebimentoRouter");
 const server = express();
 const PORT = 5000;
 server.set("view engine", "ejs");
 server.set("layout", "./layout.ejs");
 server.use(express.static("public"));
+// Carrega .env relativo ao arquivo server.js garantindo que funcione dentro do container
 
 server.use(expressEjsLayout);
 server.use(express.json());
@@ -43,6 +46,7 @@ server.use("/about-us", aboutUsRoutes);
 server.use("/", servicesRoutes);
 server.use("/receber-compra", recebimentoCompraRoutes);
 server.use("/efetuar-compra", efetuarCompraRoutes);
+server.use("/recebimento", recebimentoRouter);
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });
