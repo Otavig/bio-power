@@ -24,6 +24,23 @@ class ServicosModels {
 		}));
 	}
 
+	async buscarPorId(id) {
+		if (!id) return null;
+		const sql = `
+			SELECT ser_id AS id, ser_nome AS nome, ser_descricao AS descricao, ser_preco AS preco
+			FROM tb_Servicos
+			WHERE ser_id = ?;
+		`;
+		const rows = await this.#db.ExecutaComando(sql, [id]);
+		if (!rows.length) return null;
+		return {
+			id: rows[0].id,
+			nome: rows[0].nome,
+			descricao: rows[0].descricao || "",
+			preco: Number(rows[0].preco || 0),
+		};
+	}
+
 	async criar({ nome, descricao, preco }) {
 		if (!nome || preco === undefined || preco === null) throw new Error("Dados obrigatórios ausentes");
 		const precoNumero = Number(preco);

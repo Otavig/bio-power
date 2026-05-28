@@ -1,18 +1,17 @@
-const UsuariosModels = require("../models/usuariosModels");
+﻿const UsuariosModels = require("../models/usuariosModels");
 const ProdutosModels = require("../models/produtosModels");
 const CategoriasModels = require("../models/categoriasModels");
 const FornecedoresModels = require("../models/fornecedoresModels");
 const LotesEstoqueModels = require("../models/lotesEstoqueModels");
 const ServicosModels = require("../models/servicosModels");
-const ServicosContratadosModels = require("../models/servicosContratadosModels");
+const ItensServicosModels = require("../models/itensServicosModels");
+const TypeUsuariosModels = require("../models/typeUserModels");
 const Database = require("../utils/database");
-const { PdfGenerator } = require("../utils/pdfGenerator");
+const { PdfGenerator } = require("../utils/pdfGenerator")
 
 const STATUS_SERVICOS = [
   "pendente",
-  "em_analise",
   "aprovado",
-  "em_andamento",
   "finalizado",
   "cancelado",
 ];
@@ -25,12 +24,13 @@ class AdminController {
     this.usuariosModel = new UsuariosModels();
     this.lotesModel = new LotesEstoqueModels();
     this.servicosModel = new ServicosModels();
-    this.servicosContratadosModel = new ServicosContratadosModels();
+    this.servicosContratadosModel = new ItensServicosModels();
     this.database = new Database();
   }
 
   async dashboard(req, res) {
     let listaUsuarios = [];
+    let listaTipos = [];
     let products = [];
     let services = [];
     let servicosContratados = [];
@@ -41,8 +41,16 @@ class AdminController {
       const usuariosModel = new UsuariosModels();
       listaUsuarios = await usuariosModel.listar();
     } catch (err) {
-      console.error("Erro ao listar usuários:", err);
+      console.error("Erro ao listar usuÃ¡rios:", err);
       listaUsuarios = [];
+    }
+
+    try {
+      const typesUsuariosModel = new TypeUsuariosModels();
+      listaTipos = await typesUsuariosModel.listarTiposUsuarios();
+    } catch (err) {
+      console.error("Erro ao listar tipos de usuÃ¡rios:", err);
+      listaTipos = [];
     }
 
     try {
@@ -78,14 +86,44 @@ class AdminController {
     try {
       services = await this.servicosModel.listar();
     } catch (err) {
-      console.error("Erro ao listar serviços:", err);
+      console.error("Erro ao listar serviÃ§os:", err);
       services = [];
     }
 
     try {
-      servicosContratados = await this.servicosContratadosModel.listarTodos();
+      const itens = await this.servicosContratadosModel.listarTodos();
+      const mapa = new Map();
+
+      for (const item of itens) {
+        const chave = String(item.agendamentoId || item.id);
+        if (!mapa.has(chave)) {
+          mapa.set(chave, {
+            id: item.id,
+            agendamentoId: item.agendamentoId || null,
+            status: item.status,
+            valorTotal: 0,
+            dataAtualizacao: item.dataAtualizacao,
+            dataAgendamento: item.dataAgendamento,
+            observacoes: item.observacoes,
+            clienteNome: item.clienteNome,
+            clienteEmail: item.clienteEmail,
+            profissionalNome: item.profissionalNome,
+            servicos: [],
+          });
+        }
+
+        const grupo = mapa.get(chave);
+        grupo.valorTotal += Number(item.valorTotal || 0);
+        grupo.servicos.push({
+          nome: item.servicoNome,
+          quantidade: Number(item.quantidade || 0),
+          valorUnitario: Number(item.valorUnitario || 0),
+        });
+      }
+
+      servicosContratados = Array.from(mapa.values());
     } catch (err) {
-      console.error("Erro ao listar serviços contratados:", err);
+      console.error("Erro ao listar servicos contratados:", err);
       servicosContratados = [];
     }
 
@@ -97,11 +135,7 @@ class AdminController {
       categorias,
       fornecedores,
       clientes,
-      userProfiles: {
-        1: "Administrador",
-        2: "Funcionario",
-        3: "Cliente",
-      },
+      listaTipos,
       services,
       servicosContratados,
       statusServicos: STATUS_SERVICOS,
@@ -216,7 +250,7 @@ class AdminController {
     const sabor = req.body.sabor;
 
     if (!nome || !preco || !categoria) {
-      const msg = "Campos obrigatórios: nome, preço e categoria.";
+      const msg = "Campos obrigatÃ³rios: nome, preÃ§o e categoria.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=produto-erro#products");
     }
@@ -245,7 +279,7 @@ class AdminController {
     const quantidade = Number(req.body?.quantidade ?? req.body?.qtd ?? req.body?.quantidadeAtualizada);
 
     if (Number.isNaN(produtoId) || Number.isNaN(quantidade)) {
-      const msg = "Produto ou quantidade inválida.";
+      const msg = "Produto ou quantidade invÃ¡lida.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=estoque-erro#stock");
     }
@@ -268,7 +302,7 @@ class AdminController {
     if (!Number.isNaN(id)) {
       try {
         await this.produtosModel.deletarProduto(id);
-        if (wantsJson) return res.json({ ok: true, msg: "Produto excluído." });
+        if (wantsJson) return res.json({ ok: true, msg: "Produto excluÃ­do." });
       } catch (err) {
         console.error("Erro ao excluir produto:", err);
         if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir produto." });
@@ -282,8 +316,8 @@ class AdminController {
       const services = await this.servicosModel.listar();
       return res.json({ ok: true, data: services });
     } catch (err) {
-      console.error("Erro ao listar serviços:", err);
-      return res.status(500).json({ ok: false, msg: "Erro ao listar serviços." });
+      console.error("Erro ao listar serviÃ§os:", err);
+      return res.status(500).json({ ok: false, msg: "Erro ao listar serviÃ§os." });
     }
   }
 
@@ -294,17 +328,17 @@ class AdminController {
     const preco = req.body.preco;
 
     if (!nome || preco === undefined || preco === null || preco === "") {
-      const msg = "Campos obrigatórios: nome e preço.";
+      const msg = "Campos obrigatÃ³rios: nome e preÃ§o.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
     try {
-      await this.servicosModel.criar({ nome: nome, descricao: descricao, preco: preco });
-      if (wantsJson) return res.json({ ok: true, msg: "Serviço cadastrado." });
+      await this.servicosModel.criar({ nome, descricao, preco });
+      if (wantsJson) return res.json({ ok: true, msg: "ServiÃ§o cadastrado." });
     } catch (err) {
-      console.error("Erro ao criar serviço:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar serviço." });
+      console.error("Erro ao criar serviÃ§o:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar serviÃ§o." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -318,18 +352,18 @@ class AdminController {
     const descricao = req.body.descricao;
     const preco = req.body.preco;
 
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       const msg = "Serviço inválido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
     try {
-      await this.servicosModel.atualizar(id, { nome: nome, descricao: descricao, preco: preco });
+      await this.servicosModel.atualizar(id, { nome, descricao, preco });
       if (wantsJson) return res.json({ ok: true, msg: "Serviço atualizado." });
     } catch (err) {
-      console.error("Erro ao atualizar serviço:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar serviço." });
+      console.error("Erro ao atualizar serviÃ§o:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar serviÃ§o." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -341,17 +375,17 @@ class AdminController {
     const id = parseInt(req.params.id, 10);
 
     if (Number.isNaN(id)) {
-      const msg = "Serviço inválido.";
+      const msg = "ServiÃ§o invÃ¡lido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
     try {
       await this.servicosModel.deletar(id);
-      if (wantsJson) return res.json({ ok: true, msg: "Serviço excluído." });
+      if (wantsJson) return res.json({ ok: true, msg: "ServiÃ§o excluÃ­do." });
     } catch (err) {
-      console.error("Erro ao excluir serviço:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir serviço." });
+      console.error("Erro ao excluir serviÃ§o:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir serviÃ§o." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -366,8 +400,8 @@ class AdminController {
       const data = await this.servicosContratadosModel.listarTodos({ status: filtroStatus });
       return res.json({ ok: true, data });
     } catch (err) {
-      console.error("Erro ao listar serviços contratados:", err);
-      return res.status(500).json({ ok: false, msg: "Erro ao listar serviços contratados." });
+      console.error("Erro ao listar serviÃ§os contratados:", err);
+      return res.status(500).json({ ok: false, msg: "Erro ao listar serviÃ§os contratados." });
     }
   }
 
@@ -625,13 +659,13 @@ class AdminController {
     const { status, observacoes } = req.body;
 
     if (Number.isNaN(id)) {
-      const msg = "Serviço contratado inválido.";
+      const msg = "ServiÃ§o contratado invÃ¡lido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
 
     if (!STATUS_SERVICOS.includes(status)) {
-      const msg = "Status inválido.";
+      const msg = "Status invÃ¡lido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg, statusPermitidos: STATUS_SERVICOS });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
@@ -640,7 +674,7 @@ class AdminController {
       await this.servicosContratadosModel.atualizarStatus(id, { status, observacoes });
       if (wantsJson) return res.json({ ok: true, msg: "Status atualizado." });
     } catch (err) {
-      console.error("Erro ao atualizar status do serviço contratado:", err);
+      console.error("Erro ao atualizar status do serviÃ§o contratado:", err);
       if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar status." });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
@@ -650,3 +684,4 @@ class AdminController {
 }
 
 module.exports = AdminController;
+

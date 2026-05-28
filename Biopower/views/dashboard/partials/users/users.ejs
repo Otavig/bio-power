@@ -47,7 +47,16 @@
           <tr>
             <td><%= listaUsuarios[i].usuNome %></td>
             <td><%= listaUsuarios[i].usuEmail %></td>
-            <td><%= (userProfiles && userProfiles[listaUsuarios[i].usuTypeId]) || listaUsuarios[i].usuTypeId %></td>
+            <td>
+              <%
+                const tipoUsuario = (listaTipos || []).find((t) => {
+                  const tipoId = t.typId ?? t.typ_id;
+                  return Number(tipoId) === Number(listaUsuarios[i].usuTypeId);
+                });
+                const tipoDescricao = tipoUsuario ? (tipoUsuario.typDescricao ?? tipoUsuario.typ_descricao) : null;
+              %>
+              <%= tipoDescricao || listaUsuarios[i].usuTypeId %>
+            </td>
             <td><%= listaUsuarios[i].usuCpfCnpj %></td>
             <td>
               <span
@@ -129,9 +138,11 @@
             <label>Perfil *</label>
             <select id="usuarioTipo" class="adm-input">
               <option value="">Selecione</option>
-              <option value="1">Administrador</option>
-              <option value="2">Funcionario</option>
-              <option value="3">Cliente</option>
+              <% for (let i = 0; i < (listaTipos || []).length; i++) { %>
+                <% const tipoId = listaTipos[i].typId ?? listaTipos[i].typ_id; %>
+                <% const tipoDescricao = listaTipos[i].typDescricao ?? listaTipos[i].typ_descricao; %>
+                <option value="<%= tipoId %>"><%= tipoDescricao %></option>
+              <% } %>
             </select>
           </div>
           <div class="adm-form-group">

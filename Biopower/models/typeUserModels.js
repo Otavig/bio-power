@@ -26,9 +26,9 @@ class TypeUsuariosModels {
     this.#typDescricao = typDescricao;
   }
 
-  listarTiposUsuarios() {
-    let sql = "  select * from tb_typeUser";
-    let rows = banco.ExecutaComando(sql);
+  async listarTiposUsuarios() {
+    let sql = "select * from tb_typeUser";
+    let rows = await banco.ExecutaComando(sql);
     let lista = [];
     for (let i = 0; i < rows.length; i++) {
       let typeUser = new TypeUsuariosModels(rows[i]["typ_id"], rows[i]["typ_descricao"]);
