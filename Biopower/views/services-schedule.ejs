@@ -1,0 +1,87 @@
+﻿<link rel="stylesheet" href="/assets/css/screen/services-schedule.css" />
+
+<main class="schedule-main">
+  <section class="schedule-shell">
+    <header class="schedule-header">
+      <h1>Realizar Agendamento</h1>
+      <a href="/services" class="schedule-back">Voltar Para Serviços</a>
+    </header>
+
+    <div class="schedule-grid">
+      <article class="schedule-card">
+        <h2>Adicionar Serviço</h2>
+        <div class="field">
+          <select id="serviceSelect">
+            <% services.forEach(function(s){ %>
+              <option value="<%= s.id %>"><%= s.nome %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div id="servicePreview" class="service-preview"></div>
+
+        <div class="qty-row">
+          <div class="field qty-field">
+            <label for="serviceQty">Quantidade</label>
+            <input id="serviceQty" type="number" min="1" value="1" />
+          </div>
+          <button id="btnAddItem" type="button" class="btn-primary">Adicionar</button>
+        </div>
+      </article>
+
+      <article class="schedule-card">
+        <h2>Informações Do Agendamento</h2>
+        <div class="field">
+          <label for="dataAgendamento">Data Do Agendamento</label>
+          <input id="dataAgendamento" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label for="profissionalId">Profissional</label>
+          <select id="profissionalId">
+            <% profissionais.forEach(function(p){ %>
+              <option value="<%= p.id %>"><%= p.nome %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" rows="3"></textarea>
+        </div>
+      </article>
+    </div>
+
+    <section class="schedule-table-wrap">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Quantidade</th>
+            <th>Valor Unitário</th>
+            <th>Valor Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="itensBody"></tbody>
+      </table>
+
+      <div class="table-checkout">
+        <div class="summary-col">
+          <p><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></p>
+          <p><span>Descontos</span><strong id="descontos">R$ 0,00</strong></p>
+          <p class="total"><span>Total</span><strong id="total">R$ 0,00</strong></p>
+        </div>
+
+        <div class="coupon-col">
+          <label for="cupom">Cupom</label>
+          <div class="coupon-action">
+            <input id="cupom" type="text" placeholder="Digite Seu Cupom (Ex.: BIOPOWER10)" />
+            <button id="btnCheckout" class="btn-primary btn-checkout">Finalizar Pagamento</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script id="schedule-data" type="application/json"><%- JSON.stringify({ services: services || [], preselectedServiceId: preselectedServiceId || null }) %></script>
+<script src="/assets/js/screens/services-schedule.js"></script>

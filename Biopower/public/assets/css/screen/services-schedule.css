@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+:root {
+  --brand: var(--color-primary, #cc0000);
+  --brand-deep: var(--color-primary-dark, #990000);
+  --surface: var(--color-surface, #fff);
+  --surface-off: var(--color-bg, #f7f7f5);
+  --line: var(--color-border, #e4e2df);
+  --text: var(--color-text, #141414);
+  --text-muted: var(--color-text-muted, #6b6b6b);
+  --radius: 12px;
+  --radius-lg: 20px;
+  --font-display: var(--font-primary, 'Syne', sans-serif);
+  --font-body: var(--font-secondary, 'DM Sans', sans-serif);
+}
+
+.schedule-main { padding: 28px 0 64px; background: var(--surface-off); font-family: var(--font-body); color: var(--text); }
+.schedule-shell { width: min(var(--container-max, 1320px), calc(100% - 6vw)); margin: 0 auto; display: grid; gap: 18px; }
+.schedule-header { display:flex; justify-content:space-between; align-items:center; }
+.schedule-header h1 { font-family: var(--font-display); font-size: clamp(1.25rem, 2vw, 1.8rem); }
+.schedule-back { color: var(--brand); text-decoration: none; font-weight: 700; }
+
+.schedule-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.schedule-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; }
+.schedule-card h2 { font-family: var(--font-display); margin-bottom: 14px; font-size: 1.05rem; }
+
+.field { display:grid; gap: 6px; margin-bottom: 12px; }
+.field label { font-weight: 500; }
+.field input, .field select, .field textarea {
+  border: 1px solid #d8d5d1;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  background: #fff;
+  font-size: 0.94rem;
+}
+
+.service-preview {
+  border: 1px solid #ddd7d2;
+  border-radius: 14px;
+  padding: 14px;
+  background: #f7f4f2;
+  margin: 4px 0 14px;
+}
+.service-preview h3 { font-family: var(--font-display); margin: 0 0 6px; font-size: 0.98rem; }
+.service-preview p { margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem; line-height: 1.35; }
+.service-preview .price { color: var(--brand); font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; }
+
+.qty-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: end; }
+.qty-field { margin-bottom: 0; }
+
+.btn-primary {
+  border: none;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--brand-deep); }
+
+.schedule-table-wrap { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px; overflow:auto; }
+.schedule-table { width: 100%; border-collapse: collapse; }
+.schedule-table th { font-family: var(--font-display); font-size: 0.95rem; text-align: left; padding: 12px 8px; border-bottom: 1px solid #efeeec; }
+.schedule-table td { padding: 12px 8px; border-bottom: 1px solid #efeeec; font-size: 0.94rem; }
+
+.btn-remove {
+  border: 1px solid #f3c3c3;
+  background: #fff5f5;
+  color: #a41515;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.table-checkout {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #efeeec;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.coupon-col { display: grid; gap: 8px; }
+.coupon-col label { font-weight: 500; }
+.coupon-col input { border: 1px solid #d8d5d1; border-radius: 12px; padding: 11px 12px; }
+.coupon-action { display: grid; grid-template-columns: 1fr 360px; gap: 12px; }
+
+.summary-col { display: grid; gap: 8px; }
+.summary-col p { display: flex; justify-content: space-between; margin: 0; }
+.summary-col .total { font-size: 1.08rem; font-weight: 700; margin-top: 4px; }
+.btn-checkout { margin-top: 6px; width: 100%; }
+
+@media (max-width: 980px) {
+  .schedule-grid { grid-template-columns: 1fr; }
+  .table-checkout { grid-template-columns: 1fr; }
+  .coupon-action { grid-template-columns: 1fr; }
+}
