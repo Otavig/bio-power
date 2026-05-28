@@ -1,0 +1,7 @@
+@import "../../colors.css";
+
+.link-auth {
+    font-size: 14px;
+    color: var(--color-blue-link);
+    font-size: 15px;
+}

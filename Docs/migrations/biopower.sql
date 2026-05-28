@@ -166,8 +166,21 @@ CREATE TABLE `tb_Fluxo_Caixa` (
 
 LOCK TABLES `tb_Fluxo_Caixa` WRITE;
 /*!40000 ALTER TABLE `tb_Fluxo_Caixa` DISABLE KEYS */;
+
+-- Seed mínimo para relatórios (contas a pagar/receber) aparecerem no período atual
+-- flu_tipo_id=9 (DESPESA) e flu_tipo_id=8 (RECEITA) conforme tb_status_diversos do dump
+INSERT INTO `tb_Fluxo_Caixa` (`flu_id`, `flu_tipo_id`, `flu_valor`, `flu_data_movimentacao`, `flu_descricao`, `flu_origem_id`, `flu_origem_tipo`) VALUES
+(1, 9, 150.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 10 DAY), 'Despesa - próximo 30d', 1, 'fornecedor'),
+(2, 9, 180.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 35 DAY), 'Despesa - próximo 60d', 1, 'fornecedor'),
+(3, 9, 220.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 'Despesa - próximo 90d', 1, 'fornecedor'),
+(4, 8, 250.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 10 DAY), 'Receita - próximo 30d', 6, 'cliente'),
+(5, 8, 280.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 35 DAY), 'Receita - próximo 60d', 6, 'cliente'),
+(6, 8, 320.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 'Receita - próximo 90d', 6, 'cliente');
+
+
 /*!40000 ALTER TABLE `tb_Fluxo_Caixa` ENABLE KEYS */;
 UNLOCK TABLES;
+
 
 --
 -- Table structure for table `tb_Fornecedores`
@@ -255,8 +268,18 @@ CREATE TABLE `tb_Itens_Venda` (
 
 LOCK TABLES `tb_Itens_Venda` WRITE;
 /*!40000 ALTER TABLE `tb_Itens_Venda` DISABLE KEYS */;
+
+-- Seed mínimo para relatórios (estoque/saídas) aparecerem no período atual
+-- (ven_id=1 precisa existir na tb_Vendas)
+INSERT INTO `tb_Itens_Venda` (`ite_id`, `ite_id_venda`, `ite_id_produto`, `ite_quantidade`, `ite_preco_unitario`, `ite_id_lote`) VALUES
+(1, 1, 1, 1, 79.92, 1),
+(2, 2, 1, 1, 79.92, 1),
+(3, 3, 1, 1, 79.92, 1);
+
+
 /*!40000 ALTER TABLE `tb_Itens_Venda` ENABLE KEYS */;
 UNLOCK TABLES;
+
 
 --
 -- Table structure for table `tb_Laboratorios`
@@ -316,7 +339,22 @@ CREATE TABLE `tb_Lotes_Estoque` (
 
 LOCK TABLES `tb_Lotes_Estoque` WRITE;
 /*!40000 ALTER TABLE `tb_Lotes_Estoque` DISABLE KEYS */;
-INSERT INTO `tb_Lotes_Estoque` VALUES (1,1,'LOT-001',3,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(2,2,'LOT-002',47,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(3,3,'LOT-003',22,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(5,5,'LOT-005',6,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(6,6,'LOT-006',31,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(7,7,'LOT-007',8,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(8,8,'LOT-008',19,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(9,9,'LOT-009',2,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(10,10,'LOT-010',40,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(11,11,'LOT-011',12,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(12,12,'LOT-012',0,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(13,13,'LOT-013',28,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(14,14,'LOT-014',5,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(15,15,'LOT-015',16,'2026-12-31','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),(16,12,'AJUSTE-MANUAL',4,'2099-12-31','2026-03-26 11:58:10',NULL,'2026-03-26 11:58:10','2026-03-26 11:58:10');
+INSERT INTO `tb_Lotes_Estoque` VALUES 
+(1,1,'LOT-001',3,'2026-01-15','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(2,2,'LOT-002',47,'2026-07-10','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(3,3,'LOT-003',22,'2026-06-27','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(5,5,'LOT-005',6,'2026-06-20','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(6,6,'LOT-006',31,'2026-06-25','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(7,7,'LOT-007',8,'2026-07-18','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(8,8,'LOT-008',19,'2026-07-30','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(9,9,'LOT-009',2,'2026-08-15','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(10,10,'LOT-010',40,'2026-08-28','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(11,11,'LOT-011',12,'2027-02-14','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(12,12,'LOT-012',0,'2027-05-09','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(13,13,'LOT-013',28,'2027-08-21','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(14,14,'LOT-014',5,'2026-06-12','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(15,15,'LOT-015',16,'2027-01-30','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(16,12,'AJUSTE-MANUAL',4,'2026-09-05','2026-03-26 11:58:10',NULL,'2026-03-26 11:58:10','2026-03-26 11:58:10');
 /*!40000 ALTER TABLE `tb_Lotes_Estoque` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -546,12 +584,21 @@ CREATE TABLE `tb_Vendas` (
 
 LOCK TABLES `tb_Vendas` WRITE;
 /*!40000 ALTER TABLE `tb_Vendas` DISABLE KEYS */;
+
+-- Seed mínimo para relatórios (estoque/saídas) aparecerem no período atual
+INSERT INTO `tb_Vendas` (`ven_id`, `ven_id_cliente`, `ven_data_venda`, `ven_valor_total`, `ven_metodo_pagamento_id`, `ven_status_id`, `ven_endereco_entrega`, `ven_frete`, `created_at`, `updated_at`) VALUES
+(1, 6, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 10 DAY), 79.92, 13, 17, 'Endereço de teste (30d)', 0.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 6, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 35 DAY), 79.92, 13, 17, 'Endereço de teste (60d)', 0.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 6, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 79.92, 13, 17, 'Endereço de teste (90d)', 0.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+
 /*!40000 ALTER TABLE `tb_Vendas` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
 -- Table structure for table `tb_status_diversos`
 --
+
 
 DROP TABLE IF EXISTS `tb_status_diversos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
