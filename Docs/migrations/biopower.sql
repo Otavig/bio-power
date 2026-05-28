@@ -18,40 +18,40 @@ USE `bio_sys_db`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `tb_Agendamentos`
+-- Table structure for table `tb_agendamentos`
 --
 
-DROP TABLE IF EXISTS `tb_Agendamentos`;
+DROP TABLE IF EXISTS `tb_agendamentos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `tb_Agendamentos` (
+CREATE TABLE `tb_agendamentos` (
   `age_id` int NOT NULL AUTO_INCREMENT,
   `age_id_cliente` int NOT NULL,
   `age_id_profissional` int NOT NULL,
-  `age_id_servico` int NOT NULL,
-  `age_data_hora` datetime NOT NULL,
-  `age_status_id` int NOT NULL DEFAULT '2',
+  `age_data_agendamento` datetime NOT NULL,
+  `age_valor_total` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `age_observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`age_id`),
-  UNIQUE KEY `uq_agendamento_profissional` (`age_id_profissional`,`age_data_hora`),
-  KEY `age_id_cliente` (`age_id_cliente`),
-  KEY `age_id_tb_servico` (`age_id_servico`),
-  KEY `fk_age_status` (`age_status_id`),
-  CONSTRAINT `fk_age_status` FOREIGN KEY (`age_status_id`) REFERENCES `tb_status_diversos` (`sta_id`),
-  CONSTRAINT `tb_Agendamentos_ibfk_1` FOREIGN KEY (`age_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`),
-  CONSTRAINT `tb_Agendamentos_ibfk_2` FOREIGN KEY (`age_id_profissional`) REFERENCES `tb_Usuarios` (`usu_id`),
-  CONSTRAINT `tb_Agendamentos_ibfk_3` FOREIGN KEY (`age_id_servico`) REFERENCES `tb_Servicos` (`ser_id`)
+  KEY `idx_age_cliente` (`age_id_cliente`),
+  KEY `idx_age_profissional` (`age_id_profissional`),
+  CONSTRAINT `fk_age_cliente` FOREIGN KEY (`age_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_age_profissional` FOREIGN KEY (`age_id_profissional`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `tb_Agendamentos`
+-- Dumping data for table `tb_agendamentos`
 --
 
-LOCK TABLES `tb_Agendamentos` WRITE;
-/*!40000 ALTER TABLE `tb_Agendamentos` DISABLE KEYS */;
-/*!40000 ALTER TABLE `tb_Agendamentos` ENABLE KEYS */;
+LOCK TABLES `tb_agendamentos` WRITE;
+/*!40000 ALTER TABLE `tb_agendamentos` DISABLE KEYS */;
+INSERT INTO `tb_agendamentos` VALUES
+(1,1,4,'2026-03-27 09:00:00',200.00,'Avaliação física inicial','2026-03-26 15:00:00','2026-03-26 15:00:00'),
+(2,6,5,'2026-03-27 14:00:00',250.00,'Acompanhamento mensal','2026-03-26 15:10:00','2026-03-26 15:10:00'),
+(3,7,12,'2026-03-28 10:30:00',180.00,'Consulta nutricional','2026-03-26 15:20:00','2026-03-26 15:20:00');
+/*!40000 ALTER TABLE `tb_agendamentos` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -483,36 +483,47 @@ INSERT INTO `tb_Servicos` VALUES (1,'Avaliação Física e Composição Corporal
 UNLOCK TABLES;
 
 --
--- Table structure for table `tb_Servicos_Contratados`
+-- Table structure for table `tb_itens_servicos`
 --
 
-DROP TABLE IF EXISTS `tb_Servicos_Contratados`;
+DROP TABLE IF EXISTS `tb_itens_servicos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `tb_Servicos_Contratados` (
-  `sc_id` int NOT NULL AUTO_INCREMENT,
-  `sc_id_cliente` int NOT NULL,
-  `sc_id_servico` int NOT NULL,
-  `sc_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pendente',
-  `sc_observacoes` text COLLATE utf8mb4_unicode_ci,
-  `sc_data_contratacao` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `sc_data_atualizacao` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`sc_id`),
-  KEY `idx_sc_cliente` (`sc_id_cliente`),
-  KEY `idx_sc_servico` (`sc_id_servico`),
-  CONSTRAINT `fk_sc_cliente` FOREIGN KEY (`sc_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_sc_servico` FOREIGN KEY (`sc_id_servico`) REFERENCES `tb_Servicos` (`ser_id`) ON DELETE CASCADE
+CREATE TABLE `tb_itens_servicos` (
+  `its_id` int NOT NULL AUTO_INCREMENT,
+  `its_id_cliente` int NOT NULL,
+  `its_id_profissional` int NOT NULL,
+  `its_id_servico` int NOT NULL,
+  `its_id_agendamento` int NOT NULL,
+  `its_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pendente',
+  `its_valor_unitario` decimal(10,2) NOT NULL,
+  `its_quantidade` int NOT NULL DEFAULT '1',
+  `its_valor_total` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`its_id`),
+  KEY `idx_its_cliente` (`its_id_cliente`),
+  KEY `idx_its_profissional` (`its_id_profissional`),
+  KEY `idx_its_servico` (`its_id_servico`),
+  KEY `idx_its_agendamento` (`its_id_agendamento`),
+  CONSTRAINT `fk_its_agendamento` FOREIGN KEY (`its_id_agendamento`) REFERENCES `tb_agendamentos` (`age_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_its_cliente` FOREIGN KEY (`its_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_its_profissional` FOREIGN KEY (`its_id_profissional`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_its_servico` FOREIGN KEY (`its_id_servico`) REFERENCES `tb_Servicos` (`ser_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `tb_Servicos_Contratados`
+-- Dumping data for table `tb_itens_servicos`
 --
 
-LOCK TABLES `tb_Servicos_Contratados` WRITE;
-/*!40000 ALTER TABLE `tb_Servicos_Contratados` DISABLE KEYS */;
-INSERT INTO `tb_Servicos_Contratados` VALUES (1,1,1,'finalizado',NULL,'2026-03-26 12:50:43','2026-03-26 13:54:57'),(2,1,7,'em_andamento',NULL,'2026-03-26 13:21:27','2026-03-26 13:54:36'),(3,6,4,'pendente',NULL,'2026-03-26 13:32:52','2026-03-26 13:32:52'),(4,6,6,'aprovado',NULL,'2026-03-26 13:33:02','2026-03-26 13:54:19');
-/*!40000 ALTER TABLE `tb_Servicos_Contratados` ENABLE KEYS */;
+LOCK TABLES `tb_itens_servicos` WRITE;
+/*!40000 ALTER TABLE `tb_itens_servicos` DISABLE KEYS */;
+INSERT INTO `tb_itens_servicos` VALUES
+(1,1,4,1,1,'finalizado',200.00,1,200.00,'2026-03-26 15:00:00','2026-03-26 15:00:00'),
+(2,6,5,4,2,'em_andamento',250.00,1,250.00,'2026-03-26 15:10:00','2026-03-26 15:10:00'),
+(3,7,12,2,3,'aprovado',180.00,1,180.00,'2026-03-26 15:20:00','2026-03-26 15:20:00');
+/*!40000 ALTER TABLE `tb_itens_servicos` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -537,7 +548,7 @@ CREATE TABLE `tb_Usuarios` (
   UNIQUE KEY `usu_cpf_cnpj` (`usu_cpf_cnpj`),
   KEY `usu_typ_id` (`usu_typ_id`),
   CONSTRAINT `tb_Usuarios_ibfk_1` FOREIGN KEY (`usu_typ_id`) REFERENCES `tb_typeUser` (`typ_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -546,7 +557,7 @@ CREATE TABLE `tb_Usuarios` (
 
 LOCK TABLES `tb_Usuarios` WRITE;
 /*!40000 ALTER TABLE `tb_Usuarios` DISABLE KEYS */;
-INSERT INTO `tb_Usuarios` VALUES (1,'Breno','breno@gmail.com','123456','12345678900',1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),(2,'Admin','admin@biopower.com','admin123','11111111111',1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),(3,'Mariana Souza','mariana.souza@biopower.com','admin123','22222222222',1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(4,'Carlos Pereira','carlos.pereira@biopower.com','func123','33333333333',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(5,'Fernanda Lima','fernanda.lima@biopower.com','func123','44444444444',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(6,'João Silva','joao.silva@biopower.com','cliente123','55555555555',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(7,'Ana Paula','ana.paula@biopower.com','cliente123','66666666666',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(8,'Ricardo Mendes','ricardo.mendes@biopower.com','cliente123','77777777777',3,0,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(9,'Assis','assis@biopower.com','123456','12345678998',1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),(11,'Breno Passarela','passarela@gmail.com','123456','70934896321',1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),(12,'Breno H','brenof@gmail.com','123456','462.709.348-93',2,1,'2026-03-26 14:39:37','2026-03-26 14:39:37');
+INSERT INTO `tb_Usuarios` VALUES (1,'Breno','breno@gmail.com','123456','12345678900',1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),(2,'Admin','admin@biopower.com','admin123','11111111111',1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),(3,'Mariana Souza','mariana.souza@biopower.com','admin123','22222222222',1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(4,'Carlos Pereira','carlos.pereira@biopower.com','func123','33333333333',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(5,'Fernanda Lima','fernanda.lima@biopower.com','func123','44444444444',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(6,'Joao Silva','joao.silva@biopower.com','cliente123','55555555555',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(7,'Ana Paula','ana.paula@biopower.com','cliente123','66666666666',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(8,'Ricardo Mendes','ricardo.mendes@biopower.com','cliente123','77777777777',3,0,'2026-03-25 17:20:57','2026-03-25 17:20:57'),(9,'Assis','assis@biopower.com','123456','12345678998',1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),(11,'Breno Passarela','passarela@gmail.com','123456','70934896321',1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),(12,'Breno H','brenof@gmail.com','123456','46270934893',2,1,'2026-03-26 14:39:37','2026-03-26 14:39:37'),(13,'Paulo Nutri','paulo.nutri@biopower.com','prof123','88888888888',2,1,'2026-03-26 16:10:00','2026-03-26 16:10:00'),(14,'Camila Alves','camila.alves@biopower.com','prof123','99999999999',2,1,'2026-03-26 16:12:00','2026-03-26 16:12:00'),(15,'Rafael Costa','rafael.costa@biopower.com','prof123','10101010101',2,1,'2026-03-26 16:14:00','2026-03-26 16:14:00');
 /*!40000 ALTER TABLE `tb_Usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -644,7 +655,7 @@ CREATE TABLE `tb_typeUser` (
 
 LOCK TABLES `tb_typeUser` WRITE;
 /*!40000 ALTER TABLE `tb_typeUser` DISABLE KEYS */;
-INSERT INTO `tb_typeUser` VALUES (1,'Administrador'),(3,'Cliente'),(2,'Funcionario');
+INSERT INTO `tb_typeUser` VALUES (1,'Administrador'),(2,'Funcionario'),(3,'Profissional'),(4,'Cliente');
 /*!40000 ALTER TABLE `tb_typeUser` ENABLE KEYS */;
 UNLOCK TABLES;
 
