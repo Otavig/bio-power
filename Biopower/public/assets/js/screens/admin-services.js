@@ -147,6 +147,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const status = statusSelect?.value;
     const observacoes = obsInput?.value?.trim() || null;
 
+    // gather produtos from the dynamic list if present (detail row)
+    const detailNode = row.nextElementSibling;
+    const produtosListNode = detailNode?.querySelector(".js-produtos-list");
+    const produtos = [];
+    if (produtosListNode) {
+      produtosListNode.querySelectorAll(".js-produto-item").forEach((item) => {
+        const pid = Number(item.dataset.produtoId);
+        const qtd = Number(item.dataset.quantidade);
+        if (Number.isFinite(pid) && Number.isFinite(qtd) && qtd > 0) produtos.push({ produtoId: pid, quantidade: qtd });
+      });
+    }
+
     const btn = row.querySelector(".js-atualizar-contrato");
     if (btn) {
       btn.disabled = true;
@@ -157,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const resposta = await fetch(`/dashboard/services/contratos/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ status, observacoes }),
+        body: JSON.stringify({ status, observacoes, produtos }),
       });
       const corpo = await resposta.json().catch(() => ({ ok: false, msg: "Erro ao ler resposta." }));
       if (resposta.ok && corpo.ok) {
@@ -174,12 +186,14 @@ document.addEventListener("DOMContentLoaded", function () {
           await showAlert({ icon: "success", title: corpo.msg || "Status atualizado." });
         }
         row.dataset.status = status;
+        return corpo;
       } else {
         if (window.Swal) {
           window.Swal.fire({ icon: "error", title: "Erro", text: corpo.msg || "Erro ao atualizar status." });
         } else {
           await showAlert({ icon: "error", title: corpo.msg || "Erro ao atualizar status." });
         }
+        return corpo;
       }
     } catch (err) {
       console.error(err);
@@ -194,6 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.classList.remove("is-loading");
       }
     }
+    return false;
   }
 
   function filtrarContratos() {
@@ -248,7 +263,181 @@ document.addEventListener("DOMContentLoaded", function () {
       syncToggleIcon(row, expandido);
     });
 
+    // delegated click for Cobrar button
+    tabelaContratos.addEventListener("click", async function (e) {
+      const cobrar = e.target.closest(".js-cobrar");
+      if (!cobrar) return;
+      const detail = cobrar.closest("tr.adm-contract-detail");
+      if (!detail) return;
+      const row = detail.previousElementSibling;
+      if (!row) return;
+
+      // set status to finalizado and call update
+      const statusSelect = row.querySelector(".js-contrato-status");
+      if (statusSelect) statusSelect.value = "finalizado";
+
+      cobrar.disabled = true;
+      try {
+        const corpo = await atualizarContrato(row);
+        if (corpo && corpo.ok) {
+          // update displayed total if backend returned agendamento
+          try {
+            if (corpo.agendamento && corpo.agendamento.valorTotal !== undefined) {
+              const valorTd = row.querySelectorAll("td")[3];
+              if (valorTd) {
+                const strong = valorTd.querySelector("strong");
+                const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+                  Number(corpo.agendamento.valorTotal || 0)
+                );
+                if (strong) strong.textContent = formatted;
+              }
+            }
+            // collapse detail
+            const detalhe = row.nextElementSibling;
+            if (detalhe && detalhe.classList.contains("adm-contract-detail")) {
+              detalhe.style.display = "none";
+              syncToggleIcon(row, false);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+
+          if (window.Swal) {
+            window.Swal.fire({ icon: "success", title: "Cobrado", text: "Venda registrada e serviço finalizado." });
+          } else {
+            await showAlert({ icon: "success", title: "Cobrado", text: "Venda registrada e serviço finalizado." });
+          }
+        } else {
+          // show error if backend returned erro
+          if (corpo && corpo.msg) {
+            if (window.Swal) window.Swal.fire({ icon: "error", title: "Erro", text: corpo.msg });
+            else await showAlert({ icon: "error", title: corpo.msg });
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        cobrar.disabled = false;
+      }
+    });
+
     tabelaContratos.querySelectorAll("tr.js-contract-row").forEach((row) => syncToggleIcon(row, false));
+  }
+
+  // Dynamic product selector handling per contract row
+  document.querySelectorAll(".js-contract-row").forEach((row) => {
+    const detail = row.nextElementSibling;
+    const addBtn = detail?.querySelector(".js-add-produto");
+    const select = detail?.querySelector(".js-produto-select");
+    const qty = detail?.querySelector(".js-produto-qty");
+    const list = detail?.querySelector(".js-produtos-list");
+
+    function renderList() {
+      if (!list) return;
+      list.innerHTML = "";
+      const existing = row._produtos || [];
+      existing.forEach((p, idx) => {
+        const el = document.createElement("div");
+        el.className = "js-produto-item";
+        el.dataset.produtoId = p.produtoId;
+        el.dataset.quantidade = p.quantidade;
+        el.style = "display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);";
+        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='btn-link btn-remove-prod' data-idx='${idx}'>Remover</button></div>`;
+        list.appendChild(el);
+      });
+      // update total display if present
+      try {
+        const detail = row.nextElementSibling;
+        const totalEl = detail?.querySelector(".js-produtos-total");
+        if (totalEl) {
+          const total = (row._produtos || []).reduce((acc, p) => acc + (Number(p.preco || 0) * Number(p.quantidade || 0)), 0);
+          totalEl.textContent = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total || 0);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (addBtn && select && qty && list) {
+      row._produtos = row._produtos || [];
+      addBtn.addEventListener("click", function () {
+        const pid = Number(select.value);
+        const nome = select.options[select.selectedIndex]?.dataset?.nome || select.options[select.selectedIndex]?.text || "";
+        const preco = Number(select.options[select.selectedIndex]?.dataset?.preco || 0);
+        const quantidade = Math.max(1, Number(qty.value || 1));
+        if (!pid || quantidade <= 0) return;
+
+        // merge if exists
+        const exists = row._produtos.find((p) => Number(p.produtoId) === pid);
+        if (exists) {
+          exists.quantidade = Number(exists.quantidade) + quantidade;
+        } else {
+          row._produtos.push({ produtoId: pid, nome, quantidade, preco });
+        }
+        renderList();
+      });
+
+      list.addEventListener("click", function (e) {
+        const btn = e.target.closest(".btn-remove-prod");
+        if (!btn) return;
+        const idx = Number(btn.dataset.idx);
+        if (Number.isFinite(idx)) {
+          row._produtos.splice(idx, 1);
+          renderList();
+        }
+      });
+    }
+  });
+
+  // Delegated handler as a fallback for Add buttons (works even if rows are added later)
+  if (tabelaContratos) {
+    tabelaContratos.addEventListener("click", function (e) {
+      const add = e.target.closest(".js-add-produto");
+      if (!add) return;
+      const detail = add.closest("tr.adm-contract-detail");
+      if (!detail) return;
+      const row = detail.previousElementSibling;
+      const select = detail.querySelector(".js-produto-select");
+      const qty = detail.querySelector(".js-produto-qty");
+      const list = detail.querySelector(".js-produtos-list");
+      if (!select || !qty || !list || !row) return;
+
+      row._produtos = row._produtos || [];
+      const pid = Number(select.value);
+      const nome = select.options[select.selectedIndex]?.dataset?.nome || select.options[select.selectedIndex]?.text || "";
+      const quantidade = Math.max(1, Number(qty.value || 1));
+      if (!pid || quantidade <= 0) return;
+
+      const exists = row._produtos.find((p) => Number(p.produtoId) === pid);
+      if (exists) exists.quantidade = Number(exists.quantidade) + quantidade;
+      else {
+        const preco = Number(select.options[select.selectedIndex]?.dataset?.preco || 0);
+        row._produtos.push({ produtoId: pid, nome, quantidade, preco });
+      }
+
+      // render list
+      list.innerHTML = "";
+      row._produtos.forEach((p, idx) => {
+        const el = document.createElement("div");
+        el.className = "js-produto-item";
+        el.dataset.produtoId = p.produtoId;
+        el.dataset.quantidade = p.quantidade;
+        el.style = "display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);";
+        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='btn-link btn-remove-prod' data-idx='${idx}'>Remover</button></div>`;
+        list.appendChild(el);
+      });
+      // update total display after delegated add
+      try {
+        const detail = row.nextElementSibling;
+        const totalEl = detail?.querySelector(".js-produtos-total");
+        if (totalEl) {
+          const total = (row._produtos || []).reduce((acc, p) => acc + (Number(p.preco || 0) * Number(p.quantidade || 0)), 0);
+          totalEl.textContent = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total || 0);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
   }
 
   if (filtroStatusContrato) {

@@ -6,7 +6,6 @@ const AdminController = require("../controllers/AdminController");
 const router = express.Router();
 const controller = new AdminController();
 
-
 const storage = multer.diskStorage({
   destination: path.join(__dirname, "../public/assets/imgs/product"),
   filename(req, file, cb) {

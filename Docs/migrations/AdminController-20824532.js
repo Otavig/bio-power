@@ -5,9 +5,6 @@ const FornecedoresModels = require("../models/fornecedoresModels");
 const LotesEstoqueModels = require("../models/lotesEstoqueModels");
 const ServicosModels = require("../models/servicosModels");
 const ItensServicosModels = require("../models/itensServicosModels");
-const AgendamentosModels = require("../models/agendamentosModels");
-const VendasModels = require("../models/vendasModels");
-const ItensVendaModels = require("../models/itensVendaModels");
 const TypeUsuariosModels = require("../models/typeUserModels");
 const Database = require("../utils/database");
 const { PdfGenerator } = require("../utils/pdfGenerator")
@@ -28,9 +25,6 @@ class AdminController {
     this.lotesModel = new LotesEstoqueModels();
     this.servicosModel = new ServicosModels();
     this.servicosContratadosModel = new ItensServicosModels();
-    this.agendamentosModel = new AgendamentosModels();
-    this.vendasModel = new VendasModels();
-    this.itensVendaModel = new ItensVendaModels();
     this.database = new Database();
   }
 
@@ -43,6 +37,8 @@ class AdminController {
     let categorias = [];
     let fornecedores = [];
     let clientes = [];
+    let tiposDespesa = [];
+    let tiposReceita = [];
     try {
       const usuariosModel = new UsuariosModels();
       listaUsuarios = await usuariosModel.listar();
@@ -133,9 +129,7 @@ class AdminController {
       servicosContratados = [];
     }
 
-    // carregar tipos de fluxo (despesa / receita) - movido para dentro do método dashboard
-    let tiposDespesa = [];
-    let tiposReceita = [];
+    // Busca tipos distintos para "Tipo de despesa" e "Tipo de receita" (para popular selects na view)
     try {
       const sqlDesp = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'DESPESA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
       const sqlRec = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'RECEITA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
@@ -169,7 +163,12 @@ class AdminController {
 
   async createUser(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
-    const { nome, email, senha, cpfCnpj, typeId, ativo } = req.body;
+    const nome = req.body.nome;
+    const email = req.body.email;
+    const senha = req.body.senha;
+    const cpfCnpj = req.body.cpfCnpj;
+    const typeId = req.body.typeId;
+    const ativo = req.body.ativo;
 
     if (!nome || !email || !senha || !typeId) {
       const msg = "Campos obrigatorios: nome, email, senha e perfil.";
@@ -183,9 +182,9 @@ class AdminController {
         nome: nome.trim(),
         email: email.trim().toLowerCase(),
         senha: senha.trim(),
-        cpfCnpj: cpfCnpj?.trim() || null,
+        cpfCnpj: cpfCnpj ? cpfCnpj.trim() : null,
         typeId: Number(typeId),
-        ativo: Number(ativo ?? 1),
+        ativo: Number(ativo !== undefined ? ativo : 1),
       });
       if (wantsJson) return res.json({ ok: true, msg: "Usuario cadastrado." });
     } catch (err) {
@@ -201,9 +200,14 @@ class AdminController {
   async updateUser(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
     const id = parseInt(req.params.id, 10);
-    const { nome, email, senha, cpfCnpj, typeId, ativo } = req.body;
+    const nome = req.body.nome;
+    const email = req.body.email;
+    const senha = req.body.senha;
+    const cpfCnpj = req.body.cpfCnpj;
+    const typeId = req.body.typeId;
+    const ativo = req.body.ativo;
 
-    if (Number.isNaN(id)) {
+    if (isNaN(id)) {
       const msg = "Usuario invalido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=usuario-erro#users");
@@ -212,10 +216,10 @@ class AdminController {
     try {
       const usuariosModel = new UsuariosModels();
       await usuariosModel.atualizar(id, {
-        nome: nome?.trim(),
-        email: email?.trim()?.toLowerCase(),
-        senha: senha?.trim(),
-        cpfCnpj: cpfCnpj?.trim() || null,
+        nome: nome ? nome.trim() : undefined,
+        email: email ? email.trim().toLowerCase() : undefined,
+        senha: senha ? senha.trim() : undefined,
+        cpfCnpj: cpfCnpj ? cpfCnpj.trim() : null,
         typeId: typeId !== undefined ? Number(typeId) : undefined,
         ativo: ativo !== undefined ? Number(ativo) : undefined,
       });
@@ -256,7 +260,12 @@ class AdminController {
 
   async addProduct(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
-    const { nome, preco, credito, categoria, marca, sabor } = req.body;
+    const nome = req.body.nome;
+    const preco = req.body.preco;
+    const credito = req.body.credito;
+    const categoria = req.body.categoria;
+    const marca = req.body.marca;
+    const sabor = req.body.sabor;
 
     if (!nome || !preco || !categoria) {
       const msg = "Campos obrigatÃ³rios: nome, preÃ§o e categoria.";
@@ -266,9 +275,9 @@ class AdminController {
 
     try {
       await this.produtosModel.criarProduto({
-        nome,
+        nome: nome,
         descricao: sabor || credito || null,
-        preco,
+        preco: preco,
         categoriaNome: categoria,
         marcaNome: marca,
         descontoPercentual: 0,
@@ -332,7 +341,9 @@ class AdminController {
 
   async createService(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
-    const { nome, descricao, preco } = req.body;
+    const nome = req.body.nome;
+    const descricao = req.body.descricao;
+    const preco = req.body.preco;
 
     if (!nome || preco === undefined || preco === null || preco === "") {
       const msg = "Campos obrigatÃ³rios: nome e preÃ§o.";
@@ -355,7 +366,9 @@ class AdminController {
   async updateService(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
     const id = parseInt(req.params.id, 10);
-    const { nome, descricao, preco } = req.body;
+    const nome = req.body.nome;
+    const descricao = req.body.descricao;
+    const preco = req.body.preco;
 
     if (Number.isNaN(id)) {
       const msg = "Serviço inválido.";
@@ -676,97 +689,11 @@ class AdminController {
     }
 
     try {
-      const contrato = await this.servicosContratadosModel.buscarPorId(id);
-      if (!contrato) {
-        const msg = "Serviço contratado não encontrado.";
-        if (wantsJson) return res.status(404).json({ ok: false, msg });
-        return res.redirect("/dashboard?flash=servico-contrato-erro#services");
-      }
-
-      const produtosBrutos = req.body.produtos;
-      let produtos = [];
-
-      if (Array.isArray(produtosBrutos)) {
-        produtos = produtosBrutos;
-      } else if (typeof produtosBrutos === "string" && produtosBrutos.trim()) {
-        try {
-          produtos = JSON.parse(produtosBrutos);
-        } catch (err) {
-          produtos = [];
-        }
-      } else if (produtosBrutos && typeof produtosBrutos === "object") {
-        produtos = [produtosBrutos];
-      }
-
-      const produtosValidos = [];
-      for (const item of produtos) {
-        const produtoId = Number(item.produtoId);
-        const quantidade = Number(item.quantidade || 0);
-        if (!produtoId || quantidade <= 0) continue;
-
-        const produto = await this.produtosModel.buscarPorId(produtoId);
-        if (!produto) continue;
-
-        const estoqueAtual = await this.lotesModel.obterEstoqueProduto(produtoId);
-        if (estoqueAtual < quantidade) {
-          const msg = `Estoque insuficiente para o produto ${produto.nome}.`;
-          if (wantsJson) return res.status(400).json({ ok: false, msg });
-          return res.redirect("/dashboard?flash=estoque-insuficiente#services");
-        }
-
-        const precoUnitario = Number(produto.precoNumber || 0);
-        produtosValidos.push({ produtoId, quantidade, precoUnitario, valorTotal: precoUnitario * quantidade });
-      }
-
-      let vendaId = null;
-      let vendaTotal = 0;
-
-      if (status === "finalizado" && produtosValidos.length) {
-        vendaTotal = produtosValidos.reduce((sum, item) => sum + item.valorTotal, 0);
-        vendaId = await this.vendasModel.criar({
-          clienteId: contrato.clienteId,
-          valorTotal: vendaTotal,
-          statusId: 18,
-          metodoPagamentoId: 13,
-          enderecoEntrega: null,
-          frete: 0,
-        });
-
-        for (const item of produtosValidos) {
-          await this.itensVendaModel.criar({
-            vendaId,
-            produtoId: item.produtoId,
-            quantidade: item.quantidade,
-            precoUnitario: item.precoUnitario,
-          });
-          await this.lotesModel.ajustarEstoqueManual(item.produtoId, -item.quantidade);
-        }
-      }
-
       await this.servicosContratadosModel.atualizarStatus(id, { status, observacoes });
-      await this.agendamentosModel.atualizar({
-        agendamentoId: contrato.agendamentoId,
-        acrescimoValor: vendaTotal,
-        observacoes,
-      });
-
-      let agendamentoAtualizado = null;
-      try {
-        agendamentoAtualizado = await this.agendamentosModel.buscarPorId(contrato.agendamentoId);
-      } catch (e) {
-        agendamentoAtualizado = null;
-      }
-
-      if (wantsJson) {
-        const msg = `Status atualizado${vendaId ? " e venda registrada." : "."}`;
-        return res.json({ ok: true, msg, vendaId: vendaId || null, vendaTotal: vendaTotal || 0, agendamento: agendamentoAtualizado });
-      }
+      if (wantsJson) return res.json({ ok: true, msg: "Status atualizado." });
     } catch (err) {
-      console.error("Erro ao atualizar status do serviço contratado:", err && err.stack ? err.stack : err);
-      if (wantsJson) {
-        const msg = err && err.message ? err.message : "Erro ao atualizar status.";
-        return res.status(500).json({ ok: false, msg, error: String(err && err.stack ? err.stack.split('\n').slice(0,5).join('\n') : err) });
-      }
+      console.error("Erro ao atualizar status do serviÃ§o contratado:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar status." });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
 

@@ -107,6 +107,56 @@ class AgendamentosModels {
       observacoes,
     ]);
   }
+
+  async atualizar({ agendamentoId, acrescimoValor = 0, observacoes = null }) {
+    if (!agendamentoId || (acrescimoValor === 0 && observacoes === null)) return null;
+
+    const updates = [];
+    const params = [];
+
+    if (Number(acrescimoValor)) {
+      updates.push("age_valor_total = COALESCE(age_valor_total, 0) + ?");
+      params.push(Number(acrescimoValor));
+    }
+
+    if (observacoes !== null && observacoes !== undefined) {
+      updates.push("age_observacoes = ?");
+      params.push(observacoes);
+    }
+
+    if (!updates.length) return null;
+
+    const sql = `
+      UPDATE tb_agendamentos
+      SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
+      WHERE age_id = ?;
+    `;
+
+    params.push(agendamentoId);
+    return banco.ExecutaComandoNonQuery(sql, params);
+  }
+
+  async buscarPorId(id) {
+    if (!id) return null;
+    const sql = `
+      SELECT
+        age_id AS id,
+        age_valor_total AS valorTotal,
+        age_observacoes AS observacoes,
+        age_data_agendamento AS dataAgendamento
+      FROM tb_agendamentos
+      WHERE age_id = ?
+      LIMIT 1;
+    `;
+    const rows = await banco.ExecutaComando(sql, [id]);
+    if (!rows || !rows.length) return null;
+    return {
+      id: rows[0].id,
+      valorTotal: Number(rows[0].valorTotal || 0),
+      observacoes: rows[0].observacoes,
+      dataAgendamento: rows[0].dataAgendamento,
+    };
+  }
 }
 
 module.exports = AgendamentosModels;

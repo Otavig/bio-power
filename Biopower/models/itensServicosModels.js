@@ -41,6 +41,35 @@ class ItensServicosModels {
     ]);
   }
 
+  async buscarPorId(id) {
+    if (!id) return null;
+
+    const sql = `
+      SELECT
+        its_id AS id,
+        its_id_agendamento AS agendamentoId,
+        its_id_cliente AS clienteId,
+        its_id_profissional AS profissionalId,
+        its_status AS status,
+        its_valor_total AS valorTotal
+      FROM tb_itens_servicos
+      WHERE its_id = ?
+      LIMIT 1;
+    `;
+
+    const rows = await this.#db.ExecutaComando(sql, [id]);
+    if (!rows.length) return null;
+
+    return {
+      id: rows[0].id,
+      agendamentoId: rows[0].agendamentoId,
+      clienteId: rows[0].clienteId,
+      profissionalId: rows[0].profissionalId,
+      status: rows[0].status,
+      valorTotal: Number(rows[0].valorTotal || 0),
+    };
+  }
+
   async listarPorCliente(clienteId) {
     if (!clienteId) return [];
     const sql = `
@@ -145,16 +174,30 @@ class ItensServicosModels {
     }));
   }
 
-  async atualizarStatus(id, { status }) {
+  async atualizarStatus(id, { status, observacoes }) {
     if (!id || !status) return null;
+
+    const contrato = await this.buscarPorId(id);
+    if (!contrato || !contrato.agendamentoId) return null;
 
     const sql = `
       UPDATE tb_itens_servicos
       SET its_status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE its_id = ?;
+      WHERE its_id_agendamento = ?;
     `;
 
-    return this.#db.ExecutaComandoNonQuery(sql, [status, id]);
+    const atualizouStatus = await this.#db.ExecutaComandoNonQuery(sql, [status, contrato.agendamentoId]);
+
+    if (observacoes !== undefined && observacoes !== null) {
+      const sqlObs = `
+        UPDATE tb_agendamentos
+        SET age_observacoes = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE age_id = ?;
+      `;
+      await this.#db.ExecutaComandoNonQuery(sqlObs, [observacoes, contrato.agendamentoId]);
+    }
+
+    return atualizouStatus;
   }
 }
 

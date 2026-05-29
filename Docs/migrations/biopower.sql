@@ -175,7 +175,13 @@ INSERT INTO `tb_Fluxo_Caixa` (`flu_id`, `flu_tipo_id`, `flu_valor`, `flu_data_mo
 (3, 9, 220.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 'Despesa - próximo 90d', 1, 'fornecedor'),
 (4, 8, 250.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 10 DAY), 'Receita - próximo 30d', 6, 'cliente'),
 (5, 8, 280.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 35 DAY), 'Receita - próximo 60d', 6, 'cliente'),
-(6, 8, 320.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 'Receita - próximo 90d', 6, 'cliente');
+(6, 8, 320.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 70 DAY), 'Receita - próximo 90d', 6, 'cliente'),
+(7, 9, 120.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 5 DAY), 'Aluguel', 1, 'fornecedor'),
+(8, 9, 500.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 DAY), 'Contas de luz', 1, 'fornecedor'),
+(9, 8, 350.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 20 DAY), 'Venda curso online', 6, 'cliente'),
+(10, 8, 450.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 40 DAY), 'Serviço de consultoria', 6, 'cliente'),
+(11, 9, 100.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 25 DAY), 'Manutenção de equipamentos', 1, 'fornecedor'),
+(12, 8, 220.00, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 12 DAY), 'Mensalidade', 6, 'cliente');
 
 
 /*!40000 ALTER TABLE `tb_Fluxo_Caixa` ENABLE KEYS */;

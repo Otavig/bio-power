@@ -147,7 +147,16 @@
 
         <div class="adm-form-group">
           <label>Tipo de despesa</label>
-          <input type="text" name="expenseType" placeholder="Descrição" class="adm-input" />
+          <% if (typeof tiposDespesa !== 'undefined' && tiposDespesa.length > 0) { %>
+            <select name="expenseType" class="adm-select">
+              <option value="">Todas as despesas</option>
+              <% tiposDespesa.forEach(d => { %>
+                <option value="<%= d %>"><%= d %></option>
+              <% }); %>
+            </select>
+          <% } else { %>
+            <input type="text" name="expenseType" placeholder="Descrição" class="adm-input" />
+          <% } %>
         </div>
 
         <div class="adm-form-group">
@@ -188,7 +197,16 @@
 
         <div class="adm-form-group">
           <label>Tipo de receita</label>
-          <input type="text" name="revenueType" placeholder="Descrição" class="adm-input" />
+          <% if (typeof tiposReceita !== 'undefined' && tiposReceita.length > 0) { %>
+            <select name="revenueType" class="adm-select">
+              <option value="">Todas as receitas</option>
+              <% tiposReceita.forEach(r => { %>
+                <option value="<%= r %>"><%= r %></option>
+              <% }); %>
+            </select>
+          <% } else { %>
+            <input type="text" name="revenueType" placeholder="Descrição" class="adm-input" />
+          <% } %>
         </div>
 
         <div class="adm-form-group">

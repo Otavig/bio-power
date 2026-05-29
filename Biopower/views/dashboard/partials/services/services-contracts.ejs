@@ -89,6 +89,33 @@
                   </div>
                 </div>
               <% }) %>
+              <div style="margin-top:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--color-text);">Produtos vinculados ao atendimento</label>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+                  <select class="adm-input js-produto-select" style="min-width:220px">
+                    <option value="">Escolha um produto...</option>
+                    <% (products || []).forEach(function(p){ %>
+                      <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.id %> - <%= p.nome %> (Estoque: <%= p.estoque %>)</option>
+                    <% }) %>
+                  </select>
+                  <input type="number" class="adm-input js-produto-qty" min="1" value="1" style="width:96px" />
+                  <button type="button" class="btn-primary js-add-produto">Adicionar</button>
+                </div>
+
+                <div class="js-produtos-list" style="margin-top:8px">
+                  <!-- selected products will appear here -->
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px">
+                  <div>
+                    <strong>Total:</strong> <span class="js-produtos-total">R$ 0,00</span>
+                  </div>
+                  <div>
+                    <button type="button" class="btn-primary js-cobrar">Cobrar</button>
+                  </div>
+                </div>
+
+              </div>
             </td>
           </tr>
           <% }) %>
