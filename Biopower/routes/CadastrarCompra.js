@@ -25,7 +25,7 @@ router.get("/cadastrar-compra", async(req, res, next) =>{
 });
 
 router.post("/receber", async(req, res) => {
-    const {pedidoID, quantidadeRecebida, lote, validade} = req.body;
+    const {pedidoID, quantidadeRecebida} = req.body;
 
     const [pedido] = await db.query(`
         SELECT * FROM pedido_itens
@@ -40,8 +40,8 @@ router.post("/receber", async(req, res) => {
     }
 
     await db.query(`
-        INSERT INTO estoque (produto_id, quantidade, lote, validade)
-        VALUES (?, ?, ?, ?)`, [pedido[0].produto_id, quantidadeRecebida, lote, validade]
+        INSERT INTO estoque (produto_id, quantidade)
+        VALUES (?, ?)`, [pedido[0].produto_id, quantidadeRecebida]
     );
     await db.query(`
         UPDATE pedidos_compra

@@ -1,83 +1,77 @@
-const database = require("../infra/database");
+const database = require("../utils/database");
 
 const banco = new database();
 
 class itensPedidoCompraModels {
-  #produtoId;
-  #pedidoId;
-  #pedidoItemQuantidade;
-  #pedidoItemValor;
-  #pedidoItemDataValidade;
-  #pedidoItemValorTotal;
 
-  get produtoId() {
-    return this.#produtoId;
-  }
-  set produtoId(value) {
-    this.#produtoId = value;
-  }
+    #pedidoId;
+    #produtoId;
+    #quantidade;
+    #precoUnitario;
 
-  get pedidoId() {
-    return this.#pedidoId;
-  }
-  set pedidoId(value) {
-    this.#pedidoId = value;
-  }
+    get pedidoId() {
+        return this.#pedidoId;
+    }
+    set pedidoId(value) {
+        this.#pedidoId = value;
+    }
 
-  get pedidoItemQuantidade() {
-    return this.#pedidoItemQuantidade;
-  }
-  set pedidoItemQuantidade(value) {
-    this.#pedidoItemQuantidade = value;
-  }
+    get produtoId() {
+        return this.#produtoId;
+    }
+    set produtoId(value) {
+        this.#produtoId = value;
+    }
 
-  get pedidoItemValor() {
-    return this.#pedidoItemValor;
-  }
-  set pedidoItemValor(value) {
-    this.#pedidoItemValor = value;
-  }
+    get quantidade() {
+        return this.#quantidade;
+    }
+    set quantidade(value) {
+        this.#quantidade = value;
+    }
 
-  get pedidoItemDataValidade() {
-    return this.#pedidoItemDataValidade;
-  }
-  set pedidoItemDataValidade(value) {
-    this.#pedidoItemDataValidade = value;
-  }
+    get precoUnitario() {
+        return this.#precoUnitario;
+    }
+    set precoUnitario(value) {
+        this.#precoUnitario = value;
+    }
 
-  get pedidoItemValorTotal() {
-    return this.#pedidoItemValorTotal;
-  }
-  set pedidoItemValorTotal(value) {
-    this.#pedidoItemValorTotal = value;
-  }
+    constructor(
+        pedidoId,
+        produtoId,
+        quantidade,
+        precoUnitario
+    ) {
+        this.#pedidoId = pedidoId;
+        this.#produtoId = produtoId;
+        this.#quantidade = quantidade;
+        this.#precoUnitario = precoUnitario;
+    }
 
-  constructor(
-    produtoId,
-    pedidoId,
-    pedidoItemQuantidade,
-    pedidoItemValor,
-    pedidoItemDataValidade,
-    pedidoItemValorTotal,
-  ) {
-    this.#produtoId = produtoId;
-    this.#pedidoId = pedidoId;
-    this.#pedidoItemQuantidade = pedidoItemQuantidade;
-    this.#pedidoItemValor = pedidoItemValor;
-    this.#pedidoItemDataValidade = pedidoItemDataValidade;
-    this.#pedidoItemValorTotal = pedidoItemValorTotal;
-  }
+    async gravar() {
 
-  async atualizar() {
-    let sql = `
-        UPDATE produto
-        SET produtoQuantidade = ?
-        WHERE produtoId = ?
-    `;
+        let sql = `
+            INSERT INTO tb_Itens_Pedido_Compra
+            (
+                ipc_id_pedido,
+                ipc_id_produto,
+                ipc_quantidade,
+                ipc_preco_unitario
+            )
+            VALUES (?, ?, ?, ?)
+        `;
 
-    return await banco.ExecutaComandoNonQuery(sql, [
-      this.produtoQuantidade,
-      this.produtoId,
-    ]);
-  }
+        return await banco.ExecutaComandoNonQuery(
+            sql,
+            [
+                this.#pedidoId,
+                this.#produtoId,
+                this.#quantidade,
+                this.#precoUnitario
+            ]
+        );
+    }
 }
+
+module.exports = itensPedidoCompraModels;

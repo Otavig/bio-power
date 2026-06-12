@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const productData = sessionStorage.getItem("selectedProduct");
   if (!productData) {
     showAlert({ icon: "warning", title: "Nenhum produto selecionado!" });
-    window.location.href = "home.html";
+    window.location.href = "/";
     return;
   }
 
@@ -29,7 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
       Aproveite nossas condições especiais!`;
 
   document.getElementById("buy-button").onclick = () => {
-    showAlert({ icon: "success", title: `Compra iniciada para: ${product.nome}` });
+    showAlert({
+      icon: "success",
+      title: `Compra iniciada para: ${product.nome}`,
+    });
   };
 
   // Simulação de avaliação dinâmica (ex: viria de um backend)

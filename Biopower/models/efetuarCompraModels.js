@@ -5,8 +5,8 @@ const banco = new Database();
 class efetuarCompraModels {
   #produtoId;
   #quantidade;
-  #dataValidade;
-  #numeroLote;
+  // #dataValidade;
+  // #numeroLote;
 
   get produtoId() {
     return this.#produtoId;
@@ -22,35 +22,35 @@ class efetuarCompraModels {
     this.#quantidade = value;
   }
 
-  get dataValidade() {
-    return this.#dataValidade;
-  }
-  set dataValidade(value) {
-    this.#dataValidade = value;
-  }
+  // get dataValidade() {
+  //   return this.#dataValidade;
+  // }
+  // set dataValidade(value) {
+  //   this.#dataValidade = value;
+  // }
 
-  get numeroLote() {
-    return this.#numeroLote;
-  }
-  set numeroLote(value) {
-    this.#numeroLote = value;
-  }
+  // get numeroLote() {
+  //   return this.#numeroLote;
+  // }
+  // set numeroLote(value) {
+  //   this.#numeroLote = value;
+  // }
 
   constructor(produtoId, quantidade, dataValidade, numeroLote) {
     this.#produtoId = produtoId;
     this.#quantidade = quantidade;
-    this.#dataValidade = dataValidade;
-    this.#numeroLote = numeroLote;
+    // this.#dataValidade = dataValidade;
+    // this.#numeroLote = numeroLote;
   }
 
   async registrarCompra() {
-    let sql = `INSERT INTO tb_Lotes_Estoque(lot_id_produto, lot_qtd, lot_data_validade, lot_num_lote) VALUES(?, ?, ?, ?)`;
+    let sql = `INSERT INTO tb_Pedidos_Compra(ped_id_produto, ped_qtd) VALUES(?, ?)`;
 
     let valores = [
       this.#produtoId,
       this.#quantidade,
-      this.#dataValidade,
-      this.#numeroLote,
+      // this.#dataValidade,
+      // this.#numeroLote,
     ];
 
     return await banco.ExecutaComandoNonQuery(sql, valores);

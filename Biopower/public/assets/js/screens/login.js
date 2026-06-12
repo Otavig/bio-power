@@ -1,8 +1,10 @@
 // src/js/auth/auth-login.js
 document.addEventListener("DOMContentLoaded", () => {
-  const loginForm = document.querySelector(".login-form");
+  const loginForm = document.querySelector("#loginForm");
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
+
+  if (!loginForm) return;
 
   const showAlert = (options) => {
     if (window.Swal) return window.Swal.fire(options);
@@ -11,26 +13,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
 
     if (!email || !password) {
-      showAlert({ icon: "warning", title: "Por favor, preencha todos os campos." });
+      e.preventDefault();
+      showAlert({
+        icon: "warning",
+        title: "Por favor, preencha todos os campos.",
+      });
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showAlert({ icon: "warning", title: "Por favor, insira um e-mail válido." });
+      e.preventDefault();
+      showAlert({
+        icon: "warning",
+        title: "Por favor, insira um e-mail válido.",
+      });
       return;
     }
 
-    const newToken = generateToken();
-    localStorage.setItem("token", newToken);
-
-    console.log("Token set in localStorage:", localStorage.getItem("token"));
-
-    window.location.href = "../../home.html";
+    // Se a validação passar, deixa o formulário ser enviado para o servidor.
   });
 });

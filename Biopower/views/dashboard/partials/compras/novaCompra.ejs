@@ -8,7 +8,22 @@
       <span class="nova-compra-tag">Nova compra</span>
       <h2>Registrar nova compra</h2>
       <p>Escolha os produtos que deseja comprar e informe a quantidade antes de finalizar.</p>
+      <br>
     </div>
+
+    <div class="form-row">
+     <label>Fornecedor</label>
+
+      <select name="fornecedorId" id="fornecedorId">
+         <option value="">Selecione</option>
+
+        <% fornecedores.forEach(fornecedor => { %>
+      <option value="<%= fornecedor.for_id %>">
+        <%= fornecedor.for_nome %>
+      </option>
+    <% }) %>
+  </select>
+</div>
 
     <form action="/efetuar-compra" method="POST" class="nova-compra-form" id="novaCompraForm">
       <div class="form-row">
@@ -20,6 +35,7 @@
 
       <div class="selected-items-wrapper">
         <div class="section-title">
+          <br>
           <h3>Produtos selecionados</h3>
           <p>Ajuste a quantidade dos itens escolhidos.</p>
         </div>
@@ -29,6 +45,7 @@
       </div>
       <div class="form-grid">
         <div class="form-row">
+          <br>
           <label for="totalQuantidade">Quantidade total</label>
           <input id="totalQuantidade" type="number" name="totalQuantidade" readonly placeholder="0" />
         </div>
@@ -91,8 +108,8 @@
     </div>
     <div id="resumoCompraList" class="selected-items"></div>
     <div class="resumo-infos">
-      <p><strong>Lote:</strong> <span id="resumoLote"></span></p>
-      <p><strong>Validade:</strong> <span id="resumoValidade"></span></p>
+      <!-- <p><strong>Lote:</strong> <span id="resumoLote"></span></p>
+      <p><strong>Validade:</strong> <span id="resumoValidade"></span></p> -->
       <p><strong>Quantidade total:</strong> <span id="resumoTotal"></span></p>
     </div>
     <div class="form-actions">
@@ -103,6 +120,11 @@
 </div>
 
 <style>
+  .nova-compra-modal,
+  .product-picker-modal,
+  .resumo-compra-modal {
+    font-family: 'myriad-pro', sans-serif;
+  }
   .nova-compra-modal,
   .product-picker-modal,
   .resumo-compra-modal {
@@ -153,7 +175,7 @@
     display: grid;
     gap: 12px;
     padding-bottom: 18px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #ebe5e5;
     margin-bottom: 24px;
   }
 
@@ -162,7 +184,7 @@
     padding: 8px 14px;
     border-radius: 999px;
     background: #eff6ff;
-    color: #1d4ed8;
+    color: #391dd8;
     font-weight: 700;
     font-size: 0.82rem;
   }
@@ -176,7 +198,7 @@
 
   .nova-compra-header p {
     margin: 0;
-    color: #475569;
+    color: #694747;
     font-size: 1rem;
     line-height: 1.75;
   }
@@ -213,7 +235,7 @@
 
   .product-summary span,
   .selected-product-summary span {
-    color: #475569;
+    color: #694747;
     font-size: 0.95rem;
   }
 
@@ -248,14 +270,14 @@
   }
 
   .product-price {
-    color: #1d4ed8;
+    color: #d81d1d;
     font-weight: 700;
   }
 
   .btn-select-product,
   .btn-remove-product {
     border: none;
-    background: #2563eb;
+    background: #eb2525;
     color: #fff;
     border-radius: 14px;
     padding: 10px 16px;
@@ -268,7 +290,7 @@
   }
 
   .btn-select-product:hover {
-    background: #1d4ed8;
+    background: #d81d1d;
   }
 
   .btn-remove-product:hover {
@@ -307,7 +329,7 @@
   }
 
   .picker-input:hover {
-    border-color: #2563eb;
+    border-color: #eb2525;
   }
 
   .form-grid {
@@ -335,7 +357,7 @@
   .form-row input:focus,
   .picker-input:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: #eb2525;
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
   }
 
@@ -355,7 +377,7 @@
 
   .btn-submit {
     border: none;
-    background: #2563eb;
+    background: #eb2525;
     color: #ffffff;
     border-radius: 14px;
     padding: 14px 28px;
@@ -366,7 +388,7 @@
   }
 
   .btn-submit:hover {
-    background: #1d4ed8;
+    background: #d81d1d;
   }
 
   .resumo-infos {
