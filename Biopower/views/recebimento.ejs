@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pagamento — Bio-pO</title>
+  <title>BioPower - Pagamento</title>
+
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/screen/carrinho.css">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -631,19 +633,6 @@
     <!-- COLUNA ESQUERDA -->
     <div class="col-lg-7 pr-lg-3 mb-4 mb-lg-0">
 
-      <!-- Endereço -->
-      <div class="sec">
-        <div class="sec-title">Entrega</div>
-        <div class="endereco-card">
-          <i class="fas fa-map-marker-alt icon"></i>
-          <div>
-            <div class="nome-end">Carlos Henrique Moura</div>
-            <div class="txt-end">Av. Brasil, 2240, Bloco A, Apto 54<br>Campinas – SP &nbsp;·&nbsp; CEP 13015-002</div>
-          </div>
-          <a href="#" class="link-trocar">Trocar →</a>
-        </div>
-      </div>
-
       <!-- Pagamento -->
       <div class="sec">
         <div class="sec-title">Forma de Pagamento</div>
@@ -805,15 +794,15 @@
         <div class="row no-gutters" style="gap:12px;">
           <div style="flex:1 1 55%;">
             <label class="form-label-dark">Nome Completo</label>
-            <input class="input-dark" type="text" value="Carlos Henrique Moura"/>
+            <input class="input-dark" type="text"/>
           </div>
           <div style="flex:1 1 35%;">
             <label class="form-label-dark">CPF</label>
-            <input class="input-dark" type="text" value="045.678.901-23" maxlength="14"/>
+            <input class="input-dark" type="text" placeholder="000.000.000-00" maxlength="14"/>
           </div>
           <div style="flex:1 1 100%;">
             <label class="form-label-dark">E-mail para confirmação</label>
-            <input class="input-dark" type="email" value="carlos.moura@email.com"/>
+            <input class="input-dark" type="email"/>
           </div>
         </div>
       </div>
@@ -821,37 +810,21 @@
     </div>
 
     <!-- COLUNA DIREITA -->
-    <div class="col-lg-5 pl-lg-3">
+    <div class="col-lg-5 pl-lg-3 ">
 
       <!-- Resumo -->
       <div class="sec">
         <div class="sec-title">Resumo do Pedido</div>
 
-        <div id="modalCarrinhoCorpo"></div>
+        <div id="resumoPedidoCorpo">Teste</div>
 
         <div class="mt-3">
-          <div class="total-linha">
-            <span>Subtotal (4 itens)</span>
-            <span>R$ 279,70</span>
-          </div>
-          <div class="total-linha desc" id="linhaCupom">
-            <span><i class="fas fa-tag" style="margin-right:4px;"></i>Cupom POWER10</span>
-            <span>– R$ 27,97</span>
-          </div>
-          <div class="total-linha" id="linhaFrete">
-            <span>Frete (Sedex)</span>
-            <span style="color:var(--verde); font-weight:600;">GRÁTIS</span>
-          </div>
-          <div class="total-linha desc" id="linhaDescPix" style="display:none;">
-            <span><i class="fas fa-bolt" style="margin-right:4px;"></i>Desconto Pix 5%</span>
-            <span>– R$ 12,59</span>
-          </div>
           <div class="total-final">
             <div>
               <div class="label">Total</div>
               <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;" id="subLabel">6x de R$ 43,91 sem juros</div>
             </div>
-            <div class="valor" id="totalValor">R$ <span>263,47</span></div>
+            <div class="valor" id="totalValor">R$ <span>0,0</span></div>
           </div>
         </div>
       </div>
@@ -861,7 +834,7 @@
       <button class="btn-pagar" id="btnPagar" onclick="pagar()">
         <i class="fas fa-lock"></i>
         <span id="btnTexto">Confirmar Pagamento</span>
-        <span style="margin-left:auto; opacity:0.7; font-size:0.85rem;" id="btnValor">R$ 263,47</span>
+        <span style="margin-left:auto; opacity:0.7; font-size:0.85rem;" id="btnValor">R$ 0,0</span>
       </button>
 
       <!-- Selos -->
@@ -884,7 +857,11 @@
 
 <!-- QR CODE lib -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
+
+
+<script src="assets/js/screens/pagamento.js"></script>
+
+<script >
   /* ---- SELEÇÃO DE MÉTODO ---- */
   let metodoAtual = 'credito';
 

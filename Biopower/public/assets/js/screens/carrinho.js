@@ -15,43 +15,18 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     let btnCarrinhoIcon = document.querySelector(".cart-button");
-        if(btnCarrinhoIcon) {
-            btnCarrinhoIcon.addEventListener("click", abrirCarrinho);
-        }
+    if(btnCarrinhoIcon) {
+        btnCarrinhoIcon.addEventListener("click", abrirCarrinho);
+    }
 
     let offcanvasElement = document.getElementById('offcanvasCarrinho');
-    offcanvasElement.addEventListener("show.bs.offcanvas", abrirCarrinho);
+    if (offcanvasElement) {
+        offcanvasElement.addEventListener("show.bs.offcanvas", abrirCarrinho);
+    }
 
-    document.querySelector(".offcanvas-footer .btn-primary").addEventListener("click", gravarPedido);
-
-    function gravarPedido() {
-        if(listaCarrinho.length > 0) {
-            fetch("/pedido/gravar", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(listaCarrinho)
-            })
-            .then(function(resposta) {
-                return resposta.json();
-            })
-            .then(function(corpo) {
-                if(corpo.ok) {
-                    Swal.fire('Sucesso!', corpo.msg || 'Pedido realizado com sucesso!', 'success');
-                    localStorage.removeItem("carrinho");
-                    listaCarrinho = [];
-                    atualizarContador();
-                    abrirCarrinho();
-                } else {
-                    Swal.fire('Atenção', corpo.msg || 'Erro ao processar pedido.', 'warning');
-                }
-            })
-            .catch(erro => console.error("Erro ao gravar:", erro));
-        }
-        else {
-            Swal.fire('Vazio!', 'Nenhum produto adicionado ao carrinho!', 'info');
-        }
+    let btnGravar = document.querySelector(".offcanvas-footer .btn-primary");
+    if (btnGravar) {
+        btnGravar.addEventListener("click", gravarPedido);
     }
 
     function excluirProdutoCarrinho() {
@@ -61,6 +36,30 @@ document.addEventListener("DOMContentLoaded", function() {
         localStorage.setItem("carrinho", JSON.stringify(listaCarrinho));
         atualizarContador();
         abrirCarrinho();
+    }
+
+    // NOVA FUNÇÃO: Gerencia a soma e subtração das quantidades
+    function alterarQuantidade() {
+        let produtoId = this.dataset.produto;
+        let acao = this.dataset.acao; // Pega "mais" ou "menos" do botão clicado
+
+        for (let i = 0; i < listaCarrinho.length; i++) {
+            if (listaCarrinho[i].id == produtoId) {
+                if (acao === "mais") {
+                    listaCarrinho[i].quantidade += 1;
+                } else if (acao === "menos") {
+                    // Impede que a quantidade fique zero ou negativa
+                    if (listaCarrinho[i].quantidade > 1) {
+                        listaCarrinho[i].quantidade -= 1;
+                    }
+                }
+                break; // Achou o produto, pode parar o laço
+            }
+        }
+
+        localStorage.setItem("carrinho", JSON.stringify(listaCarrinho));
+        atualizarContador();
+        abrirCarrinho(); // Reconstrói o HTML para refletir o novo cálculo
     }
 
     function atualizarContador() {
@@ -86,12 +85,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 htmlCorpo += `
                 <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                     <img src="${item.imagem}" style="width: 60px; height: 60px; object-fit: cover;" class="me-3 rounded border" alt="${item.nome}">
+                    
                     <div class="flex-grow-1">
-                        <h6 class="mb-0 text-dark" style="font-size: 0.9rem;">${item.nome}</h6>
-                        <small class="text-muted">
-                            R$ ${precoNumerico.toFixed(2).replace('.', ',')} x ${item.quantidade}
+                        <h6 class="product-name mb-1">${item.nome}</h6>
+                        
+                        <div class="d-flex align-items-center mb-1">
+                            <button data-produto="${item.id}" data-acao="menos" class="btn btn-sm btn-outline-secondary btn-qtd px-2 py-0" style="line-height: 1;">-</button>
+                            <span class="mx-2 fw-bold" style="font-size: 0.85rem;">${item.quantidade}</span>
+                            <button data-produto="${item.id}" data-acao="mais" class="btn btn-sm btn-outline-secondary btn-qtd px-2 py-0" style="line-height: 1;">+</button>
+                        </div>
+                        
+                        <small class="text-muted d-block">
+                            R$ ${(precoNumerico * item.quantidade).toFixed(2).replace('.', ',')}
                         </small>
                     </div>
+
                     <button data-produto="${item.id}" class="btn btn-sm btn-outline-danger excluirCarrinho" aria-label="Remover item">
                         <i class="fa-solid fa-trash"></i>
                     </button>
@@ -99,16 +107,23 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             modalCorpo.innerHTML = htmlCorpo;
-            textoValorTotal.innerHTML = `Valor total: R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+            if (textoValorTotal) textoValorTotal.innerHTML = `Valor total: R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
 
+            // Liga o evento de clique aos botões de Excluir
             let btnsExcluir = document.querySelectorAll(".excluirCarrinho");
             for(let i = 0; i < btnsExcluir.length; i++) {
                 btnsExcluir[i].addEventListener("click", excluirProdutoCarrinho);
             }
+
+            // NOVA LIGAÇÃO: Liga o evento de clique aos botões de Mais/Menos (+ e -)
+            let btnsQtd = document.querySelectorAll(".btn-qtd");
+            for(let i = 0; i < btnsQtd.length; i++) {
+                btnsQtd[i].addEventListener("click", alterarQuantidade);
+            }
         }
         else {
-            modalCorpo.innerHTML = "<p>Seus produtos aparecerão aqui...</p>";
-            textoValorTotal.innerHTML = "Valor total: R$ 0,00";
+            modalCorpo.innerHTML = "<p class='text-muted'>Seus produtos aparecerão aqui...</p>";
+            if (textoValorTotal) textoValorTotal.innerHTML = "Valor total: R$ 0,00";
         }
     }
 
