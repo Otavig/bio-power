@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const tabelaContratos = document.getElementById("tabela-contratos-servicos");
   const filtroStatusContrato = document.getElementById("filtroStatusContrato");
 
-  if (!dialog || !form || !btnSalvar) return;
+  const hasServiceCrud = Boolean(dialog && form && btnSalvar);
 
    const showAlert = (options) => {
      if (window.Swal) return window.Swal.fire(options);
@@ -120,22 +120,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  btnSalvar.addEventListener("click", function (e) {
-    e.preventDefault();
-    salvarServico();
-  });
+  if (hasServiceCrud) {
+    btnSalvar.addEventListener("click", function (e) {
+      e.preventDefault();
+      salvarServico();
+    });
 
-  window.editarServico = function (btn) {
-    inputId.value = btn.dataset.id || "";
-    inputNome.value = btn.dataset.nome || "";
-    inputPreco.value = btn.dataset.preco || "";
-    inputDesc.value = btn.dataset.descricao || "";
-    openDialog();
-  };
+    window.editarServico = function (btn) {
+      inputId.value = btn.dataset.id || "";
+      inputNome.value = btn.dataset.nome || "";
+      inputPreco.value = btn.dataset.preco || "";
+      inputDesc.value = btn.dataset.descricao || "";
+      openDialog();
+    };
 
-  window.excluirServico = function (btn) {
-    excluirServico(btn);
-  };
+    window.excluirServico = function (btn) {
+      excluirServico(btn);
+    };
+  }
 
   // ----- Gestão de contratos de serviços (admin) -----
   async function atualizarContrato(row) {
@@ -390,57 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
-
-  // Delegated handler as a fallback for Add buttons (works even if rows are added later)
-  if (tabelaContratos) {
-    tabelaContratos.addEventListener("click", function (e) {
-      const add = e.target.closest(".js-add-produto");
-      if (!add) return;
-      const detail = add.closest("tr.adm-contract-detail");
-      if (!detail) return;
-      const row = detail.previousElementSibling;
-      const select = detail.querySelector(".js-produto-select");
-      const qty = detail.querySelector(".js-produto-qty");
-      const list = detail.querySelector(".js-produtos-list");
-      if (!select || !qty || !list || !row) return;
-
-      row._produtos = row._produtos || [];
-      const pid = Number(select.value);
-      const nome = select.options[select.selectedIndex]?.dataset?.nome || select.options[select.selectedIndex]?.text || "";
-      const quantidade = Math.max(1, Number(qty.value || 1));
-      if (!pid || quantidade <= 0) return;
-
-      const exists = row._produtos.find((p) => Number(p.produtoId) === pid);
-      if (exists) exists.quantidade = Number(exists.quantidade) + quantidade;
-      else {
-        const preco = Number(select.options[select.selectedIndex]?.dataset?.preco || 0);
-        row._produtos.push({ produtoId: pid, nome, quantidade, preco });
-      }
-
-      // render list
-      list.innerHTML = "";
-      row._produtos.forEach((p, idx) => {
-        const el = document.createElement("div");
-        el.className = "js-produto-item";
-        el.dataset.produtoId = p.produtoId;
-        el.dataset.quantidade = p.quantidade;
-        el.style = "display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);";
-        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='adm-btn-icon adm-btn-icon--danger btn-remove-prod' data-idx='${idx}' title='Remover'><i class='fa-solid fa-trash'></i></button></div>`;
-        list.appendChild(el);
-      });
-      // update total display after delegated add
-      try {
-        const detail = row.nextElementSibling;
-        const totalEl = detail?.querySelector(".js-produtos-total");
-        if (totalEl) {
-          const total = (row._produtos || []).reduce((acc, p) => acc + (Number(p.preco || 0) * Number(p.quantidade || 0)), 0);
-          totalEl.textContent = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total || 0);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  }
 
   if (filtroStatusContrato) {
     filtroStatusContrato.addEventListener("change", filtrarContratos);

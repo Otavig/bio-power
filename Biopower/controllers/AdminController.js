@@ -203,14 +203,12 @@ class AdminController {
       : 30;
     let lotesDescarte = [];
     try {
-      const sqlDesp = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'DESPESA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
-      const sqlRec = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'RECEITA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
-      const resDesp = await this.database.ExecutaComando(sqlDesp, []);
-      const resRec = await this.database.ExecutaComando(sqlRec, []);
-      tiposDespesa = Array.isArray(resDesp) ? resDesp.map(r => r.descricao) : [];
-      tiposReceita = Array.isArray(resRec) ? resRec.map(r => r.descricao) : [];
+      tiposDespesa = ["pendente", "recebido", "cancelado"];
+      tiposReceita = Array.isArray(statusVendas) && statusVendas.length
+        ? statusVendas.map((status) => status.codigo)
+        : ["AGUARDANDO", "PAGO", "ENTREGUE", "CANCELADO"];
     } catch (err) {
-      console.error("Erro ao carregar tipos de fluxo (despesa/receita):", err);
+      console.error("Erro ao carregar filtros financeiros:", err);
       tiposDespesa = [];
       tiposReceita = [];
     }
@@ -756,7 +754,8 @@ class AdminController {
 
   async _montarRelatorio(tipoRelatorio, periodo, filtro) {
     const filters = [{ label: "Período", value: `${periodo} dias` }];
-    const subtitle = `Período: próximos ${periodo} dias`;
+    const subtitleProximos = `Período: próximos ${periodo} dias`;
+    const subtitleUltimos = `Período: últimos ${periodo} dias`;
     let rows = [];
     let columns = [];
 
@@ -771,7 +770,7 @@ class AdminController {
         { key: "quantidade", label: "Quantidade", width: 60 },
         { key: "validade", label: "Validade", width: 70 },
       ];
-      return { title: titulo, subtitle, filters, rows, columns };
+      return { title: titulo, subtitle: subtitleProximos, filters, rows, columns };
     }
 
     if (tipoRelatorio === "inventory") {
@@ -786,12 +785,12 @@ class AdminController {
         { key: "data", label: "Data", width: 80 },
         { key: "categoria", label: "Categoria", width: 90 },
       ];
-      return { title: titulo, subtitle, filters, rows, columns };
+      return { title: titulo, subtitle: subtitleUltimos, filters, rows, columns };
     }
 
     if (tipoRelatorio === "payables") {
       const titulo = "Relatório de Contas a Pagar";
-      this._adicionarFiltro(filters, "Tipo de despesa", filtro.tipoDespesa);
+      this._adicionarFiltro(filters, "Status", filtro.tipoDespesa);
       this._adicionarFiltro(filters, "Fornecedor", filtro.fornecedor);
       rows = await this._buscarContasAPagar(periodo, filtro.tipoDespesa, filtro.fornecedor);
       columns = [
@@ -800,12 +799,12 @@ class AdminController {
         { key: "data", label: "Data", width: 80 },
         { key: "fornecedor", label: "Fornecedor", width: 100 },
       ];
-      return { title: titulo, subtitle, filters, rows, columns };
+      return { title: titulo, subtitle: subtitleUltimos, filters, rows, columns };
     }
 
     if (tipoRelatorio === "receivables") {
       const titulo = "Relatório de Contas a Receber";
-      this._adicionarFiltro(filters, "Tipo de receita", filtro.tipoReceita);
+      this._adicionarFiltro(filters, "Status", filtro.tipoReceita);
       this._adicionarFiltro(filters, "Cliente", filtro.cliente);
       rows = await this._buscarContasAReceber(periodo, filtro.tipoReceita, filtro.cliente);
       columns = [
@@ -814,7 +813,7 @@ class AdminController {
         { key: "data", label: "Data", width: 80 },
         { key: "cliente", label: "Cliente", width: 100 },
       ];
-      return { title: titulo, subtitle, filters, rows, columns };
+      return { title: titulo, subtitle: subtitleUltimos, filters, rows, columns };
     }
 
     return null;
@@ -842,7 +841,8 @@ class AdminController {
       "INNER JOIN tb_Produtos p ON p.pro_id = l.lot_id_produto " +
       "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
       "WHERE l.lot_data_validade BETWEEN CURRENT_DATE() " +
-      "AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
+      "AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
+      "AND l.lot_quantidade_atual > 0 ";
 
     const params = [periodo];
 
@@ -870,7 +870,7 @@ class AdminController {
         "FROM tb_Lotes_Estoque l " +
         "INNER JOIN tb_Produtos p ON p.pro_id = l.lot_id_produto " +
         "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
-        "WHERE DATE(l.lot_data_entrada) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
+        "WHERE DATE(l.lot_data_entrada) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL ? DAY) AND CURRENT_DATE() " +
         productFilter;
       params.push(periodo);
       if (item) {
@@ -887,7 +887,20 @@ class AdminController {
         "INNER JOIN tb_Vendas v ON v.ven_id = i.itv_id_venda " +
         "INNER JOIN tb_Produtos p ON p.pro_id = i.itv_id_produto " +
         "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
-        "WHERE DATE(v.ven_data) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
+        "WHERE DATE(v.ven_data) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL ? DAY) AND CURRENT_DATE() " +
+        "AND UPPER(COALESCE(v.ven_status, '')) <> 'CANCELADO' " +
+        productFilter;
+      params.push(periodo);
+      if (item) {
+        params.push("%" + item + "%");
+      }
+
+      sql += " UNION ALL ";
+      sql += "SELECT p.pro_nome AS produto, 'Saída - Descarte' AS movimento, d.des_quantidade AS quantidade, DATE_FORMAT(d.des_data, '%d/%m/%Y') AS data, COALESCE(c.cat_nome, 'N/D') AS categoria " +
+        "FROM tb_Descartes d " +
+        "INNER JOIN tb_Produtos p ON p.pro_id = d.des_id_produto " +
+        "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
+        "WHERE DATE(d.des_data) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL ? DAY) AND CURRENT_DATE() " +
         productFilter;
       params.push(periodo);
       if (item) {
@@ -900,42 +913,35 @@ class AdminController {
   }
 
   async _buscarContasAPagar(periodo, tipoDespesa, fornecedor) {
-    var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(fo.for_razao_social, 'N/D') AS fornecedor " +
-      "FROM tb_Fluxo_Caixa f " +
-      "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Fluxo_Caixa_Compra fcc ON fcc.fcc_id_fluxo = f.flu_id " +
-      "LEFT JOIN tb_Compra c ON c.com_id = fcc.fcc_id_compra " +
+    var sql = "SELECT CONCAT('Compra #', c.com_id) AS descricao, c.com_valor_total AS valor, DATE_FORMAT(c.com_data, '%d/%m/%Y') AS data, COALESCE(fo.for_nome_fantasia, fo.for_razao_social, 'N/D') AS fornecedor " +
+      "FROM tb_Compra c " +
       "LEFT JOIN tb_Fornecedores fo ON fo.for_id = c.com_id_fornecedor " +
-      "WHERE s.sta_codigo = 'DESPESA' " +
-      "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
+      "WHERE DATE(c.com_data) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL ? DAY) AND CURRENT_DATE() ";
     var params = [periodo];
 
     if (tipoDespesa) {
-      sql += "AND f.flu_descricao LIKE ? ";
+      sql += "AND c.com_status LIKE ? ";
       params.push("%" + tipoDespesa + "%");
     }
     if (fornecedor) {
-      sql += "AND fo.for_razao_social LIKE ? ";
+      sql += "AND (fo.for_razao_social LIKE ? OR fo.for_nome_fantasia LIKE ?) ";
+      params.push("%" + fornecedor + "%");
       params.push("%" + fornecedor + "%");
     }
 
-    sql += "ORDER BY f.flu_data_movimentacao ASC;";
+    sql += "ORDER BY c.com_data ASC, c.com_id ASC;";
     return this.database.ExecutaComando(sql, params);
   }
 
   async _buscarContasAReceber(periodo, tipoReceita, cliente) {
-    var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(u.usu_nome, 'N/D') AS cliente " +
-      "FROM tb_Fluxo_Caixa f " +
-      "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Fluxo_Caixa_Venda fcv ON fcv.fcv_id_fluxo = f.flu_id " +
-      "LEFT JOIN tb_Vendas v ON v.ven_id = fcv.fcv_id_venda " +
+    var sql = "SELECT CONCAT('Venda #', v.ven_id) AS descricao, v.ven_valor_total AS valor, DATE_FORMAT(v.ven_data, '%d/%m/%Y') AS data, COALESCE(u.usu_nome, 'N/D') AS cliente " +
+      "FROM tb_Vendas v " +
       "LEFT JOIN tb_Usuarios u ON u.usu_id = v.ven_id_cliente " +
-      "WHERE s.sta_codigo = 'RECEITA' " +
-      "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
+      "WHERE DATE(v.ven_data) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL ? DAY) AND CURRENT_DATE() ";
     var params = [periodo];
 
     if (tipoReceita) {
-      sql += "AND f.flu_descricao LIKE ? ";
+      sql += "AND v.ven_status LIKE ? ";
       params.push("%" + tipoReceita + "%");
     }
     if (cliente) {
@@ -943,7 +949,7 @@ class AdminController {
       params.push("%" + cliente + "%");
     }
 
-    sql += "ORDER BY f.flu_data_movimentacao ASC;";
+    sql += "ORDER BY v.ven_data ASC, v.ven_id ASC;";
     return this.database.ExecutaComando(sql, params);
   }
 
@@ -1034,7 +1040,7 @@ class AdminController {
         vendaId = await this.vendasModel.criar({
           clienteId: contrato.clienteId,
           valorTotal: vendaTotal,
-          statusId: 18,
+          statusId: 17,
           metodoPagamentoId: 13,
           enderecoEntrega: null,
           frete: 0,

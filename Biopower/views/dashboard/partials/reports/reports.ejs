@@ -6,11 +6,6 @@
       <h1>Relatórios & Métricas</h1>
       <p>Análise estratégica de desempenho da operação.</p>
     </div>
-    <div class="adm-page-header-actions">
-      <button class="adm-btn adm-btn--ghost">
-        <i class="fa-solid fa-download"></i> Exportar CSV
-      </button>
-    </div>
   </div>
 
   <!-- FILTROS RÁPIDOS -->
@@ -146,10 +141,10 @@
         </div>
 
         <div class="adm-form-group">
-          <label>Tipo de despesa</label>
+          <label>Status da compra</label>
           <% if (typeof tiposDespesa !== 'undefined' && tiposDespesa.length > 0) { %>
             <select name="expenseType" class="adm-select">
-              <option value="">Todas as despesas</option>
+              <option value="">Todos os status</option>
               <% tiposDespesa.forEach(d => { %>
                 <option value="<%= d %>"><%= d %></option>
               <% }); %>
@@ -196,10 +191,10 @@
         </div>
 
         <div class="adm-form-group">
-          <label>Tipo de receita</label>
+          <label>Status da venda</label>
           <% if (typeof tiposReceita !== 'undefined' && tiposReceita.length > 0) { %>
             <select name="revenueType" class="adm-select">
-              <option value="">Todas as receitas</option>
+              <option value="">Todos os status</option>
               <% tiposReceita.forEach(r => { %>
                 <option value="<%= r %>"><%= r %></option>
               <% }); %>
