@@ -71,6 +71,10 @@ router.put("/services/contratos/:id/status", ensureAdmin, (req, res, next) =>
   Promise.resolve(controller.updateContractedServiceStatus(req, res)).catch(next),
 );
 
+router.put("/orders/:id/status", ensureAdmin, (req, res, next) =>
+  Promise.resolve(controller.updateVendaStatus(req, res)).catch(next),
+);
+
 // Usuarios (admin)
 router.post("/users", ensureAdmin, (req, res, next) =>
   Promise.resolve(controller.createUser(req, res)).catch(next),

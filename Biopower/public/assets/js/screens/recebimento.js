@@ -132,6 +132,10 @@ window.getDadosPagamento = function() {
     };
 };
 
+window.getMetodoPagamento = function() {
+    return metodoAtual;
+};
+
 window.getDadosEntrega = function() {
     return {
         cep: normalizarCep(document.getElementById('inputCep')?.value),

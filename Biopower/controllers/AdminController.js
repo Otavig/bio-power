@@ -10,6 +10,7 @@ const AgendamentosModels = require("../models/agendamentosModels");
 const VendasModels = require("../models/vendasModels");
 const ItensVendaModels = require("../models/itensVendaModels");
 const TypeUsuariosModels = require("../models/typeUserModels");
+const StatusDiversosModels = require("../models/statusDiversosModels");
 const Database = require("../utils/database");
 const { PdfGenerator } = require("../utils/pdfGenerator")
 
@@ -33,6 +34,7 @@ class AdminController {
     this.agendamentosModel = new AgendamentosModels();
     this.vendasModel = new VendasModels();
     this.itensVendaModel = new ItensVendaModels();
+    this.statusDiversosModel = new StatusDiversosModels();
     this.database = new Database();
   }
 
@@ -46,6 +48,9 @@ class AdminController {
     let laboratorios = [];
     let fornecedores = [];
     let clientes = [];
+    let vendas = [];
+    let statusVendas = [];
+    let metodosPagamentoVenda = [];
     try {
       const usuariosModel = new UsuariosModels();
       listaUsuarios = await usuariosModel.listar();
@@ -104,6 +109,23 @@ class AdminController {
     } catch (err) {
       console.error("Erro ao listar serviços:", err);
       services = [];
+    }
+
+    try {
+      await this.statusDiversosModel.garantirStatusVendaEntregue();
+      statusVendas = await this.statusDiversosModel.listarPorDominio("venda_status");
+      metodosPagamentoVenda = await this.statusDiversosModel.listarPorDominio("venda_metodo_pagamento");
+    } catch (err) {
+      console.error("Erro ao listar status de vendas:", err);
+      statusVendas = [];
+      metodosPagamentoVenda = [];
+    }
+
+    try {
+      vendas = await this.vendasModel.listarComItens();
+    } catch (err) {
+      console.error("Erro ao listar vendas:", err);
+      vendas = [];
     }
 
     try {
@@ -169,6 +191,9 @@ class AdminController {
       clientes,
       listaTipos,
       services,
+      vendas,
+      statusVendas,
+      metodosPagamentoVenda,
       servicosContratados,
       statusServicos: STATUS_SERVICOS,
       tiposDespesa,
@@ -911,6 +936,39 @@ class AdminController {
     }
 
     return res.redirect("/dashboard?flash=servico-contrato-atualizado#services");
+  }
+
+  async updateVendaStatus(req, res) {
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      const id = Number(req.params.id);
+      const statusId = Number(req.body.statusId);
+
+      if (!id || !statusId) {
+        const msg = "Venda ou status invalido.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=venda-status-erro#orders");
+      }
+
+      const status = await this.vendasModel.atualizarStatus(id, statusId);
+
+      if (wantsJson) {
+        return res.json({
+          ok: true,
+          msg: "Status da venda atualizado.",
+          status,
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status da venda:", err);
+      if (wantsJson) {
+        return res.status(500).json({ ok: false, msg: err.message || "Erro ao atualizar status." });
+      }
+      return res.redirect("/dashboard?flash=venda-status-erro#orders");
+    }
+
+    return res.redirect("/dashboard?flash=venda-status-atualizado#orders");
   }
 }
 

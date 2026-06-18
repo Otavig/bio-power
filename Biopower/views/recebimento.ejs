@@ -72,6 +72,11 @@
             <span class="m-label">Pix</span>
             <span class="m-badge">5% off</span>
           </div>
+          <div class="metodo-btn" data-metodo="boleto" onclick="selecionarMetodo(this)">
+            <i class="fas fa-barcode m-icon"></i>
+            <span class="m-label">Boleto</span>
+            <span class="m-badge" style="background:rgba(148,163,184,0.14);color:var(--texto);">1 dia util</span>
+          </div>
         </div>
 
           <!-- PAINEL CRÉDITO -->
@@ -194,6 +199,22 @@
               Aguardando confirmação do pagamento...
             </div>
 
+          </div>
+        </div>
+
+        <div class="painel" id="painel-boleto">
+          <div class="pix-wrap">
+            <div class="pix-title">
+              Boleto bancario
+            </div>
+            <div class="pix-chave">
+              <span class="chave-val">O boleto sera gerado apos a confirmacao do pedido.</span>
+            </div>
+            <div class="pix-steps">
+              <div class="pix-step"><div class="num">1</div><span>Confirme os dados do pedido</span></div>
+              <div class="pix-step"><div class="num">2</div><span>Gere o boleto de pagamento</span></div>
+              <div class="pix-step"><div class="num">3</div><span>A compensacao pode levar ate 1 dia util</span></div>
+            </div>
           </div>
         </div>
       </div>

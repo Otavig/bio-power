@@ -3,9 +3,24 @@ const VendasModels = require("../models/vendasModels");
 const ItensVendaModels = require("../models/itensVendaModels");
 const FluxoCaixaModels = require("../models/fluxoCaixaModels");
 const EntregaModels = require("../models/entregaModels");
+const StatusDiversosModels = require("../models/statusDiversosModels");
 
 function normalizarCep(cep) {
   return String(cep || "").replace(/\D/g, "").slice(0, 8);
+}
+
+function normalizarMetodoPagamento(metodo) {
+  const mapa = {
+    credito: "CREDITO",
+    cartao_credito: "CREDITO",
+    debito: "DEBITO",
+    cartao_debito: "DEBITO",
+    pix: "PIX",
+    boleto: "BOLETO",
+  };
+
+  const chave = String(metodo || "").trim().toLowerCase();
+  return mapa[chave] || String(metodo || "CREDITO").trim().toUpperCase();
 }
 
 class RecebimentoController {
@@ -20,6 +35,7 @@ class RecebimentoController {
 
     const itens = Array.isArray(req.body) ? req.body : req.body.itens;
     const entrega = Array.isArray(req.body) ? null : req.body.entrega;
+    const metodoPagamentoCodigo = normalizarMetodoPagamento(Array.isArray(req.body) ? null : req.body.metodoPagamento);
     const clienteId = req.session?.user?.id;
 
     if (!clienteId) {
@@ -36,8 +52,14 @@ class RecebimentoController {
       const itemVendaModel = new ItensVendaModels();
       const fluxoCaixaModel = new FluxoCaixaModels();
       const entregaModel = new EntregaModels();
+      const statusDiversosModel = new StatusDiversosModels();
       const itensVenda = [];
       let valorTotal = 0;
+      const metodoPagamento = await statusDiversosModel.buscarPorDominioCodigo("venda_metodo_pagamento", metodoPagamentoCodigo);
+
+      if (!metodoPagamento) {
+        throw new Error("Metodo de pagamento invalido.");
+      }
 
       const dadosEntrega = {
         cep: normalizarCep(entrega?.cep),
@@ -92,7 +114,9 @@ class RecebimentoController {
       const vendaId = await vendaModel.criar({
         clienteId,
         valorTotal: Number(valorTotal.toFixed(2)),
-        status: "aguardando",
+        status: "AGUARDANDO",
+        statusId: 17,
+        metodoPagamentoId: metodoPagamento.id,
         desconto: 0,
       });
 

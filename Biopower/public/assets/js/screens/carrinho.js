@@ -253,6 +253,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const dadosEntrega = typeof window.getDadosEntrega === "function"
       ? window.getDadosEntrega()
       : null;
+    const metodoPagamento = typeof window.getMetodoPagamento === "function"
+      ? window.getMetodoPagamento()
+      : null;
 
     if (!listaCarrinho.length) {
       mostrarAlerta({
@@ -271,7 +274,8 @@ document.addEventListener("DOMContentLoaded", function () {
       body: JSON.stringify({
         itens: listaCarrinho,
         cliente: dadosPagamento,
-        entrega: dadosEntrega
+        entrega: dadosEntrega,
+        metodoPagamento
       })
     })
       .then((resposta) => resposta.json())
