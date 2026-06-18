@@ -169,7 +169,7 @@ class UsuariosModels {
   }
 
   async listarClientes() {
-    const sql = `SELECT usu_id AS id, usu_nome AS nome FROM tb_Usuarios WHERE usu_typ_id = 3 ORDER BY usu_nome`;
+    const sql = `SELECT usu_id AS id, usu_nome AS nome FROM tb_Usuarios WHERE usu_typ_id = 4 ORDER BY usu_nome`;
     return banco.ExecutaComando(sql, []);
   }
 
@@ -187,6 +187,18 @@ class UsuariosModels {
       u["usu_ativo"],
       u["usu_id"],
     );
+  }
+
+  async buscarPorEmail(email) {
+    const sql = "select * from tb_Usuarios where usu_email = ?";
+    const rows = await banco.ExecutaComando(sql, [email]);
+    return rows[0] || null;
+  }
+
+  async buscarPorCpfCnpj(cpfCnpj) {
+    const sql = "select * from tb_Usuarios where usu_cpf_cnpj = ?";
+    const rows = await banco.ExecutaComando(sql, [cpfCnpj]);
+    return rows[0] || null;
   }
 
   async criar({ nome, email, senha, cpfCnpj = null, typeId, ativo = 1 }) {

@@ -1,4 +1,5 @@
 const UsuariosModels = require("../models/usuariosModels");
+const ClientesModels = require("../models/clientesModels");
 
 class UsuariosController {
   async autentificacao(req, res) {
@@ -62,7 +63,109 @@ class UsuariosController {
   }
 
   async register(req, res) {
-    res.render("register", { layout: false });
+    res.render("register", { layout: false, error: null });
+  }
+
+  async registerPost(req, res) {
+    const normalizeSpaces = (value) =>
+      String(value || "").trim().split(/\s+/).filter(Boolean).join(" ");
+    const onlyDigits = (value) => String(value || "").replace(/\D/g, "");
+
+    const body = req.body || {};
+    const nome = normalizeSpaces(body.nome);
+    const sobrenome = normalizeSpaces(body.sobrenome);
+    const email = normalizeSpaces(body.email).toLowerCase();
+    const senha = String(body.senha || "");
+    const confirmarSenha = String(body.confirmarSenha || "");
+    const cpf = onlyDigits(body.cpf);
+    const telefone = onlyDigits(body.telefone);
+    const cep = onlyDigits(body.cep);
+    const complemento = normalizeSpaces(body.complemento);
+
+    try {
+      const requiredFields = [
+        nome,
+        sobrenome,
+        cpf,
+        body.genero,
+        email,
+        telefone,
+        body.data,
+        body.estadoCivil,
+        cep,
+        body.cidade,
+        body.estado,
+        body.bairro,
+        body.rua,
+        body.numero,
+        senha,
+        confirmarSenha,
+      ];
+
+      if (requiredFields.some((value) => !String(value || "").trim())) {
+        return res.status(400).render("register", {
+          layout: false,
+          error: "Preencha todos os campos obrigatórios.",
+        });
+      }
+
+      if (senha !== confirmarSenha) {
+        return res.status(400).render("register", {
+          layout: false,
+          error: "As senhas não coincidem.",
+        });
+      }
+
+      const usuariosModel = new UsuariosModels();
+
+      if (await usuariosModel.buscarPorEmail(email)) {
+        return res.status(409).render("register", {
+          layout: false,
+          error: "Este e-mail já está cadastrado.",
+        });
+      }
+
+      if (await usuariosModel.buscarPorCpfCnpj(cpf)) {
+        return res.status(409).render("register", {
+          layout: false,
+          error: "Este CPF já está cadastrado.",
+        });
+      }
+
+      const usuarioId = await usuariosModel.criar({
+        nome: `${nome} ${sobrenome}`,
+        email,
+        senha,
+        cpfCnpj: cpf,
+        typeId: 4,
+        ativo: 1,
+      });
+
+      const clientesModel = new ClientesModels();
+      await clientesModel.criar({
+        usuarioId,
+        sobrenome,
+        genero: body.genero,
+        telefone,
+        dataNascimento: body.data,
+        estadoCivil: body.estadoCivil,
+        cep,
+        cidade: normalizeSpaces(body.cidade),
+        estado: String(body.estado || "").toUpperCase(),
+        bairro: normalizeSpaces(body.bairro),
+        rua: normalizeSpaces(body.rua),
+        numero: normalizeSpaces(body.numero),
+        complemento,
+      });
+
+      return res.redirect("/login");
+    } catch (err) {
+      console.error("Erro ao cadastrar cliente:", err);
+      return res.status(500).render("register", {
+        layout: false,
+        error: "Erro ao cadastrar. Tente novamente.",
+      });
+    }
   }
 
   async listarUsuarios(req, res) {
