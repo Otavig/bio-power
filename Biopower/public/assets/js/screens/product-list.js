@@ -187,6 +187,15 @@ function renderProdutosFiltrados(produtos) {
       <h3>${product.nome}</h3>
       <p class="price">${product.preco} <span>${product.desconto}</span></p>
       <p class="credit">${product.credito}</p>
+      <div class="product-qty" aria-label="Quantidade">
+        <button class="product-qty-btn" type="button" data-acao="menos" aria-label="Diminuir quantidade">
+          <i class="fa-solid fa-minus"></i>
+        </button>
+        <input class="product-qty-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantidade do produto">
+        <button class="product-qty-btn" type="button" data-acao="mais" aria-label="Aumentar quantidade">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
       <div class="buttons">
         <button class="buy" onclick="event.stopPropagation(); goToProductBuy(${JSON.stringify(
       product
