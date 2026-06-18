@@ -3,88 +3,117 @@
   <div class="adm-page-header">
     <div>
       <h1>Categorias</h1>
-      <p>Organize a estrutura de navegação do catálogo.</p>
+      <p>Organize a estrutura de navegação do catálogo. (<%= categorias.length %> categoria<%= categorias.length !== 1 ? 's' : '' %>)</p>
     </div>
-    <button class="adm-btn adm-btn--primary">
+    <button
+      class="adm-btn adm-btn--primary"
+      id="btnNovaCategoria"
+    >
       <i class="fa-solid fa-plus"></i> Nova categoria
     </button>
   </div>
-  <div class="adm-grid-2">
-    <div class="adm-card adm-category-card">
-      <div class="adm-category-card-icon">
-        <i class="fa-solid fa-dumbbell"></i>
-      </div>
-      <div class="adm-category-card-info">
-        <strong>Proteínas</strong><span>32 produtos</span>
-      </div>
-      <div class="adm-actions">
-        <button class="adm-btn-icon">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button
-          class="adm-btn-icon adm-btn-icon--danger"
-          onclick="confirmDelete(this)"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-    <div class="adm-card adm-category-card">
-      <div class="adm-category-card-icon">
-        <i class="fa-solid fa-capsules"></i>
-      </div>
-      <div class="adm-category-card-info">
-        <strong>Aminoácidos</strong><span>18 produtos</span>
-      </div>
-      <div class="adm-actions">
-        <button class="adm-btn-icon">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button
-          class="adm-btn-icon adm-btn-icon--danger"
-          onclick="confirmDelete(this)"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-    <div class="adm-card adm-category-card">
-      <div class="adm-category-card-icon">
-        <i class="fa-solid fa-bolt"></i>
-      </div>
-      <div class="adm-category-card-info">
-        <strong>Pré-treino</strong><span>11 produtos</span>
-      </div>
-      <div class="adm-actions">
-        <button class="adm-btn-icon">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button
-          class="adm-btn-icon adm-btn-icon--danger"
-          onclick="confirmDelete(this)"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
-    <div class="adm-card adm-category-card">
-      <div class="adm-category-card-icon">
-        <i class="fa-solid fa-apple-whole"></i>
-      </div>
-      <div class="adm-category-card-info">
-        <strong>Vitaminas</strong><span>24 produtos</span>
-      </div>
-      <div class="adm-actions">
-        <button class="adm-btn-icon">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button
-          class="adm-btn-icon adm-btn-icon--danger"
-          onclick="confirmDelete(this)"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
+
+  <div class="adm-card">
+    <div class="adm-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Categoria</th>
+            <th style="text-align:right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (categorias.length === 0) { %>
+          <tr>
+            <td colspan="3" style="text-align:center;padding:2rem;color:var(--gray-500)">
+              Nenhuma categoria cadastrada.
+            </td>
+          </tr>
+          <% } %>
+          <% categorias.forEach(function(c, i) { %>
+          <tr>
+            <td><span class="adm-small-text"><%= i + 1 %></span></td>
+            <td><strong><%= c.nome %></strong></td>
+            <td>
+              <div class="adm-actions" style="justify-content:flex-end">
+                <button
+                  type="button"
+                  class="adm-btn-icon btn-edit-category"
+                  title="Editar"
+                  data-id="<%= c.id %>"
+                  data-nome="<%= c.nome %>"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <form
+                  method="POST"
+                  action="/dashboard/categories/delete/<%= c.id %>"
+                  style="display:inline"
+                  class="form-delete-category"
+                  data-nome="<%= c.nome %>"
+                >
+                  <button type="button" class="adm-btn-icon adm-btn-icon--danger" title="Excluir">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
+
+<script type="application/json" id="categoriesPayload">
+  <%- JSON.stringify(categorias || []).replace(/</g, '\\u003c') %>
+</script>
+
+<!-- DIALOG: CATEGORIA -->
+<div class="adm-dialog" id="dialog-nova-categoria">
+  <div
+    class="adm-dialog-backdrop"
+    onclick="window.closeCategoryModal ? window.closeCategoryModal() : document.getElementById('dialog-nova-categoria').classList.remove('adm-dialog--open')"
+  ></div>
+  <div class="adm-dialog-panel" style="max-width:520px">
+    <div class="adm-dialog-header">
+      <h2 id="categoryModalTitle"><i class="fa-solid fa-tag"></i> Nova categoria</h2>
+      <button
+        class="adm-dialog-close"
+        onclick="window.closeCategoryModal ? window.closeCategoryModal() : document.getElementById('dialog-nova-categoria').classList.remove('adm-dialog--open')"
+      >
+        &#x2715;
+      </button>
+    </div>
+    <form method="POST" action="/dashboard/categories" class="adm-form" id="formCategoria">
+      <div class="adm-form-grid">
+        <div class="adm-form-group adm-form-group--full">
+          <label>Nome da categoria *</label>
+          <input
+            type="text"
+            id="categoriaNome"
+            name="nome"
+            required
+            maxlength="100"
+            placeholder="Ex: Creatina"
+            class="adm-input"
+          />
+        </div>
+      </div>
+      <div class="adm-dialog-footer">
+        <button
+          type="button"
+          class="adm-btn adm-btn--ghost"
+          onclick="window.closeCategoryModal ? window.closeCategoryModal() : document.getElementById('dialog-nova-categoria').classList.remove('adm-dialog--open')"
+        >
+          Cancelar
+        </button>
+        <button type="button" class="adm-btn adm-btn--primary" id="btnSalvarCategoria">
+          <i class="fa-solid fa-floppy-disk"></i> <span id="categorySubmitText">Salvar categoria</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
