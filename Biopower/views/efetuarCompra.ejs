@@ -1,0 +1,144 @@
+<main class="page-content page-recebimento">
+  <section class="recebimento-section">
+    <div class="section-header">
+      <span class="section-tag">Entrada de estoque</span>
+      <h1>Recebimento de Produtos</h1>
+      <p>Use este formulário para registrar a entrada de itens no estoque.</p>
+    </div>
+
+    <form action="/efetuar-compra" method="POST" class="recebimento-form">
+      <div class="form-row">
+        <label for="produtoId">ID do Produto</label>
+        <input id="produtoId" type="number" name="produtoId" required placeholder="Digite o ID do produto" />
+      </div>
+
+      <div class="form-row">
+        <label for="numeroLote">Número do Lote</label>
+        <input id="numeroLote" type="text" name="numeroLote" required placeholder="Digite o número do lote" />
+      </div>
+
+      <div class="form-row">
+        <label for="dataValidade">Validade</label>
+        <input id="dataValidade" type="date" name="dataValidade" required />
+      </div>
+
+      <div class="form-row">
+        <label for="quantidade">Quantidade Recebida</label>
+        <input id="quantidade" type="number" name="quantidade" required placeholder="Digite a quantidade recebida" min="1" />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Confirmar Entrada</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<style>
+  .page-recebimento {
+    padding: 60px 24px 40px;
+    min-height: calc(100vh - 220px);
+    background: #f7f9fc;
+  }
+
+  .recebimento-section {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 34px 32px 24px;
+    text-align: center;
+    border-bottom: 1px solid #e5e9f2;
+  }
+
+  .section-tag {
+    display: inline-flex;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #e7f0ff;
+    color: #1d5fe4;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+
+  .section-header h1 {
+    margin: 0 0 12px;
+    font-size: 2rem;
+    color: #121826;
+  }
+
+  .section-header p {
+    margin: 0;
+    color: #5f6d84;
+    line-height: 1.7;
+  }
+
+  .recebimento-form {
+    padding: 32px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 8px;
+  }
+
+  .form-row label {
+    font-weight: 700;
+    color: #1a2438;
+  }
+
+  .form-row input {
+    width: 100%;
+    border: 1px solid #d9dee8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    color: #232f44;
+    background: #f9fbff;
+  }
+
+  .form-row input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-submit {
+    border: none;
+    background: #1d5fe4;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 14px 26px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    background: #1546b5;
+  }
+
+  @media (max-width: 680px) {
+    .page-recebimento {
+      padding: 40px 16px 24px;
+    }
+
+    .recebimento-form {
+      padding: 24px;
+    }
+  }
+</style>

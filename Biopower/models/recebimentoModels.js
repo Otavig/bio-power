@@ -31,13 +31,13 @@ class PagamentoModel {
 
     async gravar() {
         if (this.#pagamentoId == 0) {
-            // Inserir novo pagamento
+
             let sql = "INSERT INTO tb_pagamento (ped_id, pag_metodo, pag_valor, pag_status, pag_codigo_pix, pag_data) VALUES (?, ?, ?, ?, ?, NOW())";
             let valores = [this.#pedidoId, this.#metodo, this.#valor, this.#status, this.#codigoPix];
             
             return await conexao.ExecutaComandoNonQuery(sql, valores);
         } else {
-            // Alterar status do pagamento (ex: de pendente para pago)
+
             let sql = "UPDATE tb_pagamento SET pag_status = ? WHERE pag_id = ?";
             let valores = [this.#status, this.#pagamentoId];
             

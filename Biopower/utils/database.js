@@ -12,9 +12,11 @@ class Database {
 
   constructor() {
     this.#conexao = mysql.createPool({
-      host: "localhost", 
+      host: "127.0.0.1",
       database: "bio_sys_db",
-      user: "root", 
+      user: "rootbio",
+      password: "root",
+      port: 3306,
       idleTimeout: 30000,
       connectionLimit: 50,
     });

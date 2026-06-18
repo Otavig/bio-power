@@ -10,7 +10,7 @@
     </div>
     <button
       class="adm-btn adm-btn--primary"
-      onclick="document.getElementById('dialog-novo-produto').classList.add('adm-dialog--open')"
+      id="btnNovoProduto"
     >
       <i class="fa-solid fa-plus"></i> Novo produto
     </button>
@@ -34,19 +34,20 @@
       <table class="adm-table">
         <thead>
           <tr>
-            <th>#</th>
+            <th></th>
             <th>Produto</th>
             <th>Categoria</th>
             <th>Marca</th>
-            <th>Sabor</th>
+            <th>Descrição</th>
             <th>Preço</th>
+            <th>Promoção</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody>
           <% if (products.length === 0) { %>
           <tr>
-            <td colspan="7" style="text-align:center;padding:2rem;color:var(--gray-500)">
+            <td colspan="8" style="text-align:center;padding:2rem;color:var(--gray-500)">
               Nenhum produto cadastrado.
             </td>
           </tr>
@@ -69,8 +70,17 @@
             <td><%= p.marca %></td>
             <td><%= p.sabor %></td>
             <td><strong><%= p.preco %></strong></td>
+            <td><%= p.desconto || "0%" %></td>
             <td>
               <div class="adm-actions">
+                <button
+                  type="button"
+                  class="adm-btn-icon btn-edit-product"
+                  title="Editar"
+                  data-id="<%= p.id %>"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
                 <form
                   method="POST"
                   action="/dashboard/products/delete/<%= p.id || i %>"
@@ -96,18 +106,33 @@
   </div>
 </section>
 
+<script type="application/json" id="productsPayload">
+  <%- JSON.stringify((products || []).map(function(p) {
+    return {
+      id: p.id,
+      nome: p.nome,
+      categoriaId: p.categoriaId,
+      laboratorioId: p.laboratorioId,
+      precoNumber: p.precoNumber,
+      descricao: p.descricao || "",
+      descontoNumber: p.descontoNumber || 0,
+      imagem: p.imagem || ""
+    };
+  })).replace(/</g, '\\u003c') %>
+</script>
+
 <!-- DIALOG: NOVO PRODUTO -->
 <div class="adm-dialog" id="dialog-novo-produto">
   <div
     class="adm-dialog-backdrop"
-    onclick="document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
+    onclick="window.closeProductModal ? window.closeProductModal() : document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
   ></div>
-  <div class="adm-dialog-panel" style="max-width:600px">
+  <div class="adm-dialog-panel adm-dialog-panel--product">
     <div class="adm-dialog-header">
-      <h2><i class="fa-solid fa-box-open"></i> Novo produto</h2>
+      <h2 id="productModalTitle"><i class="fa-solid fa-box-open"></i> Novo produto</h2>
       <button
         class="adm-dialog-close"
-        onclick="document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
+        onclick="window.closeProductModal ? window.closeProductModal() : document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
       >
         &#x2715;
       </button>
@@ -117,143 +142,59 @@
       method="POST"
       action="/dashboard/products"
       class="adm-form"
-      enctype="multipart/form-data"
     >
       <div class="adm-form-grid">
         <div class="adm-form-group adm-form-group--full">
           <label>Nome do produto *</label>
-          <input
-            type="text"
-            id="nome"
-            name="nome"
-            required
-            placeholder="Ex: Whey Protein Baunilha 900g"
-            class="adm-input"
-          />
+          <input type="text" id="nome" name="nome" required placeholder="Ex: Whey Protein Baunilha 900g" class="adm-input" />
         </div>
-        <div class="adm-form-group">
+        <div class="adm-form-group product-field-category">
           <label>Categoria *</label>
           <select id="categoria" name="categoria" required class="adm-input">
-            <option value="">Selecione…</option>
-            <option>Creatina</option>
-            <option>Whey</option>
-            <option>Pré-treino</option>
-            <option>Termogênico</option>
-            <option>BCAA</option>
-            <option>Glutamina</option>
-            <option>Hipercalórico</option>
-            <option>Vitaminas</option>
-            <option>Outros</option>
+            <option value="">Selecione uma categoria</option>
+            <% categorias.forEach(function(c) { %>
+              <option value="<%= c.id %>"><%= c.nome %></option>
+            <% }); %>
           </select>
         </div>
-        <div class="adm-form-group">
+        <div class="adm-form-group product-field-brand">
           <label>Marca</label>
-          <input
-            type="text"
-            id="marca"
-            name="marca"
-            placeholder="Ex: Growth Supplements"
-            class="adm-input"
-          />
+          <select id="marca" name="marca" class="adm-input">
+            <option value="">Selecione uma marca</option>
+            <% (typeof laboratorios !== 'undefined' ? laboratorios : []).forEach(function(l) { %>
+              <option value="<%= l.id %>"><%= l.nome %></option>
+            <% }); %>
+          </select>
         </div>
-        <div class="adm-form-group">
-          <label>Sabor</label>
-          <input
-            type="text"
-            id="sabor"
-            name="sabor"
-            placeholder="Ex: Chocolate"
-            class="adm-input"
-          />
-        </div>
-        <div class="adm-form-group">
+        <div class="adm-form-group product-field-price">
           <label>Preço *</label>
-          <input
-            type="text"
-            id="preco"
-            name="preco"
-            required
-            placeholder="Ex: R$129,90"
-            class="adm-input"
-          />
+          <input type="text" id="preco" name="preco" required placeholder="Ex: R$129,90" class="adm-input" />
         </div>
-        <div class="adm-form-group">
-          <label>Estoque inicial</label>
-          <input
-            type="number"
-            id="estoque"
-            name="estoque"
-            min="0"
-            step="1"
-            value="0"
-            placeholder="Ex: 50"
-            class="adm-input"
-          />
+        <div class="adm-form-group product-field-description">
+          <label>Descrição</label>
+          <textarea id="sabor" name="sabor" placeholder="Ex: Whey protein sabor chocolate, embalagem 900g" class="adm-input"></textarea>
         </div>
-        <div class="adm-form-group">
-          <label>Estoque mínimo</label>
-          <input
-            type="number"
-            id="estoqueMin"
-            name="estoqueMin"
-            min="0"
-            step="1"
-            value="10"
-            placeholder="Ex: 10"
-            class="adm-input"
-          />
-        </div>
-        <div class="adm-form-group adm-form-group--full">
-          <label>Texto do crédito</label>
-          <input
-            type="text"
-            id="credito"
-            name="credito"
-            placeholder="Ex: ou R$144,30 no cartão em até 6x de R$24,05"
-            class="adm-input"
-          />
+        <div class="adm-form-group product-field-discount">
+          <label>Promoção (%)</label>
+          <input type="text" id="desconto" name="desconto" inputmode="decimal" value="0" placeholder="Ex: 10,00" class="adm-input" />
         </div>
         <div class="adm-form-group adm-form-group--full">
           <label>Imagem do produto</label>
-          <input
-            type="file"
-            id="imagem"
-            name="imagem"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            class="adm-input"
-            onchange="previewImagem(this)"
-          />
-          <img
-            id="previewImgProduto"
-            src=""
-            alt=""
-            style="display:none;margin-top:8px;max-height:100px;border-radius:6px;border:1px solid #e5e7eb"
-          />
-          <small style="color:#6b7280;margin-top:4px;display:block">
-            JPEG, PNG, WEBP ou GIF · máx. 5 MB
-          </small>
-        </div>
-        <div class="adm-form-group adm-form-group--full">
-          <label>Texto alternativo (alt)</label>
-          <input
-            type="text"
-            id="alt"
-            name="alt"
-            placeholder="Descrição curta da imagem"
-            class="adm-input"
-          />
+          <input type="file" id="imagem" name="imagem" accept="image/jpeg,image/png,image/webp,image/gif" class="adm-input" />
+          <img id="previewImgProduto" class="adm-product-image-preview" src="" alt="" />
+          <small style="color:#6b7280;margin-top:4px;display:block">JPEG, PNG, WEBP ou GIF · máx. 5 MB</small>
         </div>
       </div>
       <div class="adm-dialog-footer">
         <button
           type="button"
           class="adm-btn adm-btn--ghost"
-          onclick="document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
+          onclick="window.closeProductModal ? window.closeProductModal() : document.getElementById('dialog-novo-produto').classList.remove('adm-dialog--open')"
         >
           Cancelar
         </button>
         <button type="button" id="btnSalvarProduto" class="adm-btn adm-btn--primary">
-          <i class="fa-solid fa-floppy-disk"></i> Salvar produto
+          <i class="fa-solid fa-floppy-disk"></i> <span id="productSubmitText">Salvar produto</span>
         </button>
       </div>
     </form>
