@@ -2,6 +2,8 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class UsuariosModels {
+  #createdAt;
+  #updatedAt;
   #usuId;
   #usuNome;
   #usuEmail;
@@ -9,6 +11,77 @@ class UsuariosModels {
   #usuCpfCnpj;
   #usuTypeId;
   #usuAtivo;
+  get usuId() {
+    return this.#usuId;
+  }
+
+  set usuId(value) {
+    this.#usuId = value;
+  }
+
+  get usuNome() {
+    return this.#usuNome;
+  }
+
+  set usuNome(value) {
+    this.#usuNome = value;
+  }
+
+  get usuEmail() {
+    return this.#usuEmail;
+  }
+
+  set usuEmail(value) {
+    this.#usuEmail = value;
+  }
+
+  get usuSenha() {
+    return this.#usuSenha;
+  }
+
+  set usuSenha(value) {
+    this.#usuSenha = value;
+  }
+
+  get usuCpfCnpj() {
+    return this.#usuCpfCnpj;
+  }
+
+  set usuCpfCnpj(value) {
+    this.#usuCpfCnpj = value;
+  }
+
+  get usuTypeId() {
+    return this.#usuTypeId;
+  }
+
+  set usuTypeId(value) {
+    this.#usuTypeId = value;
+  }
+
+  get usuAtivo() {
+    return this.#usuAtivo;
+  }
+
+  set usuAtivo(value) {
+    this.#usuAtivo = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
 
   constructor(usuNome, usuEmail, usuSenha, usuCpfCnpj, usuTypeId, usuAtivo = 1, usuId = null) {
     this.#usuId = usuId;

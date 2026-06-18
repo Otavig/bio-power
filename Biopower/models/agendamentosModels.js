@@ -2,12 +2,77 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class AgendamentosModels {
+  #createdAt;
+  #updatedAt;
   #ageId;
   #ageIdCliente;
   #ageIdProfissional;
   #ageDataAgendamento;
   #ageValorTotal;
   #ageObservacoes;
+  get ageId() {
+    return this.#ageId;
+  }
+
+  set ageId(value) {
+    this.#ageId = value;
+  }
+
+  get ageIdCliente() {
+    return this.#ageIdCliente;
+  }
+
+  set ageIdCliente(value) {
+    this.#ageIdCliente = value;
+  }
+
+  get ageIdProfissional() {
+    return this.#ageIdProfissional;
+  }
+
+  set ageIdProfissional(value) {
+    this.#ageIdProfissional = value;
+  }
+
+  get ageDataAgendamento() {
+    return this.#ageDataAgendamento;
+  }
+
+  set ageDataAgendamento(value) {
+    this.#ageDataAgendamento = value;
+  }
+
+  get ageValorTotal() {
+    return this.#ageValorTotal;
+  }
+
+  set ageValorTotal(value) {
+    this.#ageValorTotal = value;
+  }
+
+  get ageObservacoes() {
+    return this.#ageObservacoes;
+  }
+
+  set ageObservacoes(value) {
+    this.#ageObservacoes = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
 
   constructor(
     ageId = null,

@@ -4,6 +4,22 @@ const banco = new Database();
 class TypeUsuariosModels {
   #typId;
   #typDescricao;
+  get typId() {
+    return this.#typId;
+  }
+
+  set typId(value) {
+    this.#typId = value;
+  }
+
+  get typDescricao() {
+    return this.#typDescricao;
+  }
+
+  set typDescricao(value) {
+    this.#typDescricao = value;
+  }
+
 
   constructor(typId = null, typDescricao) {
     this.#typId = typId;

@@ -3,7 +3,96 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class ProdutosModels {
+  #proId;
+  #proNome;
+  #proDescricao;
+  #proImagem;
+  #proPrecoVenda;
+  #proPorcentagemPromocao;
+  #proIdCategoria;
+  #proIdLaboratorio;
+  #createdAt;
+  #updatedAt;
   #db;
+  get proId() {
+    return this.#proId;
+  }
+
+  set proId(value) {
+    this.#proId = value;
+  }
+
+  get proNome() {
+    return this.#proNome;
+  }
+
+  set proNome(value) {
+    this.#proNome = value;
+  }
+
+  get proDescricao() {
+    return this.#proDescricao;
+  }
+
+  set proDescricao(value) {
+    this.#proDescricao = value;
+  }
+
+  get proImagem() {
+    return this.#proImagem;
+  }
+
+  set proImagem(value) {
+    this.#proImagem = value;
+  }
+
+  get proPrecoVenda() {
+    return this.#proPrecoVenda;
+  }
+
+  set proPrecoVenda(value) {
+    this.#proPrecoVenda = value;
+  }
+
+  get proPorcentagemPromocao() {
+    return this.#proPorcentagemPromocao;
+  }
+
+  set proPorcentagemPromocao(value) {
+    this.#proPorcentagemPromocao = value;
+  }
+
+  get proIdCategoria() {
+    return this.#proIdCategoria;
+  }
+
+  set proIdCategoria(value) {
+    this.#proIdCategoria = value;
+  }
+
+  get proIdLaboratorio() {
+    return this.#proIdLaboratorio;
+  }
+
+  set proIdLaboratorio(value) {
+    this.#proIdLaboratorio = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
 
   constructor() {
     this.#db = banco;
@@ -21,14 +110,33 @@ class ProdutosModels {
     return Number.isNaN(numero) ? 0 : numero;
   }
 
+  static #imageMimeFromBuffer(buffer) {
+    if (!buffer || buffer.length < 4) return "image/jpeg";
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "image/jpeg";
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return "image/png";
+    if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) return "image/gif";
+    if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) return "image/webp";
+    return "image/jpeg";
+  }
+
+  static #imageDataUrl(buffer) {
+    if (!buffer) return "/assets/imgs/product/default.png";
+    const imageBuffer = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+    const mime = ProdutosModels.#imageMimeFromBuffer(imageBuffer);
+    return `data:${mime};base64,${imageBuffer.toString("base64")}`;
+  }
+
   async listarParaInterface() {
     const sql = `
       SELECT
         p.pro_id AS id,
         p.pro_nome AS nome,
         p.pro_descricao AS descricao,
+        p.pro_imagem AS imagem,
         p.pro_preco_venda AS preco,
         p.pro_porcentagem_promocao AS desconto,
+        p.pro_id_categoria AS categoriaId,
+        p.pro_id_laboratorio AS laboratorioId,
         c.cat_nome AS categoria,
         l.lab_nome AS marca,
         COALESCE(le.estoque, 0) AS estoque
@@ -61,11 +169,14 @@ class ProdutosModels {
       preco: ProdutosModels.#formatCurrency(precoNumber),
       precoNumber,
       categoria: row.categoria || "Sem categoria",
+      categoriaId: row.categoriaId,
       marca: row.marca || "Sem marca",
+      laboratorioId: row.laboratorioId,
       sabor: row.descricao || "Sem sabor",
       desconto: temDesconto ? `${descontoNumero}%` : "",
+      descontoNumber: descontoNumero,
       credito: "",
-      imagem: "/assets/imgs/product/default.png",
+      imagem: ProdutosModels.#imageDataUrl(row.imagem),
       alt: row.nome,
       estoque: Number(row.estoque || 0),
       estoqueMin: 10,
@@ -79,8 +190,11 @@ class ProdutosModels {
         p.pro_id AS id,
         p.pro_nome AS nome,
         p.pro_descricao AS descricao,
+        p.pro_imagem AS imagem,
         p.pro_preco_venda AS preco,
         p.pro_porcentagem_promocao AS desconto,
+        p.pro_id_categoria AS categoriaId,
+        p.pro_id_laboratorio AS laboratorioId,
         c.cat_nome AS categoria,
         l.lab_nome AS marca
       FROM tb_Produtos p
@@ -109,6 +223,12 @@ class ProdutosModels {
     return novoId;
   }
 
+  async #resolverCategoriaId(categoriaId, categoriaNome) {
+    const id = Number(categoriaId);
+    if (Number.isInteger(id) && id > 0) return id;
+    return this.#buscarCategoriaIdPorNome(categoriaNome);
+  }
+
   async #buscarLaboratorioIdPorNome(nome) {
     if (!nome) return null;
     const rows = await this.#db.ExecutaComando(
@@ -123,31 +243,78 @@ class ProdutosModels {
     return novoId;
   }
 
-  async criarProduto({ nome, descricao, preco, categoriaNome, marcaNome, descontoPercentual }) {
+  async #resolverLaboratorioId(laboratorioId, laboratorioNome) {
+    const id = Number(laboratorioId);
+    if (Number.isInteger(id) && id > 0) return id;
+    return this.#buscarLaboratorioIdPorNome(laboratorioNome);
+  }
+
+  async criarProduto({ nome, descricao, imagem, preco, categoriaId, categoriaNome, laboratorioId, marcaNome, descontoPercentual }) {
     const precoNumero = ProdutosModels.parseCurrencyToNumber(preco);
-    const categoriaId = await this.#buscarCategoriaIdPorNome(categoriaNome);
-    const laboratorioId = await this.#buscarLaboratorioIdPorNome(marcaNome);
-    const descontoNum = Number(descontoPercentual || 0);
+    const categoriaIdResolvido = await this.#resolverCategoriaId(categoriaId, categoriaNome);
+    const laboratorioIdResolvido = await this.#resolverLaboratorioId(laboratorioId, marcaNome);
+    const descontoNum = Number(String(descontoPercentual || 0).replace(",", "."));
 
     const sql = `
       INSERT INTO tb_Produtos
-        (pro_nome, pro_descricao, pro_preco_venda, pro_id_categoria, pro_id_laboratorio, pro_porcentagem_promocao)
-      VALUES (?, ?, ?, ?, ?, ?);
+        (pro_nome, pro_descricao, pro_imagem, pro_preco_venda, pro_id_categoria, pro_id_laboratorio, pro_porcentagem_promocao)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
 
     return this.#db.ExecutaComandoLastInserted(sql, [
       nome,
       descricao || null,
+      imagem || null,
       precoNumero,
-      categoriaId,
-      laboratorioId,
+      categoriaIdResolvido,
+      laboratorioIdResolvido,
       descontoNum,
     ]);
+  }
+
+  async atualizarProduto(id, { nome, descricao, imagem, preco, categoriaId, categoriaNome, laboratorioId, marcaNome, descontoPercentual }) {
+    const precoNumero = ProdutosModels.parseCurrencyToNumber(preco);
+    const categoriaIdResolvido = await this.#resolverCategoriaId(categoriaId, categoriaNome);
+    const laboratorioIdResolvido = await this.#resolverLaboratorioId(laboratorioId, marcaNome);
+    const descontoNum = Number(String(descontoPercentual || 0).replace(",", "."));
+    const campos = [
+      "pro_nome = ?",
+      "pro_descricao = ?",
+      "pro_preco_venda = ?",
+      "pro_id_categoria = ?",
+      "pro_id_laboratorio = ?",
+      "pro_porcentagem_promocao = ?",
+    ];
+    const valores = [
+      nome,
+      descricao || null,
+      precoNumero,
+      categoriaIdResolvido,
+      laboratorioIdResolvido,
+      descontoNum,
+    ];
+
+    if (imagem) {
+      campos.splice(2, 0, "pro_imagem = ?");
+      valores.splice(2, 0, imagem);
+    }
+
+    valores.push(id);
+    return this.#db.ExecutaComandoNonQuery(`UPDATE tb_Produtos SET ${campos.join(", ")} WHERE pro_id = ?`, valores);
   }
 
   async deletarProduto(id) {
     if (!id) return false;
     return this.#db.ExecutaComandoNonQuery("DELETE FROM tb_Produtos WHERE pro_id = ?", [id]);
+  }
+
+  async contarVendasVinculadas(id) {
+    if (!id) return 0;
+    const rows = await this.#db.ExecutaComando(
+      "SELECT COUNT(*) AS total FROM tb_Itens_Venda WHERE itv_id_produto = ?",
+      [id],
+    );
+    return Number(rows?.[0]?.total || 0);
   }
 }
 
