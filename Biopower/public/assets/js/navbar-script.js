@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  if (window.__bioPowerNavbarInitialized) return;
+  window.__bioPowerNavbarInitialized = true;
+
   // Referências dos elementos do navbar
   const profile = document.getElementById("navbarProfile");
   const avatar = document.getElementById("profileAvatar");
