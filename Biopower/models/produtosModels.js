@@ -151,7 +151,6 @@ class ProdutosModels {
   }
 
 async baixarEstoque(produtoId, quantidadeComprada) {
-    console.log("certo");
     let quantidadeRestante = quantidadeComprada;
 
     const sqlBusca = `

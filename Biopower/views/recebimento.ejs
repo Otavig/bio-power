@@ -797,32 +797,29 @@
               Aguardando confirmação do pagamento...
             </div>
 
-            <div class="pix-info">
-              Com Pix você economiza 5% — pagamento instantâneo, aprovação em segundos.
-            </div>
           </div>
         </div>
 
       </div>
 
       <!-- Dados pessoais -->
-      <div class="sec" id="secDados">
-        <div class="sec-title">Dados para NF-e</div>
-        <div class="row no-gutters" style="gap:12px;">
-          <div style="flex:1 1 55%;">
-            <label class="form-label-dark">Nome Completo</label>
-            <input class="input-dark" type="text"/>
-          </div>
-          <div style="flex:1 1 35%;">
-            <label class="form-label-dark">CPF</label>
-            <input class="input-dark" type="text" placeholder="000.000.000-00" maxlength="14"/>
-          </div>
-          <div style="flex:1 1 100%;">
-            <label class="form-label-dark">E-mail para confirmação</label>
-            <input class="input-dark" type="email"/>
-          </div>
-        </div>
-      </div>
+<div class="sec" id="secDados">
+  <div class="sec-title">Dados para NF-e</div>
+  <div class="row no-gutters" style="gap:12px;">
+    <div style="flex:1 1 55%;">
+      <label class="form-label-dark">Nome Completo</label>
+      <input class="input-dark" type="text" id="inputNome" oninput="validarFormulario()"/>
+    </div>
+    <div style="flex:1 1 35%;">
+      <label class="form-label-dark">CPF</label>
+      <input class="input-dark" type="text" id="inputCpf" placeholder="000.000.000-00" maxlength="14" oninput="validarFormulario()"/>
+    </div>
+    <div style="flex:1 1 100%;">
+      <label class="form-label-dark">E-mail para confirmação</label>
+      <input class="input-dark" type="email" id="inputEmail" oninput="validarFormulario()"/>
+    </div>
+  </div>
+</div>
 
     </div>
 
@@ -839,7 +836,6 @@
           <div class="total-final">
             <div>
               <div class="label">Total</div>
-              <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;" id="subLabel">6x de R$ 43,91 sem juros</div>
             </div>
             <div class="valor" id="totalValor">R$ <span>0,0</span></div>
           </div>
@@ -911,7 +907,41 @@
     }
   }
 
+function validarFormulario() {
+    const btnPagar = document.getElementById('btnPagar');
+    
+    const nome = document.getElementById('inputNome').value;
+    const cpf = document.getElementById('inputCpf').value;
+    const email = document.getElementById('inputEmail').value;
+    
+    let camposValidos = (nome.length > 3 && cpf.length >= 11 && email.includes('@'));
+
+    if (metodoAtual === 'credito') {
+        const num = document.getElementById('numCartao').value;
+        const nomeCard = document.getElementById('nomeCartao').value;
+        const val = document.getElementById('validadeCartao').value;
+        const cvv = document.getElementById('cvvCartao').value;
+        
+        if (!num || !nomeCard || !val || !cvv) camposValidos = false;
+    } 
+    else if (metodoAtual === 'debito') {
+        const numDeb = document.getElementById('numDeb').value;
+        const nomeDeb = document.getElementById('nomeDeb').value;
+        const valDeb = document.getElementById('valDeb').value;
+        
+        if (!numDeb || !nomeDeb || !valDeb) camposValidos = false;
+    }
+
+    btnPagar.disabled = !camposValidos;
+}
+
+// Inicializa o botão como desativado ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnPagar').disabled = true;
+});
+
   /* ---- QR CODE ---- */
+  console.log("1")
   let qrGerado = false;
   function gerarQR() {
     if (qrGerado) return;
