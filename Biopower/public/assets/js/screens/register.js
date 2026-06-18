@@ -52,27 +52,26 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidCPF(cpf) {
-  if (!cpf || cpf.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(cpf)) return false;
+  const digits = String(cpf || "").replace(/\D/g, "");
 
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(cpf.charAt(i)) * (10 - i);
-  }
+  if (typeof validCPF === "function") return validCPF(digits);
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
 
-  let firstDigit = (sum * 10) % 11;
-  if (firstDigit === 10) firstDigit = 0;
-  if (firstDigit !== parseInt(cpf.charAt(9))) return false;
+  const calculateDigit = (base, factor) => {
+    let sum = 0;
 
-  sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(cpf.charAt(i)) * (11 - i);
-  }
+    for (let i = 0; i < base.length; i++) {
+      sum += Number(base[i]) * (factor - i);
+    }
 
-  let secondDigit = (sum * 10) % 11;
-  if (secondDigit === 10) secondDigit = 0;
+    const rest = sum % 11;
+    return rest < 2 ? 0 : 11 - rest;
+  };
 
-  return secondDigit === parseInt(cpf.charAt(10));
+  const firstDigit = calculateDigit(digits.slice(0, 9), 10);
+  const secondDigit = calculateDigit(digits.slice(0, 10), 11);
+
+  return digits === `${digits.slice(0, 9)}${firstDigit}${secondDigit}`;
 }
 
 function isValidCEP(cep) {
@@ -136,10 +135,12 @@ function applyMasks() {
 
   tel?.addEventListener("input", e => {
     let v = e.target.value.replace(/\D/g, "").slice(0, 11);
-    if (v.length > 6)
+    if (v.length > 10)
       v = v.replace(/^(\d{2})(\d{5})(\d{1,4})$/, "($1) $2-$3");
+    else if (v.length > 6)
+      v = v.replace(/^(\d{2})(\d{4})(\d{1,4})$/, "($1) $2-$3");
     else if (v.length > 2)
-      v = v.replace(/^(\d{2})(\d{1,4})$/, "($1) $2");
+      v = v.replace(/^(\d{2})(\d{1,5})$/, "($1) $2");
     else if (v.length > 0)
       v = v.replace(/^(\d{1,2})$/, "($1");
     e.target.value = v;
@@ -236,7 +237,7 @@ function validateFields() {
   if (!rawTelefone) {
     errors.telefone.push("Informe o telefone");
   } else {
-    if (!/^([1-9]{2})(9\d{8}|\d{8})$/.test(rawTelefone))
+    if (!/^[1-9]{2}(?:[2-8]\d{7}|9\d{8})$/.test(rawTelefone))
       errors.telefone.push("Telefone inválido");
   }
   if (errors.telefone.length === 0) delete errors.telefone;
@@ -284,7 +285,7 @@ function validateFields() {
   if (!form.bairro) {
     errors.bairro.push("Informe o bairro");
   } else {
-    if (form.bairro.length < 3)
+    if (form.bairro.length < 2)
       errors.bairro.push("Bairro inválido");
   }
   if (errors.bairro.length === 0) delete errors.bairro;
@@ -523,6 +524,15 @@ function initCepLookup() {
   const cepInput = document.getElementById("cep");
   if (!cepInput) return;
 
+  const unlockAddressFields = (clearAutofilled = false) => {
+    ["cidade", "bairro", "rua", "estado"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (clearAutofilled && el.classList.contains("readonly-style")) el.value = "";
+      el.classList.remove("readonly-style");
+    });
+  };
+
   cepInput.addEventListener("blur", async function () {
     const digits = this.value.replace(/\D/g, "");
     if (!digits) return;
@@ -541,7 +551,8 @@ function initCepLookup() {
         if (!el) return;
 
         el.value = val;
-        el.classList.add("readonly-style");
+        el.classList.toggle("readonly-style", Boolean(val));
+        if (val || id === "bairro") setFieldError(id, null);
       });
 
       const estadoSelect = document.getElementById("estado");
@@ -554,7 +565,8 @@ function initCepLookup() {
       setFieldError("cep", null);
       document.getElementById("numero")?.focus();
     } catch {
-      setFieldError("cep", "Não foi possível localizar o CEP informado.");
+      unlockAddressFields(true);
+      setFieldError("cep", null);
     } finally {
       this.disabled = false;
     }
@@ -563,12 +575,7 @@ function initCepLookup() {
   // Limpa campos ao apagar o CEP
   cepInput.addEventListener("input", function () {
     if (!this.value) {
-      ["cidade", "bairro", "rua", "estado"].forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.value = "";
-        el.classList.remove("readonly-style");
-      });
+      unlockAddressFields(true);
     }
   });
 }
@@ -631,14 +638,4 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   });
-
-  // // TESTE: iniciar na etapa 2
-  // document.getElementById("step-1")?.classList.add("d-none");
-  // document.getElementById("step-2")?.classList.remove("d-none");
-
-  // document.getElementById("step-item-1")?.classList.add("completed");
-  // document.getElementById("step-item-2")?.classList.add("active");
-
-  // _currentStep = 2;
-  // _updateProgress(2);
 });

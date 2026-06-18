@@ -44,7 +44,7 @@ CREATE TABLE `tb_status_diversos` (
   `sta_descricao` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`sta_id`),
   UNIQUE KEY `uq_status_dominio_codigo` (`sta_dominio`,`sta_codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_status_diversos` WRITE;
 INSERT INTO `tb_status_diversos` VALUES
@@ -66,7 +66,8 @@ INSERT INTO `tb_status_diversos` VALUES
 (16,'venda_metodo_pagamento','BOLETO','Pagamento por boleto'),
 (17,'venda_status','AGUARDANDO','Aguardando pagamento'),
 (18,'venda_status','PAGO','Pagamento confirmado'),
-(19,'venda_status','CANCELADO','Venda cancelada');
+(19,'venda_status','CANCELADO','Venda cancelada'),
+(20,'venda_status','ENTREGUE','Venda entregue');
 UNLOCK TABLES;
 
 --
@@ -145,21 +146,47 @@ CREATE TABLE `tb_Usuarios` (
 
 LOCK TABLES `tb_Usuarios` WRITE;
 INSERT INTO `tb_Usuarios` VALUES
-(1,'Breno','breno@gmail.com','123456','12345678900',1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),
-(2,'Admin','admin@biopower.com','admin123','11111111111',1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),
-(3,'Mariana Souza','mariana.souza@biopower.com','admin123','22222222222',1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(4,'Carlos Pereira','carlos.pereira@biopower.com','func123','33333333333',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(5,'Fernanda Lima','fernanda.lima@biopower.com','func123','44444444444',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(6,'Joao Silva','joao.silva@biopower.com','cliente123','55555555555',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(7,'Ana Paula','ana.paula@biopower.com','cliente123','66666666666',3,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(8,'Ricardo Mendes','ricardo.mendes@biopower.com','cliente123','77777777777',3,0,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
-(9,'Assis','assis@biopower.com','123456','12345678998',1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),
-(11,'Breno Passarela','passarela@gmail.com','123456','70934896321',1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),
-(12,'Breno H','brenof@gmail.com','123456','46270934893',2,1,'2026-03-26 14:39:37','2026-03-26 14:39:37'),
-(13,'Paulo Nutri','paulo.nutri@biopower.com','prof123','88888888888',2,1,'2026-03-26 16:10:00','2026-03-26 16:10:00'),
-(14,'Camila Alves','camila.alves@biopower.com','prof123','99999999999',2,1,'2026-03-26 16:12:00','2026-03-26 16:12:00'),
-(15,'Rafael Costa','rafael.costa@biopower.com','prof123','10101010101',2,1,'2026-03-26 16:14:00','2026-03-26 16:14:00');
+(1,'Breno','breno@gmail.com','123456','61569572003',1,1,'2026-03-25 14:42:42','2026-03-25 14:42:42'),
+(2,'Admin','admin@biopower.com','admin123','18715096025',1,1,'2026-03-25 17:19:29','2026-03-25 17:19:29'),
+(3,'Mariana Souza','mariana.souza@biopower.com','admin123','04715623005',1,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(4,'Carlos Pereira','carlos.pereira@biopower.com','func123','72060914078',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(5,'Fernanda Lima','fernanda.lima@biopower.com','func123','32569640018',2,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(6,'Joao Silva','joao.silva@biopower.com','cliente123','57651177088',4,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(7,'Ana Paula','ana.paula@biopower.com','cliente123','37128169016',4,1,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(8,'Ricardo Mendes','ricardo.mendes@biopower.com','cliente123','04989873025',4,0,'2026-03-25 17:20:57','2026-03-25 17:20:57'),
+(9,'Assis','assis@biopower.com','123456','16805046068',1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),
+(11,'Breno Passarela','passarela@gmail.com','123456','19966571000',1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),
+(12,'Breno H','brenof@gmail.com','123456','87901724005',2,1,'2026-03-26 14:39:37','2026-03-26 14:39:37'),
+(13,'Paulo Nutri','paulo.nutri@biopower.com','prof123','47384462070',2,1,'2026-03-26 16:10:00','2026-03-26 16:10:00'),
+(14,'Camila Alves','camila.alves@biopower.com','prof123','73147285006',2,1,'2026-03-26 16:12:00','2026-03-26 16:12:00'),
+(15,'Rafael Costa','rafael.costa@biopower.com','prof123','88835997054',2,1,'2026-03-26 16:14:00','2026-03-26 16:14:00');
 UNLOCK TABLES;
+
+--
+-- tb_Cliente
+--
+DROP TABLE IF EXISTS `tb_Cliente`;
+CREATE TABLE `tb_Cliente` (
+  `cli_id` int NOT NULL AUTO_INCREMENT,
+  `cli_usu_id` int NOT NULL,
+  `cli_sobrenome` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_genero` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_data_nascimento` date NOT NULL,
+  `cli_estado_civil` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_cep` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_cidade` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_estado` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_bairro` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_rua` varchar(180) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_numero` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cli_complemento` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cli_created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `cli_updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cli_id`),
+  UNIQUE KEY `uq_cliente_usuario` (`cli_usu_id`),
+  CONSTRAINT `fk_cliente_usuario` FOREIGN KEY (`cli_usu_id`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- tb_Profissional (Profissional)
@@ -211,7 +238,7 @@ VALUES
 (2,'Whey Protein Baunilha 900g','Em breve',129.90,0.00,2,2,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (3,'Pré-Treino Explosivo DUX 300g','Em breve',98.50,0.00,3,3,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (5,'Termogênico Black Skull 60 caps','Em breve',59.90,0.00,4,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
-(6,'Whey Protein Chocolate 1kg','Em breve',134950.00,0.00,2,6,'2026-03-25 19:41:26','2026-03-26 14:43:18'),
+(6,'Whey Protein Chocolate 1kg','Em breve',134.50,0.00,2,6,'2026-03-25 19:41:26','2026-03-26 14:43:18'),
 (7,'Pré-Treino Insano 280g','Em breve',89.99,0.00,3,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (8,'Creatina Universal 300g','Em breve',109.90,0.00,1,7,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (9,'Termogênico Kimera 60 caps','Em breve',69.90,0.00,4,8,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
@@ -463,20 +490,29 @@ CREATE TABLE `tb_Vendas` (
   `ven_id_cliente` int NOT NULL,
   `ven_data` date NOT NULL,
   `ven_valor_total` double NOT NULL DEFAULT '0',
-  `ven_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'aguardando',
+  `ven_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'AGUARDANDO',
+  `ven_status_id` int NOT NULL DEFAULT '17',
   `ven_desconto` double NOT NULL DEFAULT '0',
+  `ven_metodo_pagamento_id` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`ven_id`),
   KEY `fk_ven_cliente` (`ven_id_cliente`),
-  CONSTRAINT `fk_ven_cliente` FOREIGN KEY (`ven_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`)
+  KEY `fk_ven_status` (`ven_status_id`),
+  KEY `fk_ven_metodo_pagamento` (`ven_metodo_pagamento_id`),
+  CONSTRAINT `fk_ven_cliente` FOREIGN KEY (`ven_id_cliente`) REFERENCES `tb_Usuarios` (`usu_id`),
+  CONSTRAINT `fk_ven_metodo_pagamento` FOREIGN KEY (`ven_metodo_pagamento_id`) REFERENCES `tb_status_diversos` (`sta_id`),
+  CONSTRAINT `fk_ven_status` FOREIGN KEY (`ven_status_id`) REFERENCES `tb_status_diversos` (`sta_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_Vendas` WRITE;
-INSERT INTO `tb_Vendas` (`ven_id`, `ven_id_cliente`, `ven_data`, `ven_valor_total`, `ven_status`, `ven_desconto`, `created_at`, `updated_at`) VALUES
-(1, 6, DATE_ADD(CURDATE(), INTERVAL 10 DAY), 79.92, 'aguardando', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 6, DATE_ADD(CURDATE(), INTERVAL 35 DAY), 79.92, 'aguardando', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 6, DATE_ADD(CURDATE(), INTERVAL 70 DAY), 79.92, 'aguardando', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO `tb_Vendas` (`ven_id`, `ven_id_cliente`, `ven_data`, `ven_valor_total`, `ven_status`, `ven_status_id`, `ven_desconto`, `ven_metodo_pagamento_id`, `created_at`, `updated_at`) VALUES
+(1, 6, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 209.82, 'AGUARDANDO', 17, 0, 13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 7, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 351.80, 'PAGO', 18, 0, 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 8, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 199.70, 'ENTREGUE', 20, 0, 15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 6, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 409.70, 'CANCELADO', 19, 0, 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 7, CURDATE(), 324.32, 'PAGO', 18, 0, 13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 8, CURDATE(), 322.50, 'AGUARDANDO', 17, 0, 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 UNLOCK TABLES;
 
 --
@@ -490,8 +526,8 @@ CREATE TABLE `tb_Itens_Venda` (
   `itv_id_venda` int NOT NULL,
   `itv_id_produto` int NOT NULL,
   `itv_quantidade` int NOT NULL,
-  `itv_subtotal` int NOT NULL DEFAULT '0',
-  `itv_valor_unitario` int NOT NULL DEFAULT '0',
+  `itv_subtotal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `itv_valor_unitario` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`itv_id`),
   KEY `fk_itv_venda` (`itv_id_venda`),
   KEY `fk_itv_produto` (`itv_id_produto`),
@@ -501,9 +537,21 @@ CREATE TABLE `tb_Itens_Venda` (
 
 LOCK TABLES `tb_Itens_Venda` WRITE;
 INSERT INTO `tb_Itens_Venda` (`itv_id`, `itv_id_venda`, `itv_id_produto`, `itv_quantidade`, `itv_subtotal`, `itv_valor_unitario`) VALUES
-(1, 1, 1, 1, 80, 80),
-(2, 2, 1, 1, 80, 80),
-(3, 3, 1, 1, 80, 80);
+(1, 1, 1, 1, 79.92, 79.92),
+(2, 1, 2, 1, 129.90, 129.90),
+(3, 2, 3, 2, 197.00, 98.50),
+(4, 2, 5, 1, 59.90, 59.90),
+(5, 2, 12, 1, 94.90, 94.90),
+(6, 3, 9, 2, 139.80, 69.90),
+(7, 3, 5, 1, 59.90, 59.90),
+(8, 4, 14, 1, 189.90, 189.90),
+(9, 4, 11, 1, 139.90, 139.90),
+(10, 4, 13, 1, 79.90, 79.90),
+(11, 5, 6, 1, 134.50, 134.50),
+(12, 5, 8, 1, 109.90, 109.90),
+(13, 5, 1, 1, 79.92, 79.92),
+(14, 6, 10, 2, 238.00, 119.00),
+(15, 6, 15, 1, 84.50, 84.50);
 UNLOCK TABLES;
 
 -- ========================================================

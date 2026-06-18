@@ -3,7 +3,88 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class LotesEstoqueModels {
+  #lotId;
+  #lotIdProduto;
+  #lotNumeroLote;
+  #lotQuantidadeAtual;
+  #lotDataValidade;
+  #lotDataEntrada;
+  #lotIdFornecedor;
+  #createdAt;
+  #updatedAt;
 	#db;
+  get lotId() {
+    return this.#lotId;
+  }
+
+  set lotId(value) {
+    this.#lotId = value;
+  }
+
+  get lotIdProduto() {
+    return this.#lotIdProduto;
+  }
+
+  set lotIdProduto(value) {
+    this.#lotIdProduto = value;
+  }
+
+  get lotNumeroLote() {
+    return this.#lotNumeroLote;
+  }
+
+  set lotNumeroLote(value) {
+    this.#lotNumeroLote = value;
+  }
+
+  get lotQuantidadeAtual() {
+    return this.#lotQuantidadeAtual;
+  }
+
+  set lotQuantidadeAtual(value) {
+    this.#lotQuantidadeAtual = value;
+  }
+
+  get lotDataValidade() {
+    return this.#lotDataValidade;
+  }
+
+  set lotDataValidade(value) {
+    this.#lotDataValidade = value;
+  }
+
+  get lotDataEntrada() {
+    return this.#lotDataEntrada;
+  }
+
+  set lotDataEntrada(value) {
+    this.#lotDataEntrada = value;
+  }
+
+  get lotIdFornecedor() {
+    return this.#lotIdFornecedor;
+  }
+
+  set lotIdFornecedor(value) {
+    this.#lotIdFornecedor = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
+
 
 	constructor() {
 		this.#db = banco;
@@ -41,6 +122,26 @@ class LotesEstoqueModels {
 			[produtoId, quantidadeInicial],
 		);
 		return quantidadeInicial;
+	}
+
+	async criarLoteInicial({ produtoId, quantidade = 0, numeroLote = null, dataValidade = null, fornecedorId = null }) {
+		const produtoIdNumero = Number(produtoId);
+		const quantidadeNumero = Number(quantidade || 0);
+		if (!produtoIdNumero || quantidadeNumero <= 0) return null;
+
+		const sql = `
+			INSERT INTO tb_Lotes_Estoque
+				(lot_id_produto, lot_numero_lote, lot_quantidade_atual, lot_data_validade, lot_id_fornecedor)
+			VALUES (?, ?, ?, ?, ?);
+		`;
+
+		return this.#db.ExecutaComandoLastInserted(sql, [
+			produtoIdNumero,
+			numeroLote || `LOTE-${produtoIdNumero}`,
+			quantidadeNumero,
+			dataValidade || "2099-12-31",
+			fornecedorId || null,
+		]);
 	}
 }
 

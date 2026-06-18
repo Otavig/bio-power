@@ -3,7 +3,43 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class ServicosModels {
+  #serId;
+  #serNome;
+  #serDescricao;
+  #serPreco;
 	#db;
+  get serId() {
+    return this.#serId;
+  }
+
+  set serId(value) {
+    this.#serId = value;
+  }
+
+  get serNome() {
+    return this.#serNome;
+  }
+
+  set serNome(value) {
+    this.#serNome = value;
+  }
+
+  get serDescricao() {
+    return this.#serDescricao;
+  }
+
+  set serDescricao(value) {
+    this.#serDescricao = value;
+  }
+
+  get serPreco() {
+    return this.#serPreco;
+  }
+
+  set serPreco(value) {
+    this.#serPreco = value;
+  }
+
 
 	constructor() {
 		this.#db = banco;

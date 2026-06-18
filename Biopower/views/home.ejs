@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/assets/css/screen/home-screen.css" />
   <link rel="stylesheet" href="/assets/css/navbar.css" />
   <link rel="stylesheet" href="/assets/css/rodape.css" />
-  <link rel="stylesheet" href="/assets/css/components/carousel/mini-carrousel.css">
+  <link rel="stylesheet" href="/assets/css/screen/carrinho.css" />
 </head>
 
 <body>
@@ -100,35 +100,20 @@
       <h2>Categorias</h2>
     </div>
 
-    <div class="categories-section">
-      <button class="arrow left-arrow" onclick="scrollCategories(-1)" disabled>‹</button>
-      <div id="categoriesCarousel" class="categories-track">
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/Antioxidantes.png" alt="Antioxidantes" />
-          <span>Antioxidantes</span>
-        </a>
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/Energéticos.png" alt="Energéticos" />
-          <span>Energéticos</span>
-        </a>
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/Proteicos.png" alt="Proteicos" />
-          <span>Proteicos</span>
-        </a>
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/indispo.png" alt="Em breve" />
-          <span>Em breve</span>
-        </a>
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/indispo.png" alt="Em breve" />
-          <span>Em breve</span>
-        </a>
-        <a href="/store" class="category category-item">
-          <img src="/assets/imgs/categoria/indispo.png" alt="Em breve" />
-          <span>Em breve</span>
-        </a>
-      </div>
-      <button class="arrow right-arrow" onclick="scrollCategories(1)">›</button>
+    <div class="home-category-list" aria-label="Categorias da loja">
+        <% if (categorias && categorias.length) { %>
+          <% categorias.forEach((categoria) => { %>
+            <a href="/store?categoria=<%= encodeURIComponent(categoria.id) %>" class="home-category-pill">
+              <i class="fa-solid fa-tag"></i>
+              <span><%= categoria.nome %></span>
+            </a>
+          <% }); %>
+        <% } else { %>
+          <a href="/store" class="home-category-pill">
+            <i class="fa-solid fa-tag"></i>
+            <span>Ver categorias</span>
+          </a>
+        <% } %>
     </div>
   </section>
 
@@ -142,7 +127,15 @@
     <div class="bestsellers-list">
       <% if (products && products.length) { %>
         <% products.slice(0, 8).forEach((product) => { %>
-          <div class="home-product-card">
+          <%
+            const precoNum = parseFloat(
+              (product.preco || '0').replace(/[^\d,]/g, '').replace(',', '.')
+            ) || 0;
+          %>
+          <div class="home-product-card product-card"
+               data-id="<%= product.id %>"
+               data-name="<%= product.nome %>"
+               data-price="<%= precoNum %>">
             <div class="home-product-img-wrap">
               <img src="<%= product.imagem %>" alt="<%= product.alt %>" />
             </div>
@@ -157,9 +150,20 @@
               <% if (product.credito) { %>
                 <p class="home-product-credito"><%= product.credito %></p>
               <% } %>
+              <div class="product-qty home-product-qty" aria-label="Quantidade">
+                <button class="product-qty-btn" type="button" data-acao="menos" aria-label="Diminuir quantidade">
+                  <i class="fa-solid fa-minus"></i>
+                </button>
+                <input class="product-qty-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantidade do produto" />
+                <button class="product-qty-btn" type="button" data-acao="mais" aria-label="Aumentar quantidade">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
               <div class="home-product-buttons">
-                <button class="btn-comprar" type="button">Comprar</button>
-                <button class="btn-carrinho" type="button" aria-label="Adicionar ao carrinho">
+                <button class="btn-comprar btn-buy" type="button">
+                  <i class="fa-solid fa-bolt"></i> Comprar
+                </button>
+                <button class="btn-carrinho btn-cart" type="button" aria-label="Adicionar ao carrinho">
                   <i class="fa-solid fa-cart-shopping"></i>
                 </button>
               </div>
@@ -208,7 +212,6 @@
 
   <script src="/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/navbar-script.js"></script>
-  <script src="/assets/js/carrosel/mini-carrousel.js"></script>
 </body>
 
 </html>

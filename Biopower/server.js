@@ -11,11 +11,13 @@ const autentificacaoRoutes = require("./routes/AutentificacaoRoutes");
 const servicesRoutes = require("./routes/ServicesRoutes");
 const recebimentoCompraRoutes = require("./routes/recebimentoCompraRoutes");
 const efetuarCompraRoutes = require("./routes/efetuarCompraroutes");
+const CategoriasModels = require("./models/categoriasModels");
 
 const adminRoutes = require("./routes/AdminRoutes");
 const recebimentoRouter = require("./routes/recebimentoRouter");
 const server = express();
 const PORT = 5000;
+const categoriasModel = new CategoriasModels();
 server.set("view engine", "ejs");
 server.set("layout", "./layout.ejs");
 server.use(express.static("public"));
@@ -33,8 +35,16 @@ server.use(
   })
 );
 
-server.use((req, res, next) => {
+server.use(async (req, res, next) => {
   res.locals.sessionUser = req.session.user;
+  res.locals.layoutCategorias = [];
+
+  try {
+    res.locals.layoutCategorias = await categoriasModel.listar();
+  } catch (err) {
+    console.error("Erro ao carregar categorias do layout:", err);
+  }
+
   next();
 });
 

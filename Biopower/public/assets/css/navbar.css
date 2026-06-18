@@ -296,6 +296,12 @@
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border-light);
   margin-bottom: var(--space-2);
+  min-width: 0;
+}
+
+.profile-dropdown-header > div:last-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .profile-dropdown-header i {
@@ -772,17 +778,26 @@
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nb-dd-email {
   display: block;
   font-size: 0.72rem;
   color: var(--color-text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Largura maior para o dropdown de perfil */
 .navbar-profile .profile-dropdown {
-  width: 230px;
+  width: 270px;
+  max-width: calc(100vw - 24px);
 }
 
 /* ── Mobile: info do usuário logado ────────────────────────── */

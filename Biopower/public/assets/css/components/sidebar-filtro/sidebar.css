@@ -6,16 +6,30 @@
   width: var(--sidebar-width);
   min-width: 260px;
   background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
+  border: 1px solid var(--color-border);
   padding: 0;
   font-family: var(--font-primary);
   flex-shrink: 0;
-  height: fit-content;
+  align-self: flex-start;
+  height: auto;
+  max-height: calc(100vh - 96px);
   position: sticky;
-  top: 16px;
+  top: 80px;
   border-radius: var(--radius-2xl);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: var(--shadow-card);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: var(--radius-full);
 }
 
 /* Cabeçalho da sidebar */
@@ -140,6 +154,13 @@
   border-radius: var(--radius-sm);
 }
 
+.filter-empty {
+  display: block;
+  padding: 8px 0;
+  color: var(--color-text-subtle);
+  font-size: 0.86rem;
+}
+
 /* Range preço */
 .price-range-wrap {
   width: 100%;
@@ -155,6 +176,8 @@
 .price-range-labels {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   font-size: 0.82rem;
   color: var(--gray-700);
 }
@@ -162,6 +185,42 @@
 .price-max-label {
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
+}
+
+.price-input-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  width: 112px;
+  min-width: 112px;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.price-input-inline input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-bold);
+  text-align: right;
+}
+
+.price-input-inline input::-webkit-outer-spin-button,
+.price-input-inline input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.price-input-inline input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* Botão limpar */

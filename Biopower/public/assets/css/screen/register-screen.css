@@ -478,20 +478,6 @@ body {
   color: #fff;
 }
 
-/* Botão picker de data */
-.btn-pick-date {
-  background: var(--gray-100);
-  border-left: 1px solid var(--color-border-input) !important;
-  color: var(--gray-600);
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-.btn-pick-date:hover {
-  background: var(--gray-200);
-  color: var(--gray-800);
-}
-
 /* ─── Link ────────────────────────────────────────────────── */
 .reg-link {
   color: var(--color-red-head);
@@ -695,6 +681,8 @@ input[type="date"]:focus {
 
 .floating-input-group {
   align-items: stretch;
+  width: 100%;
+  min-width: 0;
 }
 
 .floating-input-group .form-floating {
@@ -725,6 +713,19 @@ input[type="date"]:focus {
   background-color: var(--gray-100);
   border-color: var(--color-border-input);
   color: var(--gray-600);
+}
+
+.floating-input-group .btn-date-picker-icon {
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.floating-input-group .btn-date-picker-icon:hover,
+.floating-input-group .btn-date-picker-icon:focus {
+  background: var(--gray-200);
+  color: var(--color-red-head);
 }
 
 .floating-input-group:focus-within .input-group-text {

@@ -21,13 +21,22 @@
   navItems.forEach((item) => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
+      window.location.hash = item.dataset.section;
       activateSection(item.dataset.section);
     });
   });
 
   document.querySelectorAll('[data-goto]').forEach((btn) => {
-    btn.addEventListener('click', () => activateSection(btn.dataset.goto));
+      btn.addEventListener('click', () => {
+        window.location.hash = btn.dataset.goto;
+        activateSection(btn.dataset.goto);
+      });
   });
+
+  const initialSection = window.location.hash ? window.location.hash.slice(1) : null;
+  if (initialSection && document.getElementById(initialSection)) {
+    activateSection(initialSection);
+  }
 
   document.querySelectorAll('.adm-tab').forEach((tab) => {
     tab.addEventListener('click', () => {

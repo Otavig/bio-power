@@ -16,7 +16,7 @@ class Database {
       database: "bio_sys_db",
       user: "rootbio",
       password: "root",
-      port: 3307,
+      port: 3306,
       idleTimeout: 30000,
       connectionLimit: 50,
     });

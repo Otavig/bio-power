@@ -3,6 +3,11 @@ const database = require("../infra/database");
 const banco = new database();
 
 class itensPedidoCompraModels {
+  #itpId;
+  #itpIdPedido;
+  #itpIdProduto;
+  #itpQuantidade;
+  #itpValorUnitario;
   #produtoId;
   #pedidoId;
   #pedidoItemQuantidade;
@@ -50,6 +55,45 @@ class itensPedidoCompraModels {
   }
   set pedidoItemValorTotal(value) {
     this.#pedidoItemValorTotal = value;
+  }
+  get itpId() {
+    return this.#itpId;
+  }
+
+  set itpId(value) {
+    this.#itpId = value;
+  }
+
+  get itpIdPedido() {
+    return this.#itpIdPedido;
+  }
+
+  set itpIdPedido(value) {
+    this.#itpIdPedido = value;
+  }
+
+  get itpIdProduto() {
+    return this.#itpIdProduto;
+  }
+
+  set itpIdProduto(value) {
+    this.#itpIdProduto = value;
+  }
+
+  get itpQuantidade() {
+    return this.#itpQuantidade;
+  }
+
+  set itpQuantidade(value) {
+    this.#itpQuantidade = value;
+  }
+
+  get itpValorUnitario() {
+    return this.#itpValorUnitario;
+  }
+
+  set itpValorUnitario(value) {
+    this.#itpValorUnitario = value;
   }
 
   constructor(

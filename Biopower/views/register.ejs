@@ -147,8 +147,16 @@
           </p>
         </div>
 
-        <form id="registerForm" class="needs-validation" novalidate method="POST" action="/register">
-
+        <form
+          id="registerForm"
+          class="needs-validation"
+          method="POST"
+          action="/register"
+          novalidate
+        >
+          <% if (typeof error !== "undefined" && error) { %>
+          <div class="alert alert-danger" role="alert"><%= error %></div>
+          <% } %>
           <!-- ══════════════ ETAPA 1 — Dados Pessoais ══════════════ -->
           <div class="step-panel" id="step-1">
             <div class="step-card">
@@ -177,7 +185,6 @@
                           class="form-control"
                           id="nome"
                           name="nome"
-
                           placeholder="Nome completo"
                           autocomplete="given-name"
                         />
@@ -200,7 +207,6 @@
                           class="form-control"
                           id="sobrenome"
                           name="sobrenome"
-
                           placeholder="Sobrenome"
                           autocomplete="family-name"
                         />
@@ -223,7 +229,6 @@
                           class="form-control"
                           id="cpf"
                           name="cpf"
-
                           placeholder="000.000.000-00"
                           maxlength="14"
                           inputmode="numeric"
@@ -245,10 +250,9 @@
                         ><i class="fas fa-venus-mars"></i
                       ></span>
                       <div class="form-floating flex-grow-1">
-                        <select id="genero" class="form-select" name="genero">
-
-                          <option value="" disabled hidden></option>
-                          <option value="nao_informado" selected>
+                        <select id="genero" name="genero" class="form-select">
+                          <option value="" selected disabled hidden></option>
+                          <option value="nao_informado">
                             Prefiro não informar
                           </option>
                           <option value="feminino">Feminino</option>
@@ -273,7 +277,6 @@
                           class="form-control"
                           id="email"
                           name="email"
-
                           placeholder="email@exemplo.com"
                           autocomplete="email"
                         />
@@ -299,7 +302,6 @@
                           class="form-control"
                           id="telefone"
                           name="telefone"
-
                           placeholder="(00) 00000-0000"
                           inputmode="tel"
                           autocomplete="tel"
@@ -314,22 +316,27 @@
                 <div class="col-12 col-md-6">
                   <div class="floating-field">
                     <div class="input-group floating-input-group">
-                      <span class="input-group-text"
-                        ><i class="fas fa-calendar-alt"></i
-                      ></span>
-                      <div class="form-floating flex-grow-1">
-                        <input type="date" class="form-control" id="data" name="data" />
-
-                        <label for="data">Data de Nascimento</label>
-                      </div>
                       <button
                         type="button"
-                        class="btn btn-outline-secondary btn-pick-date"
-                        onclick="document.getElementById('data').showPicker()"
+                        class="input-group-text btn-date-picker-icon"
+                        onclick="
+                          const dateInput = document.getElementById('data');
+                          dateInput.showPicker ? dateInput.showPicker() : dateInput.focus();
+                        "
                         title="Abrir calendário"
+                        aria-label="Abrir calendário"
                       >
-                        <i class="fas fa-chevron-down"></i>
+                        <i class="fas fa-calendar-alt"></i>
                       </button>
+                      <div class="form-floating flex-grow-1">
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="data"
+                          name="data"
+                        />
+                        <label for="data">Data de Nascimento</label>
+                      </div>
                     </div>
                     <div id="error-data" class="invalid-feedback"></div>
                   </div>
@@ -342,8 +349,12 @@
                         ><i class="fas fa-ring"></i
                       ></span>
                       <div class="form-floating flex-grow-1">
-                        <select id="estadoCivil" class="form-select" name="estadoCivil">
-
+                        <select
+                          id="estadoCivil"
+                          name="estadoCivil"
+                          class="form-select"
+                        >
+                          <option value="" selected disabled hidden></option>
                           <option value="solteiro">Solteiro(a)</option>
                           <option value="casado">Casado(a)</option>
                           <option value="divorciado">Divorciado(a)</option>
@@ -408,12 +419,6 @@
                     <!-- CEP -->
                     <div class="col-12 col-sm-4">
                       <div class="floating-field">
-                        <label class="field-label-above"
-                          >CEP
-                          <span class="badge-autofill"
-                            >Auto-preenche</span
-                          ></label
-                          >
                         <div class="input-group floating-input-group">
                           <span class="input-group-text"
                             ><i class="fas fa-map-pin"></i
@@ -424,11 +429,10 @@
                               class="form-control"
                               id="cep"
                               name="cep"
-
                               placeholder="00000-000"
                               inputmode="numeric"
                             />
-                            <label for="cep">00000-000</label>
+                            <label for="cep">CEP</label>
                           </div>
                         </div>
                         <div id="error-cep" class="invalid-feedback"></div>
@@ -448,7 +452,6 @@
                               class="form-control"
                               id="cidade"
                               name="cidade"
-
                               placeholder="Cidade"
                               autocomplete="address-level2"
                             />
@@ -467,8 +470,7 @@
                             ><i class="fa-solid fa-location-dot"></i
                           ></span>
                           <div class="form-floating flex-grow-1">
-                            <select id="estado" class="form-select" name="estado">
-
+                            <select id="estado" name="estado" class="form-select">
                               <option value="">Selecione</option>
                               <option value="AC">Acre</option>
                               <option value="AL">Alagoas</option>
@@ -508,7 +510,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-12 col-md-5">
                   <div class="floating-field">
                     <div class="input-group floating-input-group">
                       <span class="input-group-text"
@@ -520,7 +522,6 @@
                           class="form-control"
                           id="rua"
                           name="rua"
-
                           placeholder="Rua"
                           autocomplete="street-address"
                         />
@@ -531,7 +532,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                   <div class="floating-field">
                     <div class="input-group floating-input-group">
                       <span class="input-group-text"
@@ -543,7 +544,6 @@
                           class="form-control"
                           id="bairro"
                           name="bairro"
-
                           placeholder="Bairro"
                         />
                         <label for="bairro">Bairro</label>
@@ -553,7 +553,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-12 col-md-3">
                   <div class="floating-field">
                     <div class="input-group floating-input-group">
                       <span class="input-group-text"
@@ -565,7 +565,6 @@
                           class="form-control"
                           id="numero"
                           name="numero"
-
                           placeholder="Nº"
                           inputmode="numeric"
                         />
@@ -587,8 +586,7 @@
                           class="form-control"
                           id="complemento"
                           name="complemento"
-
-                          style="height: 90px; resize: none;"
+                          style="height: 90px"
                           placeholder="Complemento"
                         ></textarea>
                         <label for="complemento">Complemento (opcional)</label>
@@ -648,7 +646,6 @@
                           class="form-control"
                           id="senha"
                           name="senha"
-
                           placeholder="Senha"
                           autocomplete="new-password"
                         />
@@ -679,7 +676,6 @@
                           class="form-control"
                           id="confirmarSenha"
                           name="confirmarSenha"
-
                           placeholder="Confirmar Senha"
                           autocomplete="new-password"
                         />

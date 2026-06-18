@@ -1,6 +1,7 @@
 ﻿const UsuariosModels = require("../models/usuariosModels");
 const ProdutosModels = require("../models/produtosModels");
 const CategoriasModels = require("../models/categoriasModels");
+const LaboratoriosModels = require("../models/laboratoriosModels");
 const FornecedoresModels = require("../models/fornecedoresModels");
 const LotesEstoqueModels = require("../models/lotesEstoqueModels");
 const ServicosModels = require("../models/servicosModels");
@@ -10,6 +11,7 @@ const VendasModels = require("../models/vendasModels");
 const ItensVendaModels = require("../models/itensVendaModels");
 const TypeUsuariosModels = require("../models/typeUserModels");
 const PromocaoCuponsModel = require("../models/promocaoCuponsModel");
+const StatusDiversosModels = require("../models/statusDiversosModels");
 const Database = require("../utils/database");
 const { PdfGenerator } = require("../utils/pdfGenerator");
 
@@ -24,6 +26,7 @@ class AdminController {
   constructor() {
     this.produtosModel = new ProdutosModels();
     this.categoriasModel = new CategoriasModels();
+    this.laboratoriosModel = new LaboratoriosModels();
     this.fornecedoresModel = new FornecedoresModels();
     this.usuariosModel = new UsuariosModels();
     this.lotesModel = new LotesEstoqueModels();
@@ -32,6 +35,7 @@ class AdminController {
     this.agendamentosModel = new AgendamentosModels();
     this.vendasModel = new VendasModels();
     this.itensVendaModel = new ItensVendaModels();
+    this.statusDiversosModel = new StatusDiversosModels();
     this.database = new Database();
   }
 
@@ -42,13 +46,17 @@ class AdminController {
     let services = [];
     let servicosContratados = [];
     let categorias = [];
+    let laboratorios = [];
     let fornecedores = [];
     let clientes = [];
+    let vendas = [];
+    let statusVendas = [];
+    let metodosPagamentoVenda = [];
     try {
       const usuariosModel = new UsuariosModels();
       listaUsuarios = await usuariosModel.listar();
     } catch (err) {
-      console.error("Erro ao listar usuÃ¡rios:", err);
+      console.error("Erro ao listar usuários:", err);
       listaUsuarios = [];
     }
 
@@ -56,7 +64,7 @@ class AdminController {
       const typesUsuariosModel = new TypeUsuariosModels();
       listaTipos = await typesUsuariosModel.listarTiposUsuarios();
     } catch (err) {
-      console.error("Erro ao listar tipos de usuÃ¡rios:", err);
+      console.error("Erro ao listar tipos de usuários:", err);
       listaTipos = [];
     }
 
@@ -72,6 +80,13 @@ class AdminController {
     } catch (err) {
       console.error("Erro ao listar categorias:", err);
       categorias = [];
+    }
+
+    try {
+      laboratorios = await this.laboratoriosModel.listar();
+    } catch (err) {
+      console.error("Erro ao listar laboratórios:", err);
+      laboratorios = [];
     }
 
     try {
@@ -93,8 +108,25 @@ class AdminController {
     try {
       services = await this.servicosModel.listar();
     } catch (err) {
-      console.error("Erro ao listar serviÃ§os:", err);
+      console.error("Erro ao listar serviços:", err);
       services = [];
+    }
+
+    try {
+      await this.statusDiversosModel.garantirStatusVendaEntregue();
+      statusVendas = await this.statusDiversosModel.listarPorDominio("venda_status");
+      metodosPagamentoVenda = await this.statusDiversosModel.listarPorDominio("venda_metodo_pagamento");
+    } catch (err) {
+      console.error("Erro ao listar status de vendas:", err);
+      statusVendas = [];
+      metodosPagamentoVenda = [];
+    }
+
+    try {
+      vendas = await this.vendasModel.listarComItens();
+    } catch (err) {
+      console.error("Erro ao listar vendas:", err);
+      vendas = [];
     }
 
     try {
@@ -134,7 +166,6 @@ class AdminController {
       servicosContratados = [];
     }
 
-    // carregar tipos de fluxo (despesa / receita) - movido para dentro do método dashboard
     let tiposDespesa = [];
     let tiposReceita = [];
     try {
@@ -156,10 +187,14 @@ class AdminController {
       products,
       listaUsuarios,
       categorias,
+      laboratorios,
       fornecedores,
       clientes,
       listaTipos,
       services,
+      vendas,
+      statusVendas,
+      metodosPagamentoVenda,
       servicosContratados,
       statusServicos: STATUS_SERVICOS,
       tiposDespesa,
@@ -255,32 +290,151 @@ class AdminController {
     return res.redirect("/dashboard?flash=usuario-desativado#users");
   }
 
+  async createCategory(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const { nome } = req.body;
+
+    if (!nome || !nome.trim()) {
+      const msg = "Informe o nome da categoria.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    try {
+      await this.categoriasModel.criar({ nome: nome.trim() });
+      if (wantsJson) return res.json({ ok: true });
+    } catch (err) {
+      console.error("Erro ao criar categoria:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar categoria." });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    return res.redirect("/dashboard#categories");
+  }
+
+  async updateCategory(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const id = parseInt(req.params.id, 10);
+    const { nome } = req.body;
+
+    if (Number.isNaN(id)) {
+      const msg = "Categoria inválida.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    if (!nome || !nome.trim()) {
+      const msg = "Informe o nome da categoria.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    try {
+      await this.categoriasModel.atualizar(id, { nome: nome.trim() });
+      if (wantsJson) return res.json({ ok: true });
+    } catch (err) {
+      console.error("Erro ao atualizar categoria:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar categoria." });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    return res.redirect("/dashboard#categories");
+  }
+
+  async deleteCategory(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const id = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      const msg = "Categoria inválida.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    try {
+      const produtosVinculados = await this.categoriasModel.contarProdutosVinculados(id);
+      if (produtosVinculados > 0) {
+        const msg = "Esta categoria possui produto cadastrado e não pode ser excluída.";
+        if (wantsJson) return res.status(409).json({ ok: false, msg, produtosVinculados });
+        return res.redirect("/dashboard?flash=categoria-vinculada-produto#categories");
+      }
+
+      await this.categoriasModel.deletar(id);
+      if (wantsJson) return res.json({ ok: true });
+    } catch (err) {
+      console.error("Erro ao excluir categoria:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir categoria." });
+      return res.redirect("/dashboard?flash=categoria-erro#categories");
+    }
+
+    return res.redirect("/dashboard#categories");
+  }
+
   async addProduct(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
-    const { nome, preco, credito, categoria, marca, sabor } = req.body;
+    const { nome, preco, categoria, marca, sabor, desconto } = req.body;
 
     if (!nome || !preco || !categoria) {
-      const msg = "Campos obrigatÃ³rios: nome, preÃ§o e categoria.";
+      const msg = "Campos obrigatórios: nome, preço e categoria.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=produto-erro#products");
     }
 
     try {
       await this.produtosModel.criarProduto({
-        nome,
-        descricao: sabor || credito || null,
+        nome: nome.trim(),
+        descricao: sabor?.trim() || null,
+        imagem: req.file?.buffer || null,
         preco,
-        categoriaNome: categoria,
-        marcaNome: marca,
-        descontoPercentual: 0,
+        categoriaId: categoria,
+        laboratorioId: marca,
+        descontoPercentual: desconto,
       });
-      if (wantsJson) return res.json({ ok: true, msg: "Produto cadastrado com sucesso!" });
+
+      if (wantsJson) return res.json({ ok: true });
     } catch (err) {
       console.error("Erro ao adicionar produto:", err);
       if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar produto." });
     }
 
-    return res.redirect("/dashboard?flash=produto-adicionado#products");
+    return res.redirect("/dashboard#products");
+  }
+
+  async updateProduct(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const id = parseInt(req.params.id, 10);
+    const { nome, preco, categoria, marca, sabor, desconto } = req.body;
+
+    if (Number.isNaN(id)) {
+      const msg = "Produto inválido.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=produto-erro#products");
+    }
+
+    if (!nome || !preco || !categoria) {
+      const msg = "Campos obrigatórios: nome, preço e categoria.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=produto-erro#products");
+    }
+
+    try {
+      await this.produtosModel.atualizarProduto(id, {
+        nome: nome.trim(),
+        descricao: sabor?.trim() || null,
+        imagem: req.file?.buffer || null,
+        preco,
+        categoriaId: categoria,
+        laboratorioId: marca,
+        descontoPercentual: desconto,
+      });
+
+      if (wantsJson) return res.json({ ok: true });
+    } catch (err) {
+      console.error("Erro ao atualizar produto:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar produto." });
+    }
+
+    return res.redirect("/dashboard#products");
   }
 
   async updateStock(req, res) {
@@ -289,7 +443,7 @@ class AdminController {
     const quantidade = Number(req.body?.quantidade ?? req.body?.qtd ?? req.body?.quantidadeAtualizada);
 
     if (Number.isNaN(produtoId) || Number.isNaN(quantidade)) {
-      const msg = "Produto ou quantidade invÃ¡lida.";
+      const msg = "Produto ou quantidade inválida.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=estoque-erro#stock");
     }
@@ -311,8 +465,15 @@ class AdminController {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
     if (!Number.isNaN(id)) {
       try {
+        const vendasVinculadas = await this.produtosModel.contarVendasVinculadas(id);
+        if (vendasVinculadas > 0) {
+          const msg = "Este produto já está cadastrado em uma venda e não pode ser excluído.";
+          if (wantsJson) return res.status(409).json({ ok: false, msg, vendasVinculadas });
+          return res.redirect("/dashboard?flash=produto-vinculado-venda#products");
+        }
+
         await this.produtosModel.deletarProduto(id);
-        if (wantsJson) return res.json({ ok: true, msg: "Produto excluÃ­do." });
+        if (wantsJson) return res.json({ ok: true, msg: "Produto excluído." });
       } catch (err) {
         console.error("Erro ao excluir produto:", err);
         if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir produto." });
@@ -326,8 +487,8 @@ class AdminController {
       const services = await this.servicosModel.listar();
       return res.json({ ok: true, data: services });
     } catch (err) {
-      console.error("Erro ao listar serviÃ§os:", err);
-      return res.status(500).json({ ok: false, msg: "Erro ao listar serviÃ§os." });
+      console.error("Erro ao listar serviços:", err);
+      return res.status(500).json({ ok: false, msg: "Erro ao listar serviços." });
     }
   }
 
@@ -336,17 +497,17 @@ class AdminController {
     const { nome, descricao, preco } = req.body;
 
     if (!nome || preco === undefined || preco === null || preco === "") {
-      const msg = "Campos obrigatÃ³rios: nome e preÃ§o.";
+      const msg = "Campos obrigatórios: nome e preço.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
     try {
       await this.servicosModel.criar({ nome, descricao, preco });
-      if (wantsJson) return res.json({ ok: true, msg: "ServiÃ§o cadastrado." });
+      if (wantsJson) return res.json({ ok: true, msg: "Serviço cadastrado." });
     } catch (err) {
-      console.error("Erro ao criar serviÃ§o:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar serviÃ§o." });
+      console.error("Erro ao criar serviço:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar serviço." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -368,8 +529,8 @@ class AdminController {
       await this.servicosModel.atualizar(id, { nome, descricao, preco });
       if (wantsJson) return res.json({ ok: true, msg: "Serviço atualizado." });
     } catch (err) {
-      console.error("Erro ao atualizar serviÃ§o:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar serviÃ§o." });
+      console.error("Erro ao atualizar serviço:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar serviço." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -381,17 +542,17 @@ class AdminController {
     const id = parseInt(req.params.id, 10);
 
     if (Number.isNaN(id)) {
-      const msg = "ServiÃ§o invÃ¡lido.";
+      const msg = "Serviço inválido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
     try {
       await this.servicosModel.deletar(id);
-      if (wantsJson) return res.json({ ok: true, msg: "ServiÃ§o excluÃ­do." });
+      if (wantsJson) return res.json({ ok: true, msg: "Serviço excluído." });
     } catch (err) {
-      console.error("Erro ao excluir serviÃ§o:", err);
-      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir serviÃ§o." });
+      console.error("Erro ao excluir serviço:", err);
+      if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao excluir serviço." });
       return res.redirect("/dashboard?flash=servico-erro#services");
     }
 
@@ -406,8 +567,8 @@ class AdminController {
       const data = await this.servicosContratadosModel.listarTodos({ status: filtroStatus });
       return res.json({ ok: true, data });
     } catch (err) {
-      console.error("Erro ao listar serviÃ§os contratados:", err);
-      return res.status(500).json({ ok: false, msg: "Erro ao listar serviÃ§os contratados." });
+      console.error("Erro ao listar serviços contratados:", err);
+      return res.status(500).json({ ok: false, msg: "Erro ao listar serviços contratados." });
     }
   }
 
@@ -588,12 +749,12 @@ class AdminController {
       if (sql) {
         sql += " UNION ALL ";
       }
-      sql += "SELECT p.pro_nome AS produto, 'Saída' AS movimento, i.ite_quantidade AS quantidade, DATE_FORMAT(v.ven_data_venda, '%d/%m/%Y') AS data, COALESCE(c.cat_nome, 'N/D') AS categoria " +
+      sql += "SELECT p.pro_nome AS produto, 'Saída' AS movimento, i.itv_quantidade AS quantidade, DATE_FORMAT(v.ven_data, '%d/%m/%Y') AS data, COALESCE(c.cat_nome, 'N/D') AS categoria " +
         "FROM tb_Itens_Venda i " +
-        "INNER JOIN tb_Vendas v ON v.ven_id = i.ite_id_venda " +
-        "INNER JOIN tb_Produtos p ON p.pro_id = i.ite_id_produto " +
+        "INNER JOIN tb_Vendas v ON v.ven_id = i.itv_id_venda " +
+        "INNER JOIN tb_Produtos p ON p.pro_id = i.itv_id_produto " +
         "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
-        "WHERE DATE(v.ven_data_venda) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
+        "WHERE DATE(v.ven_data) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
         productFilter;
       params.push(periodo);
       if (item) {
@@ -609,7 +770,9 @@ class AdminController {
     var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(fo.for_razao_social, 'N/D') AS fornecedor " +
       "FROM tb_Fluxo_Caixa f " +
       "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Fornecedores fo ON fo.for_id = f.flu_origem_id AND f.flu_origem_tipo = 'fornecedor' " +
+      "LEFT JOIN tb_Fluxo_Caixa_Compra fcc ON fcc.fcc_id_fluxo = f.flu_id " +
+      "LEFT JOIN tb_Compra c ON c.com_id = fcc.fcc_id_compra " +
+      "LEFT JOIN tb_Fornecedores fo ON fo.for_id = c.com_id_fornecedor " +
       "WHERE s.sta_codigo = 'DESPESA' " +
       "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
     var params = [periodo];
@@ -631,7 +794,9 @@ class AdminController {
     var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(u.usu_nome, 'N/D') AS cliente " +
       "FROM tb_Fluxo_Caixa f " +
       "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Usuarios u ON u.usu_id = f.flu_origem_id AND f.flu_origem_tipo = 'cliente' " +
+      "LEFT JOIN tb_Fluxo_Caixa_Venda fcv ON fcv.fcv_id_fluxo = f.flu_id " +
+      "LEFT JOIN tb_Vendas v ON v.ven_id = fcv.fcv_id_venda " +
+      "LEFT JOIN tb_Usuarios u ON u.usu_id = v.ven_id_cliente " +
       "WHERE s.sta_codigo = 'RECEITA' " +
       "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
     var params = [periodo];
@@ -665,13 +830,13 @@ class AdminController {
     const { status, observacoes } = req.body;
 
     if (Number.isNaN(id)) {
-      const msg = "ServiÃ§o contratado invÃ¡lido.";
+      const msg = "Serviço contratado inválido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
 
     if (!STATUS_SERVICOS.includes(status)) {
-      const msg = "Status invÃ¡lido.";
+      const msg = "Status inválido.";
       if (wantsJson) return res.status(400).json({ ok: false, msg, statusPermitidos: STATUS_SERVICOS });
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
@@ -872,6 +1037,37 @@ class AdminController {
       console.error("Erro ao excluir cupom:", e);
       return res.status(500).json({ ok: false, msg: "Erro interno ao desativar cupom!" });
     }
+  async updateVendaStatus(req, res) {
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      const id = Number(req.params.id);
+      const statusId = Number(req.body.statusId);
+
+      if (!id || !statusId) {
+        const msg = "Venda ou status invalido.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=venda-status-erro#orders");
+      }
+
+      const status = await this.vendasModel.atualizarStatus(id, statusId);
+
+      if (wantsJson) {
+        return res.json({
+          ok: true,
+          msg: "Status da venda atualizado.",
+          status,
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status da venda:", err);
+      if (wantsJson) {
+        return res.status(500).json({ ok: false, msg: err.message || "Erro ao atualizar status." });
+      }
+      return res.redirect("/dashboard?flash=venda-status-erro#orders");
+    }
+
+    return res.redirect("/dashboard?flash=venda-status-atualizado#orders");
   }
 }
 

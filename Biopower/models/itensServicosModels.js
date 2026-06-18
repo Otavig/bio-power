@@ -3,7 +3,105 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class ItensServicosModels {
+  #itsId;
+  #itsIdCliente;
+  #itsIdProfissional;
+  #itsIdServico;
+  #itsIdAgendamento;
+  #itsStatus;
+  #itsValorUnitario;
+  #itsQuantidade;
+  #itsValorTotal;
+  #createdAt;
+  #updatedAt;
   #db;
+  get itsId() {
+    return this.#itsId;
+  }
+
+  set itsId(value) {
+    this.#itsId = value;
+  }
+
+  get itsIdCliente() {
+    return this.#itsIdCliente;
+  }
+
+  set itsIdCliente(value) {
+    this.#itsIdCliente = value;
+  }
+
+  get itsIdProfissional() {
+    return this.#itsIdProfissional;
+  }
+
+  set itsIdProfissional(value) {
+    this.#itsIdProfissional = value;
+  }
+
+  get itsIdServico() {
+    return this.#itsIdServico;
+  }
+
+  set itsIdServico(value) {
+    this.#itsIdServico = value;
+  }
+
+  get itsIdAgendamento() {
+    return this.#itsIdAgendamento;
+  }
+
+  set itsIdAgendamento(value) {
+    this.#itsIdAgendamento = value;
+  }
+
+  get itsStatus() {
+    return this.#itsStatus;
+  }
+
+  set itsStatus(value) {
+    this.#itsStatus = value;
+  }
+
+  get itsValorUnitario() {
+    return this.#itsValorUnitario;
+  }
+
+  set itsValorUnitario(value) {
+    this.#itsValorUnitario = value;
+  }
+
+  get itsQuantidade() {
+    return this.#itsQuantidade;
+  }
+
+  set itsQuantidade(value) {
+    this.#itsQuantidade = value;
+  }
+
+  get itsValorTotal() {
+    return this.#itsValorTotal;
+  }
+
+  set itsValorTotal(value) {
+    this.#itsValorTotal = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
 
   constructor() {
     this.#db = banco;
