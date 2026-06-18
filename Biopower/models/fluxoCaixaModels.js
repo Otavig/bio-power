@@ -8,8 +8,6 @@ class FluxoCaixaModels {
   #fluValor;
   #fluDataMovimentacao;
   #fluDescricao;
-  #fluOrigemId;
-  #fluOrigemTipo;
   #fluIdCaixa;
   get fluId() {
     return this.#fluId;
@@ -51,22 +49,6 @@ class FluxoCaixaModels {
     this.#fluDescricao = value;
   }
 
-  get fluOrigemId() {
-    return this.#fluOrigemId;
-  }
-
-  set fluOrigemId(value) {
-    this.#fluOrigemId = value;
-  }
-
-  get fluOrigemTipo() {
-    return this.#fluOrigemTipo;
-  }
-
-  set fluOrigemTipo(value) {
-    this.#fluOrigemTipo = value;
-  }
-
   get fluIdCaixa() {
     return this.#fluIdCaixa;
   }
@@ -82,8 +64,6 @@ class FluxoCaixaModels {
     fluValor = null,
     fluDataMovimentacao = null,
     fluDescricao = null,
-    fluOrigemId = null,
-    fluOrigemTipo = null,
     fluIdCaixa = null
   ) {
     this.#db = banco;
@@ -92,13 +72,82 @@ class FluxoCaixaModels {
     this.#fluValor = fluValor;
     this.#fluDataMovimentacao = fluDataMovimentacao;
     this.#fluDescricao = fluDescricao;
-    this.#fluOrigemId = fluOrigemId;
-    this.#fluOrigemTipo = fluOrigemTipo;
     this.#fluIdCaixa = fluIdCaixa;
   }
 
   get db() {
     return this.#db;
-  }}
+  }
+
+  async criar({ tipoId, valor, dataMovimentacao = null, descricao = null, caixaId = null }) {
+    if (!tipoId || valor === undefined || valor === null) return null;
+
+    const sql = `
+      INSERT INTO tb_Fluxo_Caixa
+        (flu_tipo_id, flu_valor, flu_data_movimentacao, flu_descricao, flu_id_caixa)
+      VALUES (?, ?, ?, ?, ?);
+    `;
+
+    return this.#db.ExecutaComandoLastInserted(sql, [
+      Number(tipoId),
+      Number(valor),
+      dataMovimentacao || new Date().toISOString().slice(0, 10),
+      descricao || null,
+      caixaId || null,
+    ]);
+  }
+
+  async vincularVenda({ fluxoId, vendaId }) {
+    if (!fluxoId || !vendaId) return null;
+
+    const sql = `
+      INSERT INTO tb_Fluxo_Caixa_Venda
+        (fcv_id_fluxo, fcv_id_venda)
+      VALUES (?, ?);
+    `;
+
+    return this.#db.ExecutaComandoLastInserted(sql, [Number(fluxoId), Number(vendaId)]);
+  }
+
+  async vincularCompra({ fluxoId, compraId }) {
+    if (!fluxoId || !compraId) return null;
+
+    const sql = `
+      INSERT INTO tb_Fluxo_Caixa_Compra
+        (fcc_id_fluxo, fcc_id_compra)
+      VALUES (?, ?);
+    `;
+
+    return this.#db.ExecutaComandoLastInserted(sql, [Number(fluxoId), Number(compraId)]);
+  }
+
+  async registrarReceitaVenda({ vendaId, valor, descricao = null, dataMovimentacao = null, caixaId = null }) {
+    const fluxoId = await this.criar({
+      tipoId: 8,
+      valor,
+      dataMovimentacao,
+      descricao: descricao || `Receita da venda #${vendaId}`,
+      caixaId,
+    });
+
+    if (!fluxoId) return null;
+    await this.vincularVenda({ fluxoId, vendaId });
+    return fluxoId;
+  }
+
+  async registrarDespesaCompra({ compraId, valor, descricao = null, dataMovimentacao = null, caixaId = null }) {
+    const fluxoId = await this.criar({
+      tipoId: 9,
+      valor,
+      dataMovimentacao,
+      descricao: descricao || `Despesa da compra #${compraId}`,
+      caixaId,
+    });
+
+    if (!fluxoId) return null;
+    await this.vincularCompra({ fluxoId, compraId });
+    return fluxoId;
+  }
+}
 
 module.exports = FluxoCaixaModels;

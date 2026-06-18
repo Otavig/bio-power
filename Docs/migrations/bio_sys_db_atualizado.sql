@@ -12,6 +12,9 @@ USE `bio_sys_db`;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Venda`;
+DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Compra`;
+
 -- ========================================================
 -- TABELAS BASE (sem dependências)
 -- ========================================================
@@ -208,7 +211,7 @@ VALUES
 (2,'Whey Protein Baunilha 900g','Em breve',129.90,0.00,2,2,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (3,'Pré-Treino Explosivo DUX 300g','Em breve',98.50,0.00,3,3,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (5,'Termogênico Black Skull 60 caps','Em breve',59.90,0.00,4,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
-(6,'Whey Protein Chocolate 1kg','Em breve',134950.00,0.00,2,6,'2026-03-25 19:41:26','2026-03-26 14:43:18'),
+(6,'Whey Protein Chocolate 1kg','Em breve',134.50,0.00,2,6,'2026-03-25 19:41:26','2026-03-26 14:43:18'),
 (7,'Pré-Treino Insano 280g','Em breve',89.99,0.00,3,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (8,'Creatina Universal 300g','Em breve',109.90,0.00,1,7,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (9,'Termogênico Kimera 60 caps','Em breve',69.90,0.00,4,8,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
@@ -550,12 +553,19 @@ CREATE TABLE `tb_Itens_Devolucao` (
 --
 -- tb_Entrega (Entrega)
 -- Diagrama (imagem 5): ent_id, ent_id_venda, ent_endereco, ent_status, ent_data_entrega
+-- Checkout: cep, endereco, numero, complemento, bairro, cidade, uf
 --
 DROP TABLE IF EXISTS `tb_Entrega`;
 CREATE TABLE `tb_Entrega` (
   `ent_id` int NOT NULL AUTO_INCREMENT,
   `ent_id_venda` int NOT NULL,
+  `ent_cep` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ent_endereco` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ent_numero` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ent_complemento` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ent_bairro` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ent_cidade` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ent_uf` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ent_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pendente',
   `ent_data_entrega` date DEFAULT NULL,
   PRIMARY KEY (`ent_id`),
@@ -720,8 +730,8 @@ CREATE TABLE `tb_Caixa` (
 --
 -- tb_Fluxo_Caixa (FluxoCaixaModels)
 -- Diagrama (imagens 1, 3): flu_id, flu_tipo_id, flu_valor, flu_data_movimentacao,
---   flu_descricao, flu_origem_id, flu_origem_tipo
---   Relaciona-se com tb_Caixa (Atualiza), AgendamentosModels e VendasModels (gera)
+--   flu_descricao
+--   Relaciona-se com tb_Caixa (Atualiza). Vendas e compras sao vinculadas por tabelas ponte.
 --
 DROP TABLE IF EXISTS `tb_Fluxo_Caixa`;
 CREATE TABLE `tb_Fluxo_Caixa` (
@@ -730,8 +740,6 @@ CREATE TABLE `tb_Fluxo_Caixa` (
   `flu_valor` float NOT NULL DEFAULT '0',
   `flu_data_movimentacao` date NOT NULL,
   `flu_descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `flu_origem_id` int DEFAULT NULL,
-  `flu_origem_tipo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `flu_id_caixa` int DEFAULT NULL,
   PRIMARY KEY (`flu_id`),
   KEY `fk_flu_tipo` (`flu_tipo_id`),
@@ -741,20 +749,52 @@ CREATE TABLE `tb_Fluxo_Caixa` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_Fluxo_Caixa` WRITE;
-INSERT INTO `tb_Fluxo_Caixa` (`flu_id`, `flu_tipo_id`, `flu_valor`, `flu_data_movimentacao`, `flu_descricao`, `flu_origem_id`, `flu_origem_tipo`, `flu_id_caixa`) VALUES
-(1,9,150.00,DATE_ADD(CURDATE(), INTERVAL 10 DAY),'Despesa - próximo 30d',1,'fornecedor',NULL),
-(2,9,180.00,DATE_ADD(CURDATE(), INTERVAL 35 DAY),'Despesa - próximo 60d',1,'fornecedor',NULL),
-(3,9,220.00,DATE_ADD(CURDATE(), INTERVAL 70 DAY),'Despesa - próximo 90d',1,'fornecedor',NULL),
-(4,8,250.00,DATE_ADD(CURDATE(), INTERVAL 10 DAY),'Receita - próximo 30d',6,'cliente',NULL),
-(5,8,280.00,DATE_ADD(CURDATE(), INTERVAL 35 DAY),'Receita - próximo 60d',6,'cliente',NULL),
-(6,8,320.00,DATE_ADD(CURDATE(), INTERVAL 70 DAY),'Receita - próximo 90d',6,'cliente',NULL),
-(7,9,120.00,DATE_ADD(CURDATE(), INTERVAL 5 DAY),'Aluguel',1,'fornecedor',NULL),
-(8,9,500.00,DATE_ADD(CURDATE(), INTERVAL 15 DAY),'Contas de luz',1,'fornecedor',NULL),
-(9,8,350.00,DATE_ADD(CURDATE(), INTERVAL 20 DAY),'Venda curso online',6,'cliente',NULL),
-(10,8,450.00,DATE_ADD(CURDATE(), INTERVAL 40 DAY),'Serviço de consultoria',6,'cliente',NULL),
-(11,9,100.00,DATE_ADD(CURDATE(), INTERVAL 25 DAY),'Manutenção de equipamentos',1,'fornecedor',NULL),
-(12,8,220.00,DATE_ADD(CURDATE(), INTERVAL 12 DAY),'Mensalidade',6,'cliente',NULL);
+INSERT INTO `tb_Fluxo_Caixa` (`flu_id`, `flu_tipo_id`, `flu_valor`, `flu_data_movimentacao`, `flu_descricao`, `flu_id_caixa`) VALUES
+(1,9,150.00,DATE_ADD(CURDATE(), INTERVAL 10 DAY),'Despesa - próximo 30d',NULL),
+(2,9,180.00,DATE_ADD(CURDATE(), INTERVAL 35 DAY),'Despesa - próximo 60d',NULL),
+(3,9,220.00,DATE_ADD(CURDATE(), INTERVAL 70 DAY),'Despesa - próximo 90d',NULL),
+(4,8,250.00,DATE_ADD(CURDATE(), INTERVAL 10 DAY),'Receita - próximo 30d',NULL),
+(5,8,280.00,DATE_ADD(CURDATE(), INTERVAL 35 DAY),'Receita - próximo 60d',NULL),
+(6,8,320.00,DATE_ADD(CURDATE(), INTERVAL 70 DAY),'Receita - próximo 90d',NULL),
+(7,9,120.00,DATE_ADD(CURDATE(), INTERVAL 5 DAY),'Aluguel',NULL),
+(8,9,500.00,DATE_ADD(CURDATE(), INTERVAL 15 DAY),'Contas de luz',NULL),
+(9,8,350.00,DATE_ADD(CURDATE(), INTERVAL 20 DAY),'Venda curso online',NULL),
+(10,8,450.00,DATE_ADD(CURDATE(), INTERVAL 40 DAY),'Serviço de consultoria',NULL),
+(11,9,100.00,DATE_ADD(CURDATE(), INTERVAL 25 DAY),'Manutenção de equipamentos',NULL),
+(12,8,220.00,DATE_ADD(CURDATE(), INTERVAL 12 DAY),'Mensalidade',NULL);
 UNLOCK TABLES;
+
+--
+-- tb_Fluxo_Caixa_Venda
+-- Vincula lancamentos financeiros de receita as vendas.
+--
+DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Venda`;
+CREATE TABLE `tb_Fluxo_Caixa_Venda` (
+  `fcv_id` int NOT NULL AUTO_INCREMENT,
+  `fcv_id_fluxo` int NOT NULL,
+  `fcv_id_venda` int NOT NULL,
+  PRIMARY KEY (`fcv_id`),
+  UNIQUE KEY `uk_fcv_fluxo` (`fcv_id_fluxo`),
+  KEY `fk_fcv_venda` (`fcv_id_venda`),
+  CONSTRAINT `fk_fcv_fluxo` FOREIGN KEY (`fcv_id_fluxo`) REFERENCES `tb_Fluxo_Caixa` (`flu_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fcv_venda` FOREIGN KEY (`fcv_id_venda`) REFERENCES `tb_Vendas` (`ven_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- tb_Fluxo_Caixa_Compra
+-- Vincula lancamentos financeiros de despesa as compras.
+--
+DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Compra`;
+CREATE TABLE `tb_Fluxo_Caixa_Compra` (
+  `fcc_id` int NOT NULL AUTO_INCREMENT,
+  `fcc_id_fluxo` int NOT NULL,
+  `fcc_id_compra` int NOT NULL,
+  PRIMARY KEY (`fcc_id`),
+  UNIQUE KEY `uk_fcc_fluxo` (`fcc_id_fluxo`),
+  KEY `fk_fcc_compra` (`fcc_id_compra`),
+  CONSTRAINT `fk_fcc_fluxo` FOREIGN KEY (`fcc_id_fluxo`) REFERENCES `tb_Fluxo_Caixa` (`flu_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fcc_compra` FOREIGN KEY (`fcc_id_compra`) REFERENCES `tb_Compra` (`com_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

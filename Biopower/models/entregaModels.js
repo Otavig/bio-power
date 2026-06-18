@@ -66,6 +66,41 @@ class EntregaModels {
 
   get db() {
     return this.#db;
-  }}
+  }
+
+  async criar({
+    vendaId,
+    cep,
+    endereco,
+    numero = null,
+    complemento = null,
+    bairro,
+    cidade,
+    uf,
+    status = "pendente",
+    dataEntrega = null
+  }) {
+    const sql = `
+      INSERT INTO tb_Entrega
+        (ent_id_venda, ent_cep, ent_endereco, ent_numero, ent_complemento, ent_bairro, ent_cidade, ent_uf, ent_status, ent_data_entrega)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const valores = [
+      vendaId,
+      cep,
+      endereco,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      uf,
+      status,
+      dataEntrega
+    ];
+
+    return this.#db.ExecutaComandoLastInserted(sql, valores);
+  }
+}
 
 module.exports = EntregaModels;

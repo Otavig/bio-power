@@ -80,22 +80,21 @@ class VendasModels {
     this.#db = banco;
   }
 
-  async criar({ clienteId, valorTotal, statusId = 18, metodoPagamentoId = 13, enderecoEntrega = null, frete = 0 }) {
+  async criar({ clienteId, valorTotal, status = "aguardando", desconto = 0, data = null }) {
     if (!clienteId || valorTotal === undefined || valorTotal === null) return null;
 
     const sql = `
       INSERT INTO tb_Vendas
-        (ven_id_cliente, ven_valor_total, ven_status_id, ven_metodo_pagamento_id, ven_endereco_entrega, ven_frete)
-      VALUES (?, ?, ?, ?, ?, ?);
+        (ven_id_cliente, ven_data, ven_valor_total, ven_status, ven_desconto)
+      VALUES (?, ?, ?, ?, ?);
     `;
 
     return this.#db.ExecutaComandoLastInserted(sql, [
       Number(clienteId),
+      data || new Date().toISOString().slice(0, 10),
       Number(valorTotal),
-      Number(statusId),
-      Number(metodoPagamentoId),
-      enderecoEntrega || null,
-      Number(frete || 0),
+      status,
+      Number(desconto || 0),
     ]);
   }
 }

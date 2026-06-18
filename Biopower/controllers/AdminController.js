@@ -723,12 +723,12 @@ class AdminController {
       if (sql) {
         sql += " UNION ALL ";
       }
-      sql += "SELECT p.pro_nome AS produto, 'Saída' AS movimento, i.ite_quantidade AS quantidade, DATE_FORMAT(v.ven_data_venda, '%d/%m/%Y') AS data, COALESCE(c.cat_nome, 'N/D') AS categoria " +
+      sql += "SELECT p.pro_nome AS produto, 'Saída' AS movimento, i.itv_quantidade AS quantidade, DATE_FORMAT(v.ven_data, '%d/%m/%Y') AS data, COALESCE(c.cat_nome, 'N/D') AS categoria " +
         "FROM tb_Itens_Venda i " +
-        "INNER JOIN tb_Vendas v ON v.ven_id = i.ite_id_venda " +
-        "INNER JOIN tb_Produtos p ON p.pro_id = i.ite_id_produto " +
+        "INNER JOIN tb_Vendas v ON v.ven_id = i.itv_id_venda " +
+        "INNER JOIN tb_Produtos p ON p.pro_id = i.itv_id_produto " +
         "LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria " +
-        "WHERE DATE(v.ven_data_venda) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
+        "WHERE DATE(v.ven_data) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) " +
         productFilter;
       params.push(periodo);
       if (item) {
@@ -744,7 +744,9 @@ class AdminController {
     var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(fo.for_razao_social, 'N/D') AS fornecedor " +
       "FROM tb_Fluxo_Caixa f " +
       "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Fornecedores fo ON fo.for_id = f.flu_origem_id AND f.flu_origem_tipo = 'fornecedor' " +
+      "LEFT JOIN tb_Fluxo_Caixa_Compra fcc ON fcc.fcc_id_fluxo = f.flu_id " +
+      "LEFT JOIN tb_Compra c ON c.com_id = fcc.fcc_id_compra " +
+      "LEFT JOIN tb_Fornecedores fo ON fo.for_id = c.com_id_fornecedor " +
       "WHERE s.sta_codigo = 'DESPESA' " +
       "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
     var params = [periodo];
@@ -766,7 +768,9 @@ class AdminController {
     var sql = "SELECT f.flu_descricao AS descricao, f.flu_valor AS valor, DATE_FORMAT(f.flu_data_movimentacao, '%d/%m/%Y') AS data, COALESCE(u.usu_nome, 'N/D') AS cliente " +
       "FROM tb_Fluxo_Caixa f " +
       "INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id " +
-      "LEFT JOIN tb_Usuarios u ON u.usu_id = f.flu_origem_id AND f.flu_origem_tipo = 'cliente' " +
+      "LEFT JOIN tb_Fluxo_Caixa_Venda fcv ON fcv.fcv_id_fluxo = f.flu_id " +
+      "LEFT JOIN tb_Vendas v ON v.ven_id = fcv.fcv_id_venda " +
+      "LEFT JOIN tb_Usuarios u ON u.usu_id = v.ven_id_cliente " +
       "WHERE s.sta_codigo = 'RECEITA' " +
       "AND DATE(f.flu_data_movimentacao) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) ";
     var params = [periodo];
