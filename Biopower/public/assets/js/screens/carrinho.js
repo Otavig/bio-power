@@ -29,6 +29,39 @@ document.addEventListener("DOMContentLoaded", function() {
         btnGravar.addEventListener("click", gravarPedido);
     }
 
+document.querySelector("#btnPagar").addEventListener("click", gravarPedido);
+
+    function gravarPedido() {
+        console.log("pagamento")
+        if(listaCarrinho.length > 0) {
+            fetch("/recebimento/gravar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(listaCarrinho)
+            })
+            .then(function(resposta) {
+                return resposta.json();
+            })
+            .then(function(corpo) {
+                if(corpo.ok) {
+                    Swal.fire('Sucesso!', corpo.msg || 'Pedido realizado com sucesso!', 'success');
+                    localStorage.removeItem("carrinho");
+                    listaCarrinho = [];
+                    atualizarContador();
+
+                } else {
+                    Swal.fire('Atenção', corpo.msg || 'Erro ao processar pedido.', 'warning');
+                }
+            })
+            .catch(erro => console.error("Erro ao gravar:", erro));
+        }
+        else {
+            Swal.fire('Vazio!', 'Nenhum produto adicionado ao carrinho!', 'info');
+        }
+    }
+
     function excluirProdutoCarrinho() {
         let produtoIdExcluir = this.dataset.produto;
         listaCarrinho = listaCarrinho.filter(x => x.id != produtoIdExcluir);

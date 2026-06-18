@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BioPower - Pagamento</title>
+    <title>Bio-Power | Pagamento</title>
+
+    <link rel="shortcut icon" href="/assets/imgs/img-icon-site.png" type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <link rel="stylesheet" href="/bootstrap-5.0.2-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/assets/css/navbar.css" />
+    <link rel="stylesheet" href="/assets/css/rodape.css" />
+    <link rel="stylesheet" href="/assets/css/screen/product-list-screen.css" />
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -762,7 +779,7 @@
             </div>
 
             <div class="pix-chave">
-              <span class="chave-val" id="chavePix">00020126580014BR.GOV.BCB.PIX0136powerfarma@qr.com5204000053039865406263.475802BR5925PowerFarma Suplementos6009SAO PAULO62070503***6304A1B2</span>
+              <span class="chave-val" id="chavePix">00020126580014BR.GOV.BCB.PIX0136biopower@qr.com5204000053039865406263.475802BR5925BioPower Suplementos6009SAO PAULO62070503***6304A1B2</span>
               <button onclick="copiarPix()" title="Copiar chave Pix">
                 <i class="fas fa-copy" id="iconCopy"></i>
               </button>
@@ -858,10 +875,10 @@
 <!-- QR CODE lib -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-
+<script src="/assets/js/screens/carrinho.js"></script>
 <script src="assets/js/screens/pagamento.js"></script>
 
-<script >
+<script>
   /* ---- SELEÇÃO DE MÉTODO ---- */
   let metodoAtual = 'credito';
 

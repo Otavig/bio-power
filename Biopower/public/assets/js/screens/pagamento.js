@@ -4,36 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnPagar = document.getElementById("btnValor");
     const dadosSalvos = localStorage.getItem("carrinho");
 
-    function gravarPedido() {
-        if(listaCarrinho.length > 0) {
-            fetch("/pedido/gravar", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(listaCarrinho)
-            })
-            .then(function(resposta) {
-                return resposta.json();
-            })
-            .then(function(corpo) {
-                if(corpo.ok) {
-                    Swal.fire('Sucesso!', corpo.msg || 'Pedido realizado com sucesso!', 'success');
-                    localStorage.removeItem("carrinho");
-                    listaCarrinho = [];
-                    atualizarContador();
-                    abrirCarrinho();
-                } else {
-                    Swal.fire('Atenção', corpo.msg || 'Erro ao processar pedido.', 'warning');
-                }
-            })
-            .catch(erro => console.error("Erro ao gravar:", erro));
-        }
-        else {
-            Swal.fire('Vazio!', 'Nenhum produto adicionado ao carrinho!', 'info');
-        }
-    }
-
     if (dadosSalvos) {
         const listaItens = JSON.parse(dadosSalvos);
         
