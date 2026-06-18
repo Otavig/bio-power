@@ -1037,6 +1037,7 @@ class AdminController {
       console.error("Erro ao excluir cupom:", e);
       return res.status(500).json({ ok: false, msg: "Erro interno ao desativar cupom!" });
     }
+  }
   async updateVendaStatus(req, res) {
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
 
