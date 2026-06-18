@@ -9,8 +9,9 @@ const AgendamentosModels = require("../models/agendamentosModels");
 const VendasModels = require("../models/vendasModels");
 const ItensVendaModels = require("../models/itensVendaModels");
 const TypeUsuariosModels = require("../models/typeUserModels");
+const PromocaoCuponsModel = require("../models/promocaoCuponsModel");
 const Database = require("../utils/database");
-const { PdfGenerator } = require("../utils/pdfGenerator")
+const { PdfGenerator } = require("../utils/pdfGenerator");
 
 const STATUS_SERVICOS = [
   "pendente",
@@ -765,14 +766,115 @@ class AdminController {
       console.error("Erro ao atualizar status do serviço contratado:", err && err.stack ? err.stack : err);
       if (wantsJson) {
         const msg = err && err.message ? err.message : "Erro ao atualizar status.";
-        return res.status(500).json({ ok: false, msg, error: String(err && err.stack ? err.stack.split('\n').slice(0,5).join('\n') : err) });
+        return res.status(500).json({ ok: false, msg, error: String(err && err.stack ? err.stack.split('\n').slice(0, 5).join('\n') : err) });
       }
       return res.redirect("/dashboard?flash=servico-contrato-erro#services");
     }
 
     return res.redirect("/dashboard?flash=servico-contrato-atualizado#services");
   }
+
+  async buscarCupons(req, res) {
+    const pcm = new PromocaoCuponsModel();
+    try {
+      const resultado = await pcm.buscarCupons();
+      return res.json({ ok: true, msg: "Sucesso!", dados: resultado });
+    } catch (e) {
+      console.error("Erro ao buscar cupons:", e);
+      return res.status(500).json({ ok: false, msg: "Erro interno!" });
+    }
+  }
+
+  async criarCupons(req, res) {
+    const {
+      pro_nome,
+      pro_descricao,
+      pro_data_inicio,
+      pro_data_fim,
+      pro_percentual
+    } = req.body || {};
+
+    const pcm = new PromocaoCuponsModel(
+      null, 
+      pro_nome,
+      pro_descricao,
+      pro_data_inicio,
+      pro_data_fim,
+      pro_percentual,
+      1 
+    );
+
+    try {
+      const resultado = await pcm.criarCupons();
+      if (resultado) {
+        return res.json({ ok: true, msg: "Criado com sucesso!" });
+      }
+      return res.status(400).json({ ok: false, msg: "Não foi possível concluir a criação" });
+    } catch (e) {
+      console.error("Erro ao criar cupom:", e);
+      return res.status(400).json({ ok: false, msg: e.message || "Erro interno!" });
+    }
+  }
+
+  async atualizarCupom(req, res) {
+    const id = parseInt(req.params.id, 10);
+    const {
+      pro_nome,
+      pro_descricao,
+      pro_data_inicio,
+      pro_data_fim,
+      pro_percentual,
+      pro_status // Captura o status caso venha do front-end
+    } = req.body || {};
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ ok: false, msg: "ID do cupom inválido!" });
+    }
+
+    const pcm = new PromocaoCuponsModel(
+      id,
+      pro_nome,
+      pro_descricao,
+      pro_data_inicio,
+      pro_data_fim,
+      pro_percentual,
+      pro_status !== undefined ? Number(pro_status) : undefined
+    );
+
+    try {
+      const resultado = await pcm.atualizarCupom(); 
+      if (resultado) {
+        return res.json({ ok: true, msg: "Cupom atualizado com sucesso!" });
+      }
+      return res.status(400).json({ ok: false, msg: "Não foi possível atualizar o cupom." });
+    } catch (e) {
+      console.error("Erro ao atualizar cupom:", e);
+      return res.status(400).json({ ok: false, msg: e.message || "Erro interno ao atualizar cupom!" });
+    }
+  }
+
+  async excluirCupom(req, res) {
+    const id = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ ok: false, msg: "ID do cupom inválido!" });
+    }
+
+    try {
+      const pcm = new PromocaoCuponsModel(id);
+      const resultado = await pcm.excluirCupom();
+
+      if (resultado) {
+        return res.json({ ok: true, msg: "Cupom desativado com sucesso!" });
+      }
+      return res.status(400).json({ ok: false, msg: "Não foi possível desativar o cupom." });
+    } catch (e) {
+      console.error("Erro ao excluir cupom:", e);
+      return res.status(500).json({ ok: false, msg: "Erro interno ao desativar cupom!" });
+    }
+  }
 }
 
 module.exports = AdminController;
+
 

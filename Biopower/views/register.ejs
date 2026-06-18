@@ -19,6 +19,14 @@
     />
     <link rel="stylesheet" href="../assets/css/screen/register-screen.css" />
   </head>
+  <style>
+    .field-hint {
+      display: block;
+      font-size: .75rem;
+      color: #6c757d;
+      margin-bottom: .5rem;
+    }
+  </style>
   <body>
     <div class="register-wrapper">
       <!-- ─── Painel lateral ─── -->
@@ -139,7 +147,8 @@
           </p>
         </div>
 
-        <form id="registerForm" class="needs-validation" novalidate>
+        <form id="registerForm" class="needs-validation" novalidate method="POST" action="/register">
+
           <!-- ══════════════ ETAPA 1 — Dados Pessoais ══════════════ -->
           <div class="step-panel" id="step-1">
             <div class="step-card">
@@ -167,6 +176,8 @@
                           type="text"
                           class="form-control"
                           id="nome"
+                          name="nome"
+
                           placeholder="Nome completo"
                           autocomplete="given-name"
                         />
@@ -188,6 +199,8 @@
                           type="text"
                           class="form-control"
                           id="sobrenome"
+                          name="sobrenome"
+
                           placeholder="Sobrenome"
                           autocomplete="family-name"
                         />
@@ -209,6 +222,8 @@
                           type="text"
                           class="form-control"
                           id="cpf"
+                          name="cpf"
+
                           placeholder="000.000.000-00"
                           maxlength="14"
                           inputmode="numeric"
@@ -230,9 +245,10 @@
                         ><i class="fas fa-venus-mars"></i
                       ></span>
                       <div class="form-floating flex-grow-1">
-                        <select id="genero" class="form-select">
-                          <option value="" selected disabled hidden></option>
-                          <option value="nao_informado">
+                        <select id="genero" class="form-select" name="genero">
+
+                          <option value="" disabled hidden></option>
+                          <option value="nao_informado" selected>
                             Prefiro não informar
                           </option>
                           <option value="feminino">Feminino</option>
@@ -256,6 +272,8 @@
                           type="email"
                           class="form-control"
                           id="email"
+                          name="email"
+
                           placeholder="email@exemplo.com"
                           autocomplete="email"
                         />
@@ -280,6 +298,8 @@
                           type="text"
                           class="form-control"
                           id="telefone"
+                          name="telefone"
+
                           placeholder="(00) 00000-0000"
                           inputmode="tel"
                           autocomplete="tel"
@@ -298,7 +318,8 @@
                         ><i class="fas fa-calendar-alt"></i
                       ></span>
                       <div class="form-floating flex-grow-1">
-                        <input type="date" class="form-control" id="data" />
+                        <input type="date" class="form-control" id="data" name="data" />
+
                         <label for="data">Data de Nascimento</label>
                       </div>
                       <button
@@ -321,14 +342,14 @@
                         ><i class="fas fa-ring"></i
                       ></span>
                       <div class="form-floating flex-grow-1">
-                        <select id="estadoCivil" class="form-select">
-                          <option value="" selected disabled hidden></option>
+                        <select id="estadoCivil" class="form-select" name="estadoCivil">
+
                           <option value="solteiro">Solteiro(a)</option>
                           <option value="casado">Casado(a)</option>
                           <option value="divorciado">Divorciado(a)</option>
                           <option value="viuvo">Viúvo(a)</option>
                           <option value="uniao_estavel">União Estável</option>
-                          <option value="prefiro_nao_informar">
+                          <option value="prefiro_nao_informar" selected>
                             Prefiro não informar
                           </option>
                         </select>
@@ -383,6 +404,7 @@
                 <!-- Linha 1: CEP + Cidade + Estado alinhados na base -->
                 <div class="col-12">
                   <div class="row g-3 align-items-end">
+
                     <!-- CEP -->
                     <div class="col-12 col-sm-4">
                       <div class="floating-field">
@@ -391,7 +413,7 @@
                           <span class="badge-autofill"
                             >Auto-preenche</span
                           ></label
-                        >
+                          >
                         <div class="input-group floating-input-group">
                           <span class="input-group-text"
                             ><i class="fas fa-map-pin"></i
@@ -401,6 +423,8 @@
                               type="text"
                               class="form-control"
                               id="cep"
+                              name="cep"
+
                               placeholder="00000-000"
                               inputmode="numeric"
                             />
@@ -408,9 +432,6 @@
                           </div>
                         </div>
                         <div id="error-cep" class="invalid-feedback"></div>
-                        <small class="field-hint"
-                          >Os campos serão preenchidos ao sair do campo</small
-                        >
                       </div>
                     </div>
 
@@ -426,6 +447,8 @@
                               type="text"
                               class="form-control"
                               id="cidade"
+                              name="cidade"
+
                               placeholder="Cidade"
                               autocomplete="address-level2"
                             />
@@ -444,7 +467,8 @@
                             ><i class="fa-solid fa-location-dot"></i
                           ></span>
                           <div class="form-floating flex-grow-1">
-                            <select id="estado" class="form-select">
+                            <select id="estado" class="form-select" name="estado">
+
                               <option value="">Selecione</option>
                               <option value="AC">Acre</option>
                               <option value="AL">Alagoas</option>
@@ -495,6 +519,8 @@
                           type="text"
                           class="form-control"
                           id="rua"
+                          name="rua"
+
                           placeholder="Rua"
                           autocomplete="street-address"
                         />
@@ -516,6 +542,8 @@
                           type="text"
                           class="form-control"
                           id="bairro"
+                          name="bairro"
+
                           placeholder="Bairro"
                         />
                         <label for="bairro">Bairro</label>
@@ -536,6 +564,8 @@
                           type="text"
                           class="form-control"
                           id="numero"
+                          name="numero"
+
                           placeholder="Nº"
                           inputmode="numeric"
                         />
@@ -556,7 +586,9 @@
                         <textarea
                           class="form-control"
                           id="complemento"
-                          style="height: 90px"
+                          name="complemento"
+
+                          style="height: 90px; resize: none;"
                           placeholder="Complemento"
                         ></textarea>
                         <label for="complemento">Complemento (opcional)</label>
@@ -615,6 +647,8 @@
                           type="password"
                           class="form-control"
                           id="senha"
+                          name="senha"
+
                           placeholder="Senha"
                           autocomplete="new-password"
                         />
@@ -644,6 +678,8 @@
                           type="password"
                           class="form-control"
                           id="confirmarSenha"
+                          name="confirmarSenha"
+
                           placeholder="Confirmar Senha"
                           autocomplete="new-password"
                         />
