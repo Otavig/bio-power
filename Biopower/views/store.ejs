@@ -206,6 +206,7 @@
               %>
               <div class="product-card"
                    data-price="<%= precoNum %>"
+                   data-id="<%= product.id %>"
                    data-name="<%= product.nome %>"
                    data-index="<%= index %>">
 
@@ -236,7 +237,7 @@
                   <% } %>
 
                   <div class="product-actions">
-                    <button class="btn-buy" type="button">
+                    <button data-produto="<%= product.id %>" class="btn-buy" type="button">
                       <i class="fa-solid fa-bolt"></i> Comprar
                     </button>
                     <button class="btn-cart" type="button" aria-label="Adicionar ao carrinho">
@@ -267,7 +268,7 @@
     </div>
 
     <script src="/assets/js/navbar-script.js"></script>
-    <script>
+    <script src="/assets/js/screens/carrinho.js">
       // ======== SIDEBAR MOBILE ========
       const toggleBtn  = document.getElementById('sidebarToggle');
       const closeBtn   = document.getElementById('sidebarClose');

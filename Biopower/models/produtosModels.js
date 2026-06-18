@@ -308,6 +308,44 @@ class ProdutosModels {
     return this.#db.ExecutaComandoNonQuery("DELETE FROM tb_Produtos WHERE pro_id = ?", [id]);
   }
 
+  async baixarEstoque(produtoId, quantidadeComprada) {
+    let quantidadeRestante = quantidadeComprada;
+
+    const sqlBusca = `
+      SELECT lot_id, lot_quantidade_atual 
+      FROM tb_Lotes_Estoque 
+      WHERE lot_id_produto = ? AND lot_quantidade_atual > 0
+      ORDER BY lot_data_validade ASC
+    `;
+    const lotes = await this.#db.ExecutaComando(sqlBusca, [produtoId]);
+
+    for (let i = 0; i < lotes.length; i++) {
+        let lote = lotes[i];
+        if (quantidadeRestante === 0) break;
+
+        if (lote.lot_quantidade_atual >= quantidadeRestante) {
+            const novaQuantidade = lote.lot_quantidade_atual - quantidadeRestante;
+            await this.#db.ExecutaComando(
+                `UPDATE tb_Lotes_Estoque SET lot_quantidade_atual = ? WHERE lot_id = ?`,
+                [novaQuantidade, lote.lot_id]
+            );
+            quantidadeRestante = 0; 
+        } else {
+            quantidadeRestante -= lote.lot_quantidade_atual;
+            await this.#db.ExecutaComando(
+                `UPDATE tb_Lotes_Estoque SET lot_quantidade_atual = 0 WHERE lot_id = ?`,
+                [lote.lot_id]
+            );
+        }
+    }
+
+    if (quantidadeRestante > 0) {
+        throw new Error("Estoque insuficiente para o produto ID: " + produtoId);
+    }
+    
+    return true;
+  }
+
   async contarVendasVinculadas(id) {
     if (!id) return 0;
     const rows = await this.#db.ExecutaComando(
