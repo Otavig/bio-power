@@ -4,6 +4,7 @@ const ItensVendaModels = require("../models/itensVendaModels");
 const FluxoCaixaModels = require("../models/fluxoCaixaModels");
 const EntregaModels = require("../models/entregaModels");
 const StatusDiversosModels = require("../models/statusDiversosModels");
+const PromocaoCuponsModel = require("../models/promocaoCuponsModel");
 
 function normalizarCep(cep) {
   return String(cep || "").replace(/\D/g, "").slice(0, 8);
@@ -29,6 +30,39 @@ class RecebimentoController {
     res.render("recebimento", { layout: true });
   }
 
+  async validarCupom(req, res) {
+    const codigo = String(req.body?.codigo || "").trim();
+
+    if (!req.session?.user) {
+      return res.status(401).json({ ok: false, msg: "Faça login para usar cupons." });
+    }
+
+    if (!codigo) {
+      return res.status(400).json({ ok: false, msg: "Informe um cupom." });
+    }
+
+    try {
+      const cuponsModel = new PromocaoCuponsModel();
+      const cupom = await cuponsModel.buscarCupomAtivoPorCodigo(codigo);
+
+      if (!cupom) {
+        return res.status(404).json({ ok: false, msg: "Cupom inválido ou fora da validade." });
+      }
+
+      return res.json({
+        ok: true,
+        cupom: {
+          codigo: cupom.pro_nome,
+          descricao: cupom.pro_descricao,
+          percentual: Number(cupom.pro_percentual || 0),
+        },
+      });
+    } catch (erro) {
+      console.error("Erro ao validar cupom:", erro);
+      return res.status(500).json({ ok: false, msg: "Erro ao validar cupom." });
+    }
+  }
+
   async gravar(req, res) {
     let ok = false;
     let msg = "";
@@ -36,6 +70,7 @@ class RecebimentoController {
     const itens = Array.isArray(req.body) ? req.body : req.body.itens;
     const entrega = Array.isArray(req.body) ? null : req.body.entrega;
     const metodoPagamentoCodigo = normalizarMetodoPagamento(Array.isArray(req.body) ? null : req.body.metodoPagamento);
+    const codigoCupom = String(Array.isArray(req.body) ? "" : req.body.cupom || "").trim();
     const clienteId = req.session?.user?.id;
 
     if (!clienteId) {
@@ -53,8 +88,11 @@ class RecebimentoController {
       const fluxoCaixaModel = new FluxoCaixaModels();
       const entregaModel = new EntregaModels();
       const statusDiversosModel = new StatusDiversosModels();
+      const cuponsModel = new PromocaoCuponsModel();
       const itensVenda = [];
       let valorTotal = 0;
+      let valorDescontoCupom = 0;
+      let cupomAplicado = null;
       const metodoPagamento = await statusDiversosModel.buscarPorDominioCodigo("venda_metodo_pagamento", metodoPagamentoCodigo);
 
       if (!metodoPagamento) {
@@ -111,13 +149,29 @@ class RecebimentoController {
         });
       }
 
+      if (codigoCupom) {
+        cupomAplicado = await cuponsModel.buscarCupomAtivoPorCodigo(codigoCupom);
+        if (!cupomAplicado) {
+          throw new Error("Cupom inválido ou fora da validade.");
+        }
+
+        const percentual = Number(cupomAplicado.pro_percentual || 0);
+        if (percentual <= 0) {
+          throw new Error("Cupom sem percentual válido.");
+        }
+
+        valorDescontoCupom = Number((valorTotal * (percentual / 100)).toFixed(2));
+      }
+
+      const valorFinal = Number(Math.max(valorTotal - valorDescontoCupom, 0).toFixed(2));
+
       const vendaId = await vendaModel.criar({
         clienteId,
-        valorTotal: Number(valorTotal.toFixed(2)),
+        valorTotal: valorFinal,
         status: "AGUARDANDO",
         statusId: 17,
         metodoPagamentoId: metodoPagamento.id,
-        desconto: 0,
+        desconto: valorDescontoCupom,
       });
 
       if (!vendaId) {
@@ -151,14 +205,14 @@ class RecebimentoController {
 
       await fluxoCaixaModel.registrarReceitaVenda({
         vendaId,
-        valor: Number(valorTotal.toFixed(2)),
+        valor: valorFinal,
         descricao: `Receita da venda #${vendaId}`,
         dataMovimentacao: new Date().toISOString().slice(0, 10),
       });
 
       ok = true;
       msg = "Venda registrada com sucesso!";
-      return res.send({ ok, msg, vendaId });
+      return res.send({ ok, msg, vendaId, desconto: valorDescontoCupom, cupom: cupomAplicado?.pro_nome || null });
     } catch (erro) {
       msg = erro.message;
       return res.send({ ok, msg });

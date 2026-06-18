@@ -102,6 +102,36 @@ class PromocaoCuponsModel {
         }));
     }
 
+    async buscarCupomAtivoPorCodigo(codigo) {
+        await this.garantirColunasAutomaticas();
+        const codigoNormalizado = String(codigo || "").trim();
+        if (!codigoNormalizado) return null;
+
+        const sql = `
+            SELECT *
+            FROM tb_Promocoes
+            WHERE LOWER(pro_nome) = LOWER(?)
+              AND pro_status = 1
+              AND CURRENT_DATE() BETWEEN pro_data_inicio AND pro_data_fim
+            LIMIT 1;
+        `;
+        const linhas = await this.#db.ExecutaComando(sql, [codigoNormalizado]);
+        const linha = Array.isArray(linhas) ? linhas[0] : null;
+        if (!linha) return null;
+
+        return {
+            pro_id: linha["pro_id"],
+            pro_nome: linha["pro_nome"],
+            pro_descricao: linha["pro_descricao"],
+            pro_data_inicio: linha["pro_data_inicio"],
+            pro_data_fim: linha["pro_data_fim"],
+            pro_percentual: Number(linha["pro_percentual"] || 0),
+            pro_status: linha["pro_status"],
+            pro_automatico: Number(linha["pro_automatico"] || 0),
+            pro_dias_vencimento: linha["pro_dias_vencimento"]
+        };
+    }
+
     async excluirCupom() {
         await this.garantirColunasAutomaticas();
         const sql = "UPDATE tb_Promocoes SET pro_status = 0 WHERE pro_id = ?;";

@@ -274,6 +274,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const metodoPagamento = typeof window.getMetodoPagamento === "function"
       ? window.getMetodoPagamento()
       : null;
+    const cupom = typeof window.checkoutObterCupom === "function"
+      ? window.checkoutObterCupom()
+      : "";
 
     if (!listaCarrinho.length) {
       mostrarAlerta({
@@ -293,7 +296,8 @@ document.addEventListener("DOMContentLoaded", function () {
         itens: listaCarrinho,
         cliente: dadosPagamento,
         entrega: dadosEntrega,
-        metodoPagamento
+        metodoPagamento,
+        cupom
       })
     })
       .then((resposta) => resposta.json())

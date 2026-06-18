@@ -289,6 +289,19 @@
     <!-- COLUNA DIREITA -->
     <div class="col-lg-5 pl-lg-3 ">
 
+      <div class="sec checkout-coupon-card">
+        <div class="sec-title">Cupom de desconto</div>
+        <label class="coupon-checkout-label" for="inputCupomCheckout">Código do cupom</label>
+        <input
+          class="coupon-checkout-input"
+          type="text"
+          id="inputCupomCheckout"
+          placeholder="Ex: BCAA10"
+          autocomplete="off"
+        />
+        <span class="coupon-checkout-status" id="cupomCheckoutStatus"></span>
+      </div>
+
       <!-- Resumo -->
       <div class="sec">
         <div class="sec-title">Resumo do pedido</div>
@@ -296,9 +309,17 @@
         <div id="resumoPedidoCorpo"></div>
 
         <div class="mt-3">
+          <div class="checkout-discount-summary" id="resumoCupom" style="display:none">
+            <span id="rotuloCupom">Cupom</span>
+            <strong id="valorCupom">- R$ 0,00</strong>
+          </div>
+          <div class="checkout-discount-summary" id="resumoDescontos" style="display:none">
+            <span>Descontos dos produtos</span>
+            <strong id="valorDescontos">- R$ 0,00</strong>
+          </div>
           <div class="total-final">
             <div>
-              <div class="label">Total</div>
+              <div class="valor">Total</div>
             </div>
             <div class="valor" id="totalValor">R$ <span>0,00</span></div>
           </div>

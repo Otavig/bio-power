@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let listaItens = carregarCarrinho();
   let estoqueValido = false;
+  let cupomAplicado = null;
 
   window.checkoutEstoqueValido = function () {
     return estoqueValido;
@@ -20,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   renderizarResumo();
   validarEstoque();
+  inicializarCupomCheckout();
 
   function carregarCarrinho() {
     try {
@@ -49,16 +51,55 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 0);
   }
 
-  window.checkoutCalcularTotal = calcularTotal;
+  function calcularDescontoCupom(totalPedido = calcularTotal()) {
+    if (!cupomAplicado) return 0;
+    const percentual = Number(cupomAplicado.percentual || 0);
+    if (!Number.isFinite(percentual) || percentual <= 0) return 0;
+    return Number((Number(totalPedido || 0) * (percentual / 100)).toFixed(2));
+  }
+
+  function calcularTotalOriginal() {
+    return listaItens.reduce((acc, item) => {
+      const preco = typeof item.preco === "string" ? parseFloat(item.preco.replace(",", ".")) : Number(item.preco || 0);
+      const precoOriginal = typeof item.precoOriginal === "string"
+        ? parseFloat(item.precoOriginal.replace(",", "."))
+        : Number(item.precoOriginal || preco);
+      const precoBase = Number.isFinite(precoOriginal) && precoOriginal > preco ? precoOriginal : preco;
+      return acc + precoBase * Number(item.quantidade || 1);
+    }, 0);
+  }
+
+  window.checkoutCalcularTotal = function checkoutCalcularTotal() {
+    const totalPedido = calcularTotal();
+    return Number(Math.max(totalPedido - calcularDescontoCupom(totalPedido), 0).toFixed(2));
+  };
+
+  window.checkoutObterCupom = function checkoutObterCupom() {
+    return cupomAplicado?.codigo || "";
+  };
 
   function atualizarTotal() {
     const totalPedido = calcularTotal();
-    const totalFormatado = totalPedido.toFixed(2).replace(".", ",");
+    const totalOriginal = calcularTotalOriginal();
+    const descontoCupom = calcularDescontoCupom(totalPedido);
+    const totalFinal = Number(Math.max(totalPedido - descontoCupom, 0).toFixed(2));
+    const totalDescontos = Math.max(totalOriginal - totalPedido, 0);
+    const totalFormatado = totalFinal.toFixed(2).replace(".", ",");
+    const resumoCupom = document.getElementById("resumoCupom");
+    const rotuloCupom = document.getElementById("rotuloCupom");
+    const valorCupom = document.getElementById("valorCupom");
+    const resumoDescontos = document.getElementById("resumoDescontos");
+    const valorDescontos = document.getElementById("valorDescontos");
 
     if (total) total.innerHTML = `R$ <span>${totalFormatado}</span>`;
     if (btnValor) btnValor.innerText = `R$ ${totalFormatado}`;
+    if (resumoCupom) resumoCupom.style.display = descontoCupom > 0.009 ? "flex" : "none";
+    if (rotuloCupom) rotuloCupom.textContent = cupomAplicado ? `Cupom ${cupomAplicado.codigo}` : "Cupom";
+    if (valorCupom) valorCupom.textContent = `- ${formatarMoeda(descontoCupom)}`;
+    if (resumoDescontos) resumoDescontos.style.display = totalDescontos > 0.009 ? "flex" : "none";
+    if (valorDescontos) valorDescontos.textContent = `- ${formatarMoeda(totalDescontos)}`;
     if (typeof window.atualizarParcelamento === "function") {
-      window.atualizarParcelamento(totalPedido);
+      window.atualizarParcelamento(totalFinal);
     }
   }
 
@@ -128,6 +169,72 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     atualizarTotal();
+  }
+
+  function atualizarStatusCupom(mensagem = "", tipo = "") {
+    const status = document.getElementById("cupomCheckoutStatus");
+    if (!status) return;
+    status.textContent = mensagem;
+    status.classList.toggle("is-ok", tipo === "ok");
+    status.classList.toggle("is-error", tipo === "error");
+  }
+
+  async function validarCupomCheckout() {
+    const input = document.getElementById("inputCupomCheckout");
+    if (!input) return;
+
+    const codigo = input.value.trim();
+    if (!codigo) {
+      cupomAplicado = null;
+      atualizarStatusCupom("");
+      atualizarTotal();
+      return;
+    }
+
+    atualizarStatusCupom("Validando cupom...");
+
+    try {
+      const resposta = await fetch("/recebimento/cupom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ codigo }),
+      });
+      const corpo = await resposta.json().catch(() => ({ ok: false }));
+
+      if (!resposta.ok || !corpo.ok || !corpo.cupom) {
+        cupomAplicado = null;
+        atualizarStatusCupom(corpo.msg || "Cupom inválido.", "error");
+        atualizarTotal();
+        return;
+      }
+
+      cupomAplicado = {
+        codigo: corpo.cupom.codigo,
+        percentual: Number(corpo.cupom.percentual || 0),
+      };
+      input.value = cupomAplicado.codigo;
+      atualizarStatusCupom(`${cupomAplicado.percentual}% de desconto aplicado.`, "ok");
+      atualizarTotal();
+    } catch (erro) {
+      console.error("Erro ao validar cupom:", erro);
+      cupomAplicado = null;
+      atualizarStatusCupom("Erro ao validar cupom.", "error");
+      atualizarTotal();
+    }
+  }
+
+  function inicializarCupomCheckout() {
+    const input = document.getElementById("inputCupomCheckout");
+    if (!input) return;
+
+    input.addEventListener("blur", validarCupomCheckout);
+    input.addEventListener("input", () => {
+      if (!input.value.trim()) {
+        cupomAplicado = null;
+        atualizarStatusCupom("");
+        atualizarTotal();
+      }
+    });
   }
 
   function encontrarItemPorElemento(elemento) {
