@@ -314,6 +314,8 @@ class AdminController {
 
     try {
       const usuariosModel = new UsuariosModels();
+      const typesUsuariosModel = new TypeUsuariosModels();
+      await typesUsuariosModel.garantirTipoFornecedor();
 
       if (await usuariosModel.buscarPorEmail(email)) {
         const msg = "Este email ja esta cadastrado.";

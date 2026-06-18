@@ -52,6 +52,16 @@ class TypeUsuariosModels {
     }
     return lista;
   }
+
+  async garantirTipoFornecedor() {
+    const sql = `
+      INSERT INTO tb_typeUser (typ_id, typ_descricao)
+      VALUES (5, 'Fornecedor')
+      ON DUPLICATE KEY UPDATE typ_descricao = VALUES(typ_descricao)
+    `;
+
+    return banco.ExecutaComandoNonQuery(sql, []);
+  }
 }
 
 module.exports = TypeUsuariosModels;
