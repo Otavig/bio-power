@@ -405,6 +405,47 @@ class VendasModels {
       [Number(vendaId), Number(clienteId)]
     );
   }
+
+  async confirmarPagamentoCliente(vendaId, clienteId) {
+    if (!vendaId || !clienteId) return false;
+
+    await this.garantirCamposStatusPagamento();
+
+    const rows = await this.#db.ExecutaComando(
+      `
+        SELECT ven_id AS id, ven_status AS status, ven_status_id AS statusId
+        FROM tb_Vendas
+        WHERE ven_id = ? AND ven_id_cliente = ?
+        LIMIT 1
+      `,
+      [Number(vendaId), Number(clienteId)]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return false;
+    }
+
+    const statusAtual = String(rows[0].status || "").toUpperCase();
+    if (statusAtual === "CANCELADO") {
+      throw new Error("Pedido cancelado nao pode ter pagamento confirmado.");
+    }
+
+    if (statusAtual === "ENTREGUE" || statusAtual === "PAGO" || Number(rows[0].statusId) === 18) {
+      return true;
+    }
+
+    return this.#db.ExecutaComandoNonQuery(
+      `
+        UPDATE tb_Vendas
+        SET ven_status = 'PAGO',
+            ven_status_id = 18
+        WHERE ven_id = ?
+          AND ven_id_cliente = ?
+          AND ven_status_id = 17
+      `,
+      [Number(vendaId), Number(clienteId)]
+    );
+  }
 }
 
 module.exports = VendasModels;

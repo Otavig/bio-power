@@ -254,7 +254,8 @@
   color: var(--color-error);
 }
 
-.order-confirm-delivery {
+.order-confirm-delivery,
+.order-confirm-payment {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -275,12 +276,23 @@
     opacity var(--transition-fast);
 }
 
+.order-confirm-payment {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
 .order-confirm-delivery:hover {
   background: #256b2a;
   border-color: #256b2a;
 }
 
-.order-confirm-delivery:disabled {
+.order-confirm-payment:hover {
+  background: var(--color-primary-strong);
+  border-color: var(--color-primary-strong);
+}
+
+.order-confirm-delivery:disabled,
+.order-confirm-payment:disabled {
   cursor: wait;
   opacity: 0.72;
 }

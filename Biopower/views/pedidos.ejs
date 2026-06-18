@@ -85,7 +85,8 @@
                     : status === "cancelado"
                       ? "danger"
                       : "warning";
-                  const podeConfirmarEntrega = status !== "entregue" && status !== "cancelado";
+                  const pagamentoPendente = status === "aguardando" || status === "aguardando_pagamento";
+                  const podeConfirmarEntrega = !pagamentoPendente && status !== "entregue" && status !== "cancelado";
                 %>
                 <tr class="js-my-order-row">
                   <td>
@@ -115,7 +116,16 @@
                     </span>
                   </td>
                   <td>
-                    <% if (podeConfirmarEntrega) { %>
+                    <% if (pagamentoPendente) { %>
+                      <button
+                        type="button"
+                        class="order-confirm-payment"
+                        data-pedido-id="<%= pedido.id %>"
+                      >
+                        <i class="fa-solid fa-credit-card"></i>
+                        Confirmar pagamento
+                      </button>
+                    <% } else if (podeConfirmarEntrega) { %>
                       <button
                         type="button"
                         class="order-confirm-delivery"

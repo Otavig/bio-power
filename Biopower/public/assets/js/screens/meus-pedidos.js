@@ -3,6 +3,14 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!table) return;
 
   table.addEventListener("click", function (event) {
+    const paymentButton = event.target.closest(".order-confirm-payment");
+    if (paymentButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      confirmarPagamento(paymentButton);
+      return;
+    }
+
     const confirmButton = event.target.closest(".order-confirm-delivery");
     if (confirmButton) {
       event.preventDefault();
@@ -30,6 +38,43 @@ document.addEventListener("DOMContentLoaded", function () {
         : '<i class="fa-solid fa-chevron-down"></i>';
     }
   });
+
+  async function confirmarPagamento(button) {
+    const pedidoId = button.dataset.pedidoId;
+    if (!pedidoId) return;
+
+    const confirmado = window.confirm("Confirmar o pagamento deste pedido?");
+    if (!confirmado) return;
+
+    button.disabled = true;
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confirmando';
+
+    try {
+      const response = await fetch(`/pedidos/${pedidoId}/confirmar-pagamento`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json().catch(() => ({ ok: false }));
+      if (!response.ok || !data.ok) {
+        alert(data.msg || "Nao foi possivel confirmar o pagamento.");
+        button.disabled = false;
+        button.innerHTML = originalHtml;
+        return;
+      }
+
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao confirmar pagamento.");
+      button.disabled = false;
+      button.innerHTML = originalHtml;
+    }
+  }
 
   async function confirmarEntrega(button) {
     const pedidoId = button.dataset.pedidoId;

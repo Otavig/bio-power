@@ -65,6 +65,46 @@ class PedidosController {
 
     return res.redirect("/pedidos?flash=entrega-confirmada");
   }
+
+  async confirmarPagamento(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+
+    if (!req.session?.user) {
+      if (wantsJson) return res.status(401).json({ ok: false, msg: "Faça login para continuar." });
+      return res.redirect("/login");
+    }
+
+    const pedidoId = Number(req.params.id);
+    if (!pedidoId || Number.isNaN(pedidoId)) {
+      const msg = "Pedido invalido.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/pedidos?flash=pedido-invalido");
+    }
+
+    try {
+      const atualizado = await this.vendasModel.confirmarPagamentoCliente(
+        pedidoId,
+        req.session.user.id
+      );
+
+      if (!atualizado) {
+        const msg = "Pedido pendente nao encontrado para este usuario.";
+        if (wantsJson) return res.status(404).json({ ok: false, msg });
+        return res.redirect("/pedidos?flash=pagamento-nao-encontrado");
+      }
+
+      if (wantsJson) {
+        return res.json({ ok: true, msg: "Pagamento confirmado." });
+      }
+    } catch (err) {
+      console.error("Erro ao confirmar pagamento:", err);
+      const msg = err.message || "Erro ao confirmar pagamento.";
+      if (wantsJson) return res.status(500).json({ ok: false, msg });
+      return res.redirect("/pedidos?flash=pagamento-erro");
+    }
+
+    return res.redirect("/pedidos?flash=pagamento-confirmado");
+  }
 }
 
 module.exports = PedidosController;
