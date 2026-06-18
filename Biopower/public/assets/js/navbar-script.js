@@ -25,12 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchOverlayClose = document.getElementById("searchOverlayClose");
 
   const openSearch = () => {
+    if (!searchOverlay) return;
     searchOverlay.classList.add("open");
     searchToggleBtn && searchToggleBtn.classList.add("active");
     setTimeout(() => searchOverlayInput && searchOverlayInput.focus(), 50);
   };
 
   const closeSearch = () => {
+    if (!searchOverlay) return;
     searchOverlay.classList.remove("open");
     searchToggleBtn && searchToggleBtn.classList.remove("active");
     if (searchOverlayInput) searchOverlayInput.value = "";
@@ -38,7 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (searchToggleBtn) searchToggleBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    searchOverlay.classList.contains("open") ? closeSearch() : openSearch();
+    if (searchOverlay) {
+      searchOverlay.classList.contains("open") ? closeSearch() : openSearch();
+    }
   });
 
   if (searchOverlayClose) searchOverlayClose.addEventListener("click", closeSearch);
@@ -65,49 +69,51 @@ document.addEventListener("DOMContentLoaded", () => {
   if (token) {
     const avatarImg =
       "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70 + 1);
-    avatar.src = avatarImg;
-    avatar.style.display = "block";
+    if (avatar) {
+      avatar.src = avatarImg;
+      avatar.style.display = "block";
+    }
     if (loginBtn) loginBtn.style.display = "none";
     if (profileName) profileName.textContent = "Minha Conta";
-    profile.classList.add("logged-in");
+    if (profile) profile.classList.add("logged-in");
 
-    mobileAuthLoggedIn.style.display = "flex";
-    mobileAuthLoggedOut.style.display = "none";
-    mobileAvatar.src = avatarImg;
+    if (mobileAuthLoggedIn) mobileAuthLoggedIn.style.display = "flex";
+    if (mobileAuthLoggedOut) mobileAuthLoggedOut.style.display = "none";
+    if (mobileAvatar) mobileAvatar.src = avatarImg;
   } else {
-    avatar.style.display = "none";
+    if (avatar) avatar.style.display = "none";
     if (loginBtn) loginBtn.style.display = "flex";
 
-    mobileAuthLoggedIn.style.display = "none";
-    mobileAuthLoggedOut.style.display = "block";
+    if (mobileAuthLoggedIn) mobileAuthLoggedIn.style.display = "none";
+    if (mobileAuthLoggedOut) mobileAuthLoggedOut.style.display = "block";
     if (mobileLoginButton)
       mobileLoginButton.onclick = () => (window.location.href = "/login");
   }
 
-  logoutBtn.addEventListener("click", (e) => {
+  if (logoutBtn) logoutBtn.addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.removeItem("token");
     window.location.href = "/login";
   });
 
-  mobileLogoutBtn.addEventListener("click", (e) => {
+  if (mobileLogoutBtn) mobileLogoutBtn.addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.removeItem("token");
     window.location.href = "/login";
   });
 
   // Menu mobile
-  hamburgerMenu.addEventListener("click", () => {
+  if (hamburgerMenu && mobileMenuOverlay) hamburgerMenu.addEventListener("click", () => {
     mobileMenuOverlay.classList.add("active");
     document.body.style.overflow = "hidden";
   });
 
-  closeMenuButton.addEventListener("click", () => {
+  if (closeMenuButton && mobileMenuOverlay) closeMenuButton.addEventListener("click", () => {
     mobileMenuOverlay.classList.remove("active");
     document.body.style.overflow = "";
   });
 
-  mobileMenuOverlay.addEventListener("click", (e) => {
+  if (mobileMenuOverlay) mobileMenuOverlay.addEventListener("click", (e) => {
     if (e.target === mobileMenuOverlay) {
       mobileMenuOverlay.classList.remove("active");
       document.body.style.overflow = "";
@@ -125,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Efeito scroll na navbar
   window.addEventListener("scroll", () => {
+    if (!navbar) return;
     if (window.scrollY > 0) {
       navbar.classList.add("scrolled");
     } else {
@@ -135,32 +142,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // Modal de Categorias
   const modal = document.getElementById("modalCategorias");
   const abrirModalBtn = document.getElementById("abrirModalBtn");
-  const fecharModal = document.querySelector(".fechar");
+  const fecharModal = modal ? modal.querySelector(".fechar") : null;
   const categoriaArrow = document.getElementById("categoriaArrow");
 
-  abrirModalBtn.addEventListener("click", (e) => {
-    e.preventDefault();
+  const abrirCategorias = () => {
+    if (!modal) return;
+    modal.style.display = "block";
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    if (categoriaArrow) categoriaArrow.classList.add("rotated");
+  };
 
-    if (modal.style.display === "block") {
-      // Fecha o modal
-      modal.style.display = "none";
-      categoriaArrow.classList.remove("rotated");
-    } else {
-      // Abre o modal
-      modal.style.display = "block";
-      categoriaArrow.classList.add("rotated");
-    }
-  });
-
-  fecharModal.addEventListener("click", () => {
+  const fecharCategorias = () => {
+    if (!modal) return;
     modal.style.display = "none";
-    categoriaArrow.classList.remove("rotated");
-  });
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    if (categoriaArrow) categoriaArrow.classList.remove("rotated");
+  };
+
+  if (abrirModalBtn && modal) {
+    abrirModalBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const aberto = modal.classList.contains("open") || modal.style.display === "block";
+      aberto ? fecharCategorias() : abrirCategorias();
+    });
+  }
+
+  if (fecharModal) fecharModal.addEventListener("click", fecharCategorias);
 
   window.addEventListener("click", (event) => {
     if (event.target === modal) {
-      modal.style.display = "none";
-      categoriaArrow.classList.remove("rotated");
+      fecharCategorias();
     }
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") fecharCategorias();
   });
 });
