@@ -155,7 +155,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (resposta.ok && corpo.ok) {
         dialogProduto?.classList.remove("adm-dialog--open");
-        recarregarProdutos();
+        const fallback = produtoEditandoId
+          ? "/dashboard?flash=produto-atualizado#products"
+          : "/dashboard?flash=produto-adicionado#products";
+        window.location.assign(corpo.redirectTo || fallback);
       } else {
         await showAlert({ icon: "error", title: corpo.msg || "Erro ao cadastrar produto." });
       }

@@ -14,18 +14,43 @@ const upload = multer({
   },
 });
 
-function ensureAdmin(req, res, next) {
-  if (req.session.user && (req.session.user.role === "admin" || req.session.user.role === "staff")) {
+function hasRole(req, roles) {
+  return req.session.user && roles.includes(req.session.user.role);
+}
+
+function ensureDashboardAccess(req, res, next) {
+  if (hasRole(req, ["admin", "staff", "supplier", "professional"])) {
     return next();
   }
   return res.redirect("/login");
 }
 
-router.get("/", ensureAdmin, (req, res, next) => {
+function ensureAdmin(req, res, next) {
+  if (hasRole(req, ["admin", "staff"])) {
+    return next();
+  }
+  return res.redirect("/login");
+}
+
+function ensurePurchaseReceiveAccess(req, res, next) {
+  if (hasRole(req, ["admin", "staff", "supplier"])) {
+    return next();
+  }
+  return res.redirect("/login");
+}
+
+function ensureContractedServicesAccess(req, res, next) {
+  if (hasRole(req, ["admin", "staff", "professional"])) {
+    return next();
+  }
+  return res.redirect("/login");
+}
+
+router.get("/", ensureDashboardAccess, (req, res, next) => {
   Promise.resolve(controller.dashboard(req, res)).catch(next);
 });
 // rota legado para /dashboard/dashboard
-router.get("/dashboard", ensureAdmin, (req, res) => res.redirect("/dashboard"));
+router.get("/dashboard", ensureDashboardAccess, (req, res) => res.redirect("/dashboard"));
 router.get("/reports/pdf", ensureAdmin, (req, res, next) =>
   Promise.resolve(controller.exportReportPdf(req, res)).catch(next),
 );
@@ -64,15 +89,31 @@ router.delete("/services/:id", ensureAdmin, (req, res, next) =>
   Promise.resolve(controller.deleteService(req, res)).catch(next),
 );
 
-router.get("/services/contratos", ensureAdmin, (req, res, next) =>
+router.get("/services/contratos", ensureContractedServicesAccess, (req, res, next) =>
   Promise.resolve(controller.listContractedServices(req, res)).catch(next),
 );
-router.put("/services/contratos/:id/status", ensureAdmin, (req, res, next) =>
+router.put("/services/contratos/:id/status", ensureContractedServicesAccess, (req, res, next) =>
   Promise.resolve(controller.updateContractedServiceStatus(req, res)).catch(next),
 );
 
 router.put("/orders/:id/status", ensureAdmin, (req, res, next) =>
   Promise.resolve(controller.updateVendaStatus(req, res)).catch(next),
+);
+
+router.post("/compras", ensureAdmin, (req, res, next) =>
+  Promise.resolve(controller.createCompra(req, res)).catch(next),
+);
+
+router.post("/compras/:id/receber", ensurePurchaseReceiveAccess, (req, res, next) =>
+  Promise.resolve(controller.receberCompra(req, res)).catch(next),
+);
+
+router.post("/fornecedores", ensureAdmin, (req, res, next) =>
+  Promise.resolve(controller.createFornecedor(req, res)).catch(next),
+);
+
+router.post("/descartes/lotes/:id", ensureAdmin, (req, res, next) =>
+  Promise.resolve(controller.confirmarDescarte(req, res)).catch(next),
 );
 
 // Usuarios (admin)

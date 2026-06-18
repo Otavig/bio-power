@@ -264,6 +264,89 @@ class VendasModels {
     return Array.from(vendas.values());
   }
 
+  async listarPorClienteComItens(clienteId) {
+    if (!clienteId) return [];
+
+    await this.garantirCamposStatusPagamento();
+
+    const sql = `
+      SELECT
+        v.ven_id AS vendaId,
+        v.ven_id_cliente AS clienteId,
+        v.ven_data AS data,
+        v.ven_valor_total AS valorTotal,
+        v.ven_status AS status,
+        v.ven_status_id AS statusId,
+        v.ven_desconto AS desconto,
+        v.ven_metodo_pagamento_id AS metodoPagamentoId,
+        v.created_at AS criadoEm,
+        v.updated_at AS atualizadoEm,
+        sv.sta_codigo AS statusCodigo,
+        sv.sta_descricao AS statusDescricao,
+        mp.sta_codigo AS metodoPagamentoCodigo,
+        mp.sta_descricao AS metodoPagamentoDescricao,
+        i.itv_id AS itemId,
+        i.itv_id_produto AS produtoId,
+        i.itv_quantidade AS quantidade,
+        i.itv_subtotal AS subtotal,
+        i.itv_valor_unitario AS valorUnitario,
+        COALESCE(p.pro_nome, 'Produto nao encontrado') AS produtoNome,
+        p.pro_imagem AS produtoImagem
+      FROM tb_Vendas v
+      LEFT JOIN tb_status_diversos sv ON sv.sta_id = v.ven_status_id AND sv.sta_dominio = 'venda_status'
+      LEFT JOIN tb_status_diversos mp ON mp.sta_id = v.ven_metodo_pagamento_id AND mp.sta_dominio = 'venda_metodo_pagamento'
+      LEFT JOIN tb_Itens_Venda i ON i.itv_id_venda = v.ven_id
+      LEFT JOIN tb_Produtos p ON p.pro_id = i.itv_id_produto
+      WHERE v.ven_id_cliente = ?
+      ORDER BY v.ven_id DESC, i.itv_id ASC
+    `;
+
+    const rows = await this.#db.ExecutaComando(sql, [Number(clienteId)]);
+    const vendas = new Map();
+
+    for (const row of rows) {
+      const vendaId = Number(row.vendaId);
+
+      if (!vendas.has(vendaId)) {
+        vendas.set(vendaId, {
+          id: vendaId,
+          clienteId: row.clienteId,
+          data: row.data,
+          valorTotal: Number(row.valorTotal || 0),
+          status: row.statusCodigo || row.status,
+          statusId: row.statusId,
+          statusDescricao: row.statusDescricao,
+          desconto: Number(row.desconto || 0),
+          metodoPagamentoId: row.metodoPagamentoId,
+          metodoPagamentoCodigo: row.metodoPagamentoCodigo,
+          metodoPagamentoDescricao: row.metodoPagamentoDescricao,
+          criadoEm: row.criadoEm,
+          atualizadoEm: row.atualizadoEm,
+          itens: [],
+        });
+      }
+
+      if (row.itemId) {
+        let imagem = row.produtoImagem;
+        if (Buffer.isBuffer(imagem)) {
+          imagem = `data:image/jpeg;base64,${imagem.toString("base64")}`;
+        }
+
+        vendas.get(vendaId).itens.push({
+          id: row.itemId,
+          produtoId: row.produtoId,
+          nome: row.produtoNome,
+          imagem,
+          quantidade: Number(row.quantidade || 0),
+          valorUnitario: Number(row.valorUnitario || 0),
+          subtotal: Number(row.subtotal || 0),
+        });
+      }
+    }
+
+    return Array.from(vendas.values());
+  }
+
   async atualizarStatus(vendaId, statusId) {
     await this.garantirCamposStatusPagamento();
 
@@ -286,6 +369,41 @@ class VendasModels {
     );
 
     return status;
+  }
+
+  async confirmarEntregaCliente(vendaId, clienteId) {
+    if (!vendaId || !clienteId) return false;
+
+    await this.garantirCamposStatusPagamento();
+
+    const rows = await this.#db.ExecutaComando(
+      `
+        SELECT ven_id AS id, ven_status AS status
+        FROM tb_Vendas
+        WHERE ven_id = ? AND ven_id_cliente = ?
+        LIMIT 1
+      `,
+      [Number(vendaId), Number(clienteId)]
+    );
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return false;
+    }
+
+    const statusAtual = String(rows[0].status || "").toUpperCase();
+    if (statusAtual === "CANCELADO") {
+      throw new Error("Pedido cancelado nao pode ser marcado como entregue.");
+    }
+
+    return this.#db.ExecutaComandoNonQuery(
+      `
+        UPDATE tb_Vendas
+        SET ven_status = 'ENTREGUE',
+            ven_status_id = 20
+        WHERE ven_id = ? AND ven_id_cliente = ?
+      `,
+      [Number(vendaId), Number(clienteId)]
+    );
   }
 }
 

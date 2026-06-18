@@ -3,7 +3,7 @@ const products = [
   {
     nome: "Creatina Monohidratada 250g",
     preco: "R$79,92",
-    desconto: "no boleto ou pix",
+    desconto: "no pix ou cartao",
     credito: "ou R$88,80 no cartão em até 6x de R$14,80",
     imagem: "../../imgs/product/product1.png",
     alt: "Creatina Verde",
@@ -14,7 +14,7 @@ const products = [
   {
     nome: "Whey Protein Baunilha 900g",
     preco: "R$129,90",
-    desconto: "no boleto ou pix",
+    desconto: "no pix ou cartao",
     credito: "ou R$144,30 no cartão em até 6x de R$24,05",
     imagem: "../imgs/product/product2.png",
     alt: "Whey Baunilha",
@@ -25,7 +25,7 @@ const products = [
   {
     nome: "Creatina Dark Lab 300g",
     preco: "R$89,90",
-    desconto: "no boleto ou pix",
+    desconto: "no pix ou cartao",
     credito: "ou R$99,90 no cartão em até 4x de R$24,97",
     imagem: "../imgs/product/product4.png",
     alt: "Creatina Dark",
@@ -88,3 +88,4 @@ function handleAddToCart(event, product) {
 document.addEventListener("DOMContentLoaded", () => {
   renderProducts();
 });
+

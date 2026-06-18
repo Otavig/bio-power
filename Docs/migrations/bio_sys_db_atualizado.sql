@@ -27,10 +27,10 @@ CREATE TABLE `tb_typeUser` (
   `typ_id` int NOT NULL AUTO_INCREMENT,
   `typ_descricao` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`typ_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_typeUser` WRITE;
-INSERT INTO `tb_typeUser` VALUES (1,'Administrador'),(2,'Funcionario'),(3,'Profissional'),(4,'Cliente');
+INSERT INTO `tb_typeUser` VALUES (1,'Administrador'),(2,'Funcionario'),(3,'Profissional'),(4,'Cliente'),(5,'Fornecedor');
 UNLOCK TABLES;
 
 --
@@ -44,7 +44,7 @@ CREATE TABLE `tb_status_diversos` (
   `sta_descricao` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`sta_id`),
   UNIQUE KEY `uq_status_dominio_codigo` (`sta_dominio`,`sta_codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_status_diversos` WRITE;
 INSERT INTO `tb_status_diversos` VALUES
@@ -63,11 +63,13 @@ INSERT INTO `tb_status_diversos` VALUES
 (13,'venda_metodo_pagamento','PIX','Pagamento via PIX'),
 (14,'venda_metodo_pagamento','CREDITO','Cartao de credito'),
 (15,'venda_metodo_pagamento','DEBITO','Cartao de debito'),
-(16,'venda_metodo_pagamento','BOLETO','Pagamento por boleto'),
 (17,'venda_status','AGUARDANDO','Aguardando pagamento'),
 (18,'venda_status','PAGO','Pagamento confirmado'),
 (19,'venda_status','CANCELADO','Venda cancelada'),
-(20,'venda_status','ENTREGUE','Venda entregue');
+(20,'venda_status','ENTREGUE','Venda entregue'),
+(21,'compra_status','PENDENTE','Compra pendente'),
+(22,'compra_status','RECEBIDO','Compra recebida'),
+(23,'compra_status','CANCELADO','Compra cancelada');
 UNLOCK TABLES;
 
 --
@@ -109,14 +111,23 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `tb_Fornecedores`;
 CREATE TABLE `tb_Fornecedores` (
   `for_id` int NOT NULL AUTO_INCREMENT,
+  `for_usu_id` int DEFAULT NULL,
   `for_nome_fantasia` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `for_cnpj` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `for_email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `for_telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `for_razao_social` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`for_id`),
-  UNIQUE KEY `for_cnpj` (`for_cnpj`)
+  UNIQUE KEY `for_cnpj` (`for_cnpj`),
+  UNIQUE KEY `uq_fornecedor_usuario` (`for_usu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Fornecedores` WRITE;
+INSERT INTO `tb_Fornecedores` (`for_id`, `for_usu_id`, `for_nome_fantasia`, `for_cnpj`, `for_email`, `for_telefone`, `for_razao_social`) VALUES
+(1, 16, 'NutriSuplementos Ltda.', '12.345.678/0001-90', 'comercial@nutrisuplementos.com', '(11) 4002-1001', 'NutriSuplementos Distribuidora Ltda.'),
+(2, 17, 'Suplementos Brasil S.A.', '23.456.789/0001-01', 'pedidos@suplementosbrasil.com', '(21) 3030-2020', 'Suplementos Brasil S.A.'),
+(3, 18, 'Atacado Fitness Pro', '34.567.890/0001-12', 'vendas@atacadofitnesspro.com', '(31) 3222-9090', 'Atacado Fitness Pro Comercio Ltda.');
+UNLOCK TABLES;
 
 -- ========================================================
 -- USUÁRIOS
@@ -142,7 +153,7 @@ CREATE TABLE `tb_Usuarios` (
   UNIQUE KEY `usu_cpf_cnpj` (`usu_cpf_cnpj`),
   KEY `usu_typ_id` (`usu_typ_id`),
   CONSTRAINT `fk_usu_typ` FOREIGN KEY (`usu_typ_id`) REFERENCES `tb_typeUser` (`typ_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 LOCK TABLES `tb_Usuarios` WRITE;
 INSERT INTO `tb_Usuarios` VALUES
@@ -157,10 +168,19 @@ INSERT INTO `tb_Usuarios` VALUES
 (9,'Assis','assis@biopower.com','123456','16805046068',1,0,'2026-03-26 14:08:33','2026-03-26 14:08:45'),
 (11,'Breno Passarela','passarela@gmail.com','123456','19966571000',1,0,'2026-03-26 14:18:08','2026-03-26 14:43:53'),
 (12,'Breno H','brenof@gmail.com','123456','87901724005',2,1,'2026-03-26 14:39:37','2026-03-26 14:39:37'),
-(13,'Paulo Nutri','paulo.nutri@biopower.com','prof123','47384462070',2,1,'2026-03-26 16:10:00','2026-03-26 16:10:00'),
-(14,'Camila Alves','camila.alves@biopower.com','prof123','73147285006',2,1,'2026-03-26 16:12:00','2026-03-26 16:12:00'),
-(15,'Rafael Costa','rafael.costa@biopower.com','prof123','88835997054',2,1,'2026-03-26 16:14:00','2026-03-26 16:14:00');
+(13,'Paulo Nutri','paulo.nutri@biopower.com','prof123','47384462070',3,1,'2026-03-26 16:10:00','2026-03-26 16:10:00'),
+(14,'Camila Alves','camila.alves@biopower.com','prof123','73147285006',3,1,'2026-03-26 16:12:00','2026-03-26 16:12:00'),
+(15,'Rafael Costa','rafael.costa@biopower.com','prof123','88835997054',3,1,'2026-03-26 16:14:00','2026-03-26 16:14:00'),
+(16,'NutriSuplementos','comercial@nutrisuplementos.com','fornecedor123','12345678000190',5,1,'2026-06-18 10:00:00','2026-06-18 10:00:00'),
+(17,'Suplementos Brasil','pedidos@suplementosbrasil.com','fornecedor123','23456789000101',5,1,'2026-06-18 10:00:00','2026-06-18 10:00:00'),
+(18,'Atacado Fitness Pro','vendas@atacadofitnesspro.com','fornecedor123','34567890000112',5,1,'2026-06-18 10:00:00','2026-06-18 10:00:00');
 UNLOCK TABLES;
+
+ALTER TABLE `tb_Fornecedores`
+  ADD CONSTRAINT `fk_fornecedor_usuario`
+  FOREIGN KEY (`for_usu_id`) REFERENCES `tb_Usuarios` (`usu_id`)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE;
 
 --
 -- tb_Cliente
@@ -455,7 +475,19 @@ CREATE TABLE `tb_Compra` (
   PRIMARY KEY (`com_id`),
   KEY `fk_com_fornecedor` (`com_id_fornecedor`),
   CONSTRAINT `fk_com_fornecedor` FOREIGN KEY (`com_id_fornecedor`) REFERENCES `tb_Fornecedores` (`for_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Compra` WRITE;
+INSERT INTO `tb_Compra` (`com_id`, `com_id_fornecedor`, `com_data`, `com_valor_total`, `com_status`) VALUES
+(1, 1, DATE_SUB(CURDATE(), INTERVAL 9 DAY), 1148.10, 'recebido'),
+(2, 2, DATE_SUB(CURDATE(), INTERVAL 5 DAY), 1666.60, 'recebido'),
+(3, 3, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 1029.40, 'pendente'),
+(4, 1, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 2349.50, 'pendente'),
+(5, 2, CURDATE(), 1899.80, 'pendente'),
+(6, 3, DATE_SUB(CURDATE(), INTERVAL 15 DAY), 2150.00, 'recebido'),
+(7, 1, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 3299.60, 'pendente'),
+(8, 2, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 1499.90, 'recebido');
+UNLOCK TABLES;
 
 --
 -- tb_Itens_Compra (Itens_Compra)
@@ -473,7 +505,43 @@ CREATE TABLE `tb_Itens_Compra` (
   KEY `fk_itc_produto` (`itc_id_produto`),
   CONSTRAINT `fk_itc_compra` FOREIGN KEY (`itc_id_compra`) REFERENCES `tb_Compra` (`com_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_itc_produto` FOREIGN KEY (`itc_id_produto`) REFERENCES `tb_Produtos` (`pro_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Itens_Compra` WRITE;
+INSERT INTO `tb_Itens_Compra` (`itc_id`, `itc_id_compra`, `itc_id_produto`, `itc_quantidade`, `itc_valor_unitario`) VALUES
+-- Compra 1: NutriSuplementos (Recebida)
+(1, 1, 1, 8, 49.90),
+(2, 1, 2, 5, 89.90),
+(3, 1, 5, 6, 49.90),
+-- Compra 2: Suplementos Brasil (Recebida)
+(4, 2, 6, 7, 92.50),
+(5, 2, 8, 5, 79.90),
+(6, 2, 14, 4, 154.90),
+-- Compra 3: Atacado Fitness Pro (Pendente)
+(7, 3, 10, 6, 83.00),
+(8, 3, 12, 4, 68.50),
+(9, 3, 15, 4, 64.35),
+-- Compra 4: NutriSuplementos (Pendente)
+(10, 4, 2, 10, 89.90),
+(11, 4, 4, 8, 129.90),
+(12, 4, 7, 5, 159.90),
+-- Compra 5: Suplementos Brasil (Pendente)
+(13, 5, 1, 12, 49.90),
+(14, 5, 9, 6, 129.90),
+(15, 5, 11, 3, 219.90),
+-- Compra 6: Atacado Fitness Pro (Recebida)
+(16, 6, 3, 10, 89.90),
+(17, 6, 6, 8, 92.50),
+(18, 6, 13, 5, 329.90),
+-- Compra 7: NutriSuplementos (Pendente)
+(19, 7, 5, 15, 49.90),
+(20, 7, 8, 10, 79.90),
+(21, 7, 12, 5, 68.50),
+(22, 7, 14, 3, 154.90),
+-- Compra 8: Suplementos Brasil (Recebida)
+(23, 8, 2, 8, 89.90),
+(24, 8, 4, 6, 129.90);
+UNLOCK TABLES;
 
 -- ========================================================
 -- VENDAS

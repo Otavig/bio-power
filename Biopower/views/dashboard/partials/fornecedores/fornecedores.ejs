@@ -1,0 +1,178 @@
+<!-- FORNECEDORES -->
+<section class="adm-section" id="fornecedores">
+  <div class="adm-page-header">
+    <div>
+      <h1>Fornecedores</h1>
+      <p>Cadastro de fornecedores e seus acessos ao sistema.</p>
+    </div>
+    <button
+      class="adm-btn adm-btn--primary"
+      type="button"
+      id="abrirNovoFornecedor"
+    >
+      <i class="fa-solid fa-plus"></i> Novo fornecedor
+    </button>
+  </div>
+
+  <div class="adm-card">
+    <% if (!fornecedores || fornecedores.length === 0) { %>
+      <div class="adm-empty-state" style="margin-bottom:0">
+        <i class="fa-solid fa-industry"></i>
+        <h2>Nenhum fornecedor cadastrado</h2>
+        <p>Cadastre fornecedores para usar nas compras e reposicoes de estoque.</p>
+      </div>
+    <% } else { %>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Fornecedor</th>
+              <th>CNPJ</th>
+              <th>Contato</th>
+              <th>Usuario</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% fornecedores.forEach(function(fornecedor) { %>
+              <tr>
+                <td>
+                  <strong><%= fornecedor.razaoSocial || fornecedor.nome %></strong>
+                  <% if (fornecedor.nomeFantasia) { %>
+                    <span style="display:block;font-size:0.85rem;color:var(--color-text-muted)">
+                      <%= fornecedor.nomeFantasia %>
+                    </span>
+                  <% } %>
+                </td>
+                <td><%= fornecedor.cnpj || "N/D" %></td>
+                <td>
+                  <span><%= fornecedor.email || "N/D" %></span>
+                  <% if (fornecedor.telefone) { %>
+                    <span style="display:block;font-size:0.85rem;color:var(--color-text-muted)">
+                      <%= fornecedor.telefone %>
+                    </span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (fornecedor.usuarioId) { %>
+                    <span class="adm-badge adm-badge--info">#<%= fornecedor.usuarioId %></span>
+                  <% } else { %>
+                    <span style="color:var(--color-text-muted);font-size:0.85rem">Sem usuario</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (fornecedor.usuarioId) { %>
+                    <span class="adm-badge <%= Number(fornecedor.usuarioAtivo) === 1 ? 'adm-badge--success' : 'adm-badge--error' %>">
+                      <%= Number(fornecedor.usuarioAtivo) === 1 ? "Ativo" : "Inativo" %>
+                    </span>
+                  <% } else { %>
+                    <span class="adm-badge adm-badge--warning">Legado</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="adm-dialog" id="novoFornecedor">
+    <div class="adm-dialog-backdrop" id="novoFornecedorBackdrop"></div>
+    <div class="adm-dialog-panel" style="max-width:720px">
+      <div class="adm-dialog-header">
+        <h2><i class="fa-solid fa-industry"></i> Novo fornecedor</h2>
+        <button
+          class="adm-dialog-close"
+          type="button"
+          id="fecharNovoFornecedor"
+          aria-label="Fechar"
+        >
+          &#x2715;
+        </button>
+      </div>
+
+      <form id="novoFornecedorForm" class="adm-form" method="POST" action="/dashboard/fornecedores">
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label>Razao social *</label>
+            <input
+              class="adm-input"
+              type="text"
+              name="razaoSocial"
+              placeholder="Razao social"
+              required
+            />
+          </div>
+          <div class="adm-form-group">
+            <label>Nome fantasia</label>
+            <input
+              class="adm-input"
+              type="text"
+              name="nomeFantasia"
+              placeholder="Nome comercial"
+            />
+          </div>
+        </div>
+
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label>CNPJ *</label>
+            <input
+              class="adm-input"
+              type="text"
+              name="cnpj"
+              placeholder="00.000.000/0000-00"
+              inputmode="numeric"
+              required
+            />
+          </div>
+          <div class="adm-form-group">
+            <label>Telefone</label>
+            <input
+              class="adm-input"
+              type="text"
+              name="telefone"
+              placeholder="(00) 00000-0000"
+              inputmode="numeric"
+            />
+          </div>
+        </div>
+
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label>Email de acesso *</label>
+            <input
+              class="adm-input"
+              type="email"
+              name="email"
+              placeholder="fornecedor@email.com"
+              required
+            />
+          </div>
+          <div class="adm-form-group">
+            <label>Senha *</label>
+            <input
+              class="adm-input"
+              type="password"
+              name="senha"
+              placeholder="Senha inicial"
+              required
+            />
+          </div>
+        </div>
+
+        <p id="novoFornecedorError" class="form-error"></p>
+
+        <div class="adm-dialog-footer">
+          <button type="button" class="adm-btn adm-btn--ghost" id="cancelarNovoFornecedor">
+            Cancelar
+          </button>
+          <button type="submit" class="adm-btn adm-btn--primary">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar fornecedor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

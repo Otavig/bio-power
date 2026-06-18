@@ -1,0 +1,188 @@
+<!-- DESCARTES -->
+<section class="adm-section" id="descartes">
+  <div class="adm-page-header">
+    <div>
+      <h1>Descarte</h1>
+      <p>Lotes próximos do vencimento para baixa de estoque.</p>
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <div class="adm-card-header adm-card-header--between">
+      <div class="adm-card-header-title">
+        <h3>Lotes por validade</h3>
+      </div>
+      <form class="discard-filter-form" method="GET" action="/dashboard">
+        <input type="hidden" name="descarteDias" id="descarteDiasInput" value="<%= descarteDias || 30 %>" />
+        <div class="discard-filter-group" aria-label="Filtro de validade">
+          <% [30, 60, 90].forEach(function(dias) { %>
+            <button
+              type="submit"
+              class="discard-filter-btn <%= Number(descarteDias || 30) === dias ? 'is-active' : '' %>"
+              data-dias="<%= dias %>"
+            >
+              <%= dias %>d
+            </button>
+          <% }); %>
+        </div>
+      </form>
+    </div>
+
+    <% if (!lotesDescarte || lotesDescarte.length === 0) { %>
+      <div class="adm-empty-state" style="margin-bottom:0">
+        <i class="fa-solid fa-trash-can"></i>
+        <h2>Nenhum lote encontrado</h2>
+        <p>Nao ha lotes com estoque vencendo no periodo selecionado.</p>
+      </div>
+    <% } else { %>
+      <div class="adm-table-wrap">
+        <table class="adm-table" id="tabela-descartes">
+          <thead>
+            <tr>
+              <th>Lote</th>
+              <th>Produto</th>
+              <th>Validade</th>
+              <th>Quantidade</th>
+              <th>Status</th>
+              <th>Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lotesDescarte.forEach(function(lote) { %>
+              <%
+                const diasParaVencer = Number(lote.diasParaVencer);
+                const vencido = diasParaVencer < 0;
+                const statusClass = vencido ? "error" : diasParaVencer <= 30 ? "warning" : "info";
+                const statusLabel = vencido ? "Vencido" : "Vence em " + diasParaVencer + "d";
+              %>
+              <tr class="js-discard-row">
+                <td>
+                  <div class="discard-lot-cell">
+                    <span class="adm-discard-toggle">+</span>
+                    <div>
+                      <strong><%= lote.numeroLote %></strong>
+                      <span>#<%= lote.loteId %></span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <strong><%= lote.produtoNome %></strong>
+                  <span style="display:block;font-size:0.85rem;color:var(--color-text-muted)">
+                    <%= lote.categoria || "Sem categoria" %>
+                  </span>
+                </td>
+                <td><%= lote.validade %></td>
+                <td>
+                  <strong><%= Number(lote.quantidade || 0) %></strong>
+                  <span style="color:var(--color-text-muted);font-size:0.9em">unid.</span>
+                </td>
+                <td>
+                  <span class="adm-badge adm-badge--<%= statusClass %>"><%= statusLabel %></span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="adm-btn-icon btn-confirmar-descarte"
+                    title="Confirmar descarte"
+                    data-lote-id="<%= lote.loteId %>"
+                    data-produto="<%= lote.produtoNome %>"
+                    data-lote="<%= lote.numeroLote %>"
+                    data-quantidade="<%= lote.quantidade %>"
+                  >
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr class="adm-discard-detail" style="display:none">
+                <td colspan="6">
+                  <div class="discard-detail-grid">
+                    <div>
+                      <strong><%= lote.produtoNome %></strong>
+                      <span>Produto</span>
+                    </div>
+                    <div>
+                      <strong><%= lote.numeroLote %></strong>
+                      <span>Lote</span>
+                    </div>
+                    <div>
+                      <strong><%= lote.fornecedorNome || "Fornecedor nao informado" %></strong>
+                      <span>Fornecedor</span>
+                    </div>
+                    <div>
+                      <strong><%= lote.validade %></strong>
+                      <span>Validade</span>
+                    </div>
+                    <div>
+                      <strong><%= Number(lote.quantidade || 0) %> un.</strong>
+                      <span>Disponivel</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="adm-dialog" id="confirmarDescarte">
+    <div class="adm-dialog-backdrop" id="confirmarDescarteBackdrop"></div>
+    <div class="adm-dialog-panel" style="max-width:560px">
+      <div class="adm-dialog-header">
+        <h2><i class="fa-solid fa-trash-can"></i> Confirmar descarte</h2>
+        <button
+          class="adm-dialog-close"
+          type="button"
+          id="fecharConfirmarDescarte"
+          aria-label="Fechar"
+        >
+          &#x2715;
+        </button>
+      </div>
+
+      <form id="confirmarDescarteForm" class="adm-form">
+        <input type="hidden" id="descarteLoteId" />
+        <div class="discard-modal-summary">
+          <strong id="descarteProdutoNome"></strong>
+          <span id="descarteLoteNome"></span>
+          <span id="descarteQuantidadeDisponivel"></span>
+        </div>
+
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label>Quantidade a descartar *</label>
+            <input
+              class="adm-input"
+              type="number"
+              id="descarteQuantidade"
+              min="1"
+              step="1"
+              required
+            />
+          </div>
+          <div class="adm-form-group">
+            <label>Motivo</label>
+            <input
+              class="adm-input"
+              type="text"
+              id="descarteMotivo"
+              value="Descarte por validade"
+            />
+          </div>
+        </div>
+
+        <p id="descarteError" class="form-error"></p>
+
+        <div class="adm-dialog-footer">
+          <button type="button" class="adm-btn adm-btn--ghost" id="cancelarConfirmarDescarte">
+            Cancelar
+          </button>
+          <button type="submit" class="adm-btn adm-btn--primary">
+            <i class="fa-solid fa-check"></i> Confirmar descarte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

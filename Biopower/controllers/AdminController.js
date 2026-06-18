@@ -9,6 +9,7 @@ const ItensServicosModels = require("../models/itensServicosModels");
 const AgendamentosModels = require("../models/agendamentosModels");
 const VendasModels = require("../models/vendasModels");
 const ItensVendaModels = require("../models/itensVendaModels");
+const CompraModels = require("../models/compraModels");
 const TypeUsuariosModels = require("../models/typeUserModels");
 const PromocaoCuponsModel = require("../models/promocaoCuponsModel");
 const StatusDiversosModels = require("../models/statusDiversosModels");
@@ -35,11 +36,21 @@ class AdminController {
     this.agendamentosModel = new AgendamentosModels();
     this.vendasModel = new VendasModels();
     this.itensVendaModel = new ItensVendaModels();
+    this.compraModel = new CompraModels();
     this.statusDiversosModel = new StatusDiversosModels();
     this.database = new Database();
   }
 
   async dashboard(req, res) {
+    const userRole = req.session?.user?.role;
+    const isSupplierPanel = userRole === "supplier";
+    const isProfessionalPanel = userRole === "professional";
+    let fornecedorLogado = null;
+
+    if (isSupplierPanel) {
+      fornecedorLogado = await this.fornecedoresModel.buscarPorUsuarioId(req.session.user.id);
+    }
+
     let listaUsuarios = [];
     let listaTipos = [];
     let products = [];
@@ -50,6 +61,7 @@ class AdminController {
     let fornecedores = [];
     let clientes = [];
     let vendas = [];
+    let compras = [];
     let statusVendas = [];
     let metodosPagamentoVenda = [];
     try {
@@ -91,7 +103,6 @@ class AdminController {
 
     try {
       fornecedores = await this.fornecedoresModel.listar();
-      console.log("DEBUG - Fornecedores carregados:", fornecedores);
     } catch (err) {
       console.error("Erro ao listar fornecedores:", err);
       fornecedores = [];
@@ -114,6 +125,8 @@ class AdminController {
 
     try {
       await this.statusDiversosModel.garantirStatusVendaEntregue();
+      await this.statusDiversosModel.removerMetodoPagamentoBoleto();
+      await this.statusDiversosModel.garantirStatusCompra();
       statusVendas = await this.statusDiversosModel.listarPorDominio("venda_status");
       metodosPagamentoVenda = await this.statusDiversosModel.listarPorDominio("venda_metodo_pagamento");
     } catch (err) {
@@ -130,10 +143,25 @@ class AdminController {
     }
 
     try {
+      if (isSupplierPanel) {
+        compras = fornecedorLogado ? await this.compraModel.listarComItens(fornecedorLogado.id) : [];
+      } else {
+        compras = await this.compraModel.listarComItens();
+      }
+    } catch (err) {
+      console.error("Erro ao listar compras:", err);
+      compras = [];
+    }
+
+    try {
       const itens = await this.servicosContratadosModel.listarTodos();
       const mapa = new Map();
 
       for (const item of itens) {
+        if (isProfessionalPanel && Number(item.profissionalId) !== Number(req.session.user.id)) {
+          continue;
+        }
+
         const chave = String(item.agendamentoId || item.id);
         if (!mapa.has(chave)) {
           mapa.set(chave, {
@@ -146,6 +174,7 @@ class AdminController {
             observacoes: item.observacoes,
             clienteNome: item.clienteNome,
             clienteEmail: item.clienteEmail,
+            profissionalId: item.profissionalId,
             profissionalNome: item.profissionalNome,
             servicos: [],
           });
@@ -168,6 +197,11 @@ class AdminController {
 
     let tiposDespesa = [];
     let tiposReceita = [];
+    let estoque = [];
+    const descarteDias = [30, 60, 90].includes(Number(req.query.descarteDias))
+      ? Number(req.query.descarteDias)
+      : 30;
+    let lotesDescarte = [];
     try {
       const sqlDesp = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'DESPESA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
       const sqlRec = "SELECT DISTINCT f.flu_descricao AS descricao FROM tb_Fluxo_Caixa f INNER JOIN tb_status_diversos s ON s.sta_id = f.flu_tipo_id WHERE s.sta_codigo = 'RECEITA' AND f.flu_descricao IS NOT NULL ORDER BY f.flu_descricao;";
@@ -179,6 +213,20 @@ class AdminController {
       console.error("Erro ao carregar tipos de fluxo (despesa/receita):", err);
       tiposDespesa = [];
       tiposReceita = [];
+    }
+
+    try {
+      estoque = await this.listarEstoque();
+    } catch (err) {
+      console.error("Erro ao listar estoque:", err);
+      estoque = [];
+    }
+
+    try {
+      lotesDescarte = await this.listarLotesParaDescarte(descarteDias);
+    } catch (err) {
+      console.error("Erro ao listar lotes para descarte:", err);
+      lotesDescarte = [];
     }
 
     res.render("dashboard/dashboard", {
@@ -193,6 +241,13 @@ class AdminController {
       listaTipos,
       services,
       vendas,
+      compras,
+      isSupplierPanel,
+      isProfessionalPanel,
+      fornecedorLogado,
+      estoque,
+      descarteDias,
+      lotesDescarte,
       statusVendas,
       metodosPagamentoVenda,
       servicosContratados,
@@ -232,6 +287,81 @@ class AdminController {
     }
 
     return res.redirect("/dashboard?flash=usuario-adicionado#users");
+  }
+
+  async createFornecedor(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const normalizeSpaces = (value) =>
+      String(value || "").trim().split(/\s+/).filter(Boolean).join(" ");
+    const onlyDigits = (value) => String(value || "").replace(/\D/g, "");
+
+    const nomeFantasia = normalizeSpaces(req.body.nomeFantasia);
+    const razaoSocial = normalizeSpaces(req.body.razaoSocial);
+    const cnpj = onlyDigits(req.body.cnpj);
+    const email = normalizeSpaces(req.body.email).toLowerCase();
+    const telefone = onlyDigits(req.body.telefone);
+    const senha = String(req.body.senha || "").trim();
+
+    if (!razaoSocial || !cnpj || !email || !senha) {
+      const msg = "Campos obrigatorios: razao social, CNPJ, email e senha.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=fornecedor-erro#fornecedores");
+    }
+
+    if (cnpj.length !== 14) {
+      const msg = "CNPJ deve conter 14 digitos.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=fornecedor-cnpj-erro#fornecedores");
+    }
+
+    try {
+      const usuariosModel = new UsuariosModels();
+
+      if (await usuariosModel.buscarPorEmail(email)) {
+        const msg = "Este email ja esta cadastrado.";
+        if (wantsJson) return res.status(409).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=fornecedor-email-existente#fornecedores");
+      }
+
+      if (await usuariosModel.buscarPorCpfCnpj(cnpj)) {
+        const msg = "Este CNPJ ja esta cadastrado.";
+        if (wantsJson) return res.status(409).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=fornecedor-cnpj-existente#fornecedores");
+      }
+
+      if (await this.fornecedoresModel.buscarPorCnpj(cnpj)) {
+        const msg = "Este fornecedor ja esta cadastrado.";
+        if (wantsJson) return res.status(409).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=fornecedor-existente#fornecedores");
+      }
+
+      const usuarioId = await usuariosModel.criar({
+        nome: nomeFantasia || razaoSocial,
+        email,
+        senha,
+        cpfCnpj: cnpj,
+        typeId: 5,
+        ativo: 1,
+      });
+
+      await this.fornecedoresModel.criar({
+        usuarioId,
+        nomeFantasia: nomeFantasia || razaoSocial,
+        cnpj,
+        email,
+        telefone,
+        razaoSocial,
+      });
+
+      if (wantsJson) return res.json({ ok: true, msg: "Fornecedor cadastrado." });
+    } catch (err) {
+      console.error("Erro ao cadastrar fornecedor:", err);
+      const msg = "Erro ao cadastrar fornecedor.";
+      if (wantsJson) return res.status(500).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=fornecedor-erro#fornecedores");
+    }
+
+    return res.redirect("/dashboard?flash=fornecedor-adicionado#fornecedores");
   }
 
   async updateUser(req, res) {
@@ -302,7 +432,7 @@ class AdminController {
 
     try {
       await this.categoriasModel.criar({ nome: nome.trim() });
-      if (wantsJson) return res.json({ ok: true });
+      if (wantsJson) return res.json({ ok: true, redirectTo: "/dashboard?flash=produto-adicionado#products" });
     } catch (err) {
       console.error("Erro ao criar categoria:", err);
       if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao cadastrar categoria." });
@@ -331,7 +461,7 @@ class AdminController {
 
     try {
       await this.categoriasModel.atualizar(id, { nome: nome.trim() });
-      if (wantsJson) return res.json({ ok: true });
+      if (wantsJson) return res.json({ ok: true, redirectTo: "/dashboard?flash=produto-atualizado#products" });
     } catch (err) {
       console.error("Erro ao atualizar categoria:", err);
       if (wantsJson) return res.status(500).json({ ok: false, msg: "Erro ao atualizar categoria." });
@@ -564,7 +694,10 @@ class AdminController {
     const filtroStatus = STATUS_SERVICOS.includes(status) ? status : null;
 
     try {
-      const data = await this.servicosContratadosModel.listarTodos({ status: filtroStatus });
+      let data = await this.servicosContratadosModel.listarTodos({ status: filtroStatus });
+      if (req.session?.user?.role === "professional") {
+        data = data.filter((item) => Number(item.profissionalId) === Number(req.session.user.id));
+      }
       return res.json({ ok: true, data });
     } catch (err) {
       console.error("Erro ao listar serviços contratados:", err);
@@ -849,6 +982,15 @@ class AdminController {
         return res.redirect("/dashboard?flash=servico-contrato-erro#services");
       }
 
+      if (
+        req.session?.user?.role === "professional" &&
+        Number(contrato.profissionalId) !== Number(req.session.user.id)
+      ) {
+        const msg = "Você não tem permissão para alterar este agendamento.";
+        if (wantsJson) return res.status(403).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=servico-contrato-erro#services-contracts");
+      }
+
       const produtosBrutos = req.body.produtos;
       let produtos = [];
 
@@ -1077,6 +1219,379 @@ class AdminController {
     }
 
     return res.redirect("/dashboard?flash=venda-status-atualizado#orders");
+  }
+
+  async createCompra(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+
+    try {
+      const fornecedorId = Number(req.body.fornecedorId);
+      const produtosBrutos = req.body.produtos || req.body.selectedProducts;
+      let produtos = [];
+
+      if (Array.isArray(produtosBrutos)) {
+        produtos = produtosBrutos;
+      } else if (typeof produtosBrutos === "string" && produtosBrutos.trim()) {
+        produtos = JSON.parse(produtosBrutos);
+      } else if (produtosBrutos && typeof produtosBrutos === "object") {
+        produtos = [produtosBrutos];
+      }
+
+      if (!fornecedorId) {
+        const msg = "Selecione um fornecedor.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-fornecedor-erro#compras");
+      }
+
+      const produtosValidos = [];
+      for (const item of produtos) {
+        const produtoId = Number(item.produtoId || item.id);
+        const quantidade = Number(item.quantidade || 0);
+
+        if (!produtoId || !Number.isInteger(quantidade) || quantidade <= 0) continue;
+
+        const produto = await this.produtosModel.buscarPorId(produtoId);
+        if (!produto) continue;
+
+        produtosValidos.push({
+          produtoId,
+          quantidade,
+          valorUnitario: Number(produto.precoNumber || item.valorUnitario || 0),
+        });
+      }
+
+      if (!produtosValidos.length) {
+        const msg = "Selecione ao menos um produto valido.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-produtos-erro#compras");
+      }
+
+      const compraId = await this.compraModel.criarComItens({
+        fornecedorId,
+        itens: produtosValidos,
+        status: "pendente",
+      });
+
+      if (!compraId) {
+        throw new Error("Nao foi possivel registrar a compra.");
+      }
+
+      if (wantsJson) {
+        return res.json({ ok: true, msg: "Compra registrada com sucesso.", compraId });
+      }
+    } catch (err) {
+      console.error("Erro ao criar compra:", err);
+      if (wantsJson) {
+        return res.status(500).json({ ok: false, msg: err.message || "Erro ao registrar compra." });
+      }
+      return res.redirect("/dashboard?flash=compra-erro#compras");
+    }
+
+    return res.redirect("/dashboard?flash=compra-adicionada#compras");
+  }
+
+  async listarEstoque() {
+    const sql = `
+      SELECT
+        p.pro_id AS id,
+        p.pro_nome AS nome,
+        p.pro_imagem AS imagem,
+        COALESCE(c.cat_nome, 'Sem categoria') AS categoria,
+        COALESCE(SUM(l.lot_quantidade_atual), 0) AS quantidade,
+        DATE_FORMAT(MIN(CASE WHEN l.lot_quantidade_atual > 0 THEN l.lot_data_validade END), '%d/%m/%Y') AS proximaValidade,
+        GROUP_CONCAT(
+          CASE
+            WHEN l.lot_id IS NULL OR l.lot_quantidade_atual <= 0 THEN NULL
+            ELSE CONCAT(
+              COALESCE(l.lot_numero_lote, 'Sem lote'),
+              '|',
+              DATE_FORMAT(l.lot_data_validade, '%d/%m/%Y'),
+              '|',
+              l.lot_quantidade_atual
+            )
+          END
+          ORDER BY l.lot_data_validade ASC
+          SEPARATOR ';;'
+        ) AS lotesValidade
+      FROM tb_Produtos p
+      LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria
+      LEFT JOIN tb_Lotes_Estoque l ON l.lot_id_produto = p.pro_id
+      GROUP BY p.pro_id, p.pro_nome, p.pro_imagem, c.cat_nome
+      ORDER BY p.pro_nome ASC
+    `;
+
+    const rows = await this.database.ExecutaComando(sql, []) || [];
+
+    return rows.map((row) => ({
+      ...row,
+      lotesValidade: String(row.lotesValidade || "")
+        .split(";;")
+        .filter(Boolean)
+        .map((lote) => {
+          const [numero, validade, quantidade] = lote.split("|");
+          return {
+            numero,
+            validade,
+            quantidade: Number(quantidade || 0),
+          };
+        }),
+    }));
+  }
+
+  async listarLotesParaDescarte(dias = 30) {
+    const diasFiltro = [30, 60, 90].includes(Number(dias)) ? Number(dias) : 30;
+    const sql = `
+      SELECT
+        l.lot_id AS loteId,
+        l.lot_id_produto AS produtoId,
+        l.lot_numero_lote AS numeroLote,
+        l.lot_quantidade_atual AS quantidade,
+        DATE_FORMAT(l.lot_data_validade, '%d/%m/%Y') AS validade,
+        DATEDIFF(l.lot_data_validade, CURRENT_DATE()) AS diasParaVencer,
+        p.pro_nome AS produtoNome,
+        COALESCE(c.cat_nome, 'Sem categoria') AS categoria,
+        COALESCE(f.for_nome_fantasia, f.for_razao_social, 'Fornecedor nao informado') AS fornecedorNome
+      FROM tb_Lotes_Estoque l
+      INNER JOIN tb_Produtos p ON p.pro_id = l.lot_id_produto
+      LEFT JOIN tb_Categorias c ON c.cat_id = p.pro_id_categoria
+      LEFT JOIN tb_Fornecedores f ON f.for_id = l.lot_id_fornecedor
+      WHERE l.lot_quantidade_atual > 0
+        AND l.lot_data_validade <= DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY)
+      ORDER BY l.lot_data_validade ASC, p.pro_nome ASC, l.lot_numero_lote ASC
+    `;
+
+    return await this.database.ExecutaComando(sql, [diasFiltro]) || [];
+  }
+
+  async confirmarDescarte(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+    const loteId = Number(req.params.id);
+    const quantidade = Number(req.body.quantidade);
+    const motivo = String(req.body.motivo || "Descarte por validade").trim();
+    const responsavelId = Number(req.session?.user?.id);
+
+    if (!loteId || Number.isNaN(loteId)) {
+      const msg = "Lote invalido.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=descarte-lote-erro#descartes");
+    }
+
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+      const msg = "Informe uma quantidade valida para descarte.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=descarte-quantidade-erro#descartes");
+    }
+
+    try {
+      const loteRows = await this.database.ExecutaComando(
+        `
+          SELECT
+            lot_id AS loteId,
+            lot_id_produto AS produtoId,
+            lot_quantidade_atual AS quantidadeAtual
+          FROM tb_Lotes_Estoque
+          WHERE lot_id = ?
+          LIMIT 1
+        `,
+        [loteId]
+      );
+
+      const lote = loteRows[0];
+      if (!lote) {
+        const msg = "Lote nao encontrado.";
+        if (wantsJson) return res.status(404).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=descarte-lote-erro#descartes");
+      }
+
+      const quantidadeAtual = Number(lote.quantidadeAtual || 0);
+      if (quantidade > quantidadeAtual) {
+        const msg = "Quantidade de descarte maior que o estoque do lote.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=descarte-estoque-erro#descartes");
+      }
+
+      const baixouEstoque = await this.database.ExecutaComandoNonQuery(
+        `
+          UPDATE tb_Lotes_Estoque
+          SET lot_quantidade_atual = lot_quantidade_atual - ?,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE lot_id = ?
+            AND lot_quantidade_atual >= ?
+        `,
+        [quantidade, loteId, quantidade]
+      );
+
+      if (!baixouEstoque) {
+        throw new Error("Nao foi possivel baixar o estoque do lote.");
+      }
+
+      await this.database.ExecutaComandoLastInserted(
+        `
+          INSERT INTO tb_Descartes (
+            des_id_lote,
+            des_id_produto,
+            des_quantidade,
+            des_motivo,
+            des_id_responsavel,
+            des_data
+          )
+          VALUES (?, ?, ?, ?, ?, CURRENT_DATE())
+        `,
+        [
+          loteId,
+          Number(lote.produtoId),
+          quantidade,
+          motivo || "Descarte por validade",
+          responsavelId || 1,
+        ]
+      );
+
+      if (wantsJson) {
+        return res.json({ ok: true, msg: "Descarte confirmado e estoque atualizado." });
+      }
+    } catch (err) {
+      console.error("Erro ao confirmar descarte:", err);
+      const msg = err.message || "Erro ao confirmar descarte.";
+      if (wantsJson) return res.status(500).json({ ok: false, msg });
+      return res.redirect("/dashboard?flash=descarte-erro#descartes");
+    }
+
+    return res.redirect("/dashboard?flash=descarte-confirmado#descartes");
+  }
+
+  async receberCompra(req, res) {
+    const wantsJson =
+      req.is("application/json") ||
+      req.headers.accept?.includes("application/json");
+
+    try {
+      const compraId = Number(req.params.id);
+      const { loteProduto, validadeProduto } = req.body;
+
+      if (!compraId || Number.isNaN(compraId)) {
+        const msg = "ID de compra inválido.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      if (!loteProduto || !loteProduto.trim()) {
+        const msg = "Número do lote é obrigatório.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      if (!validadeProduto) {
+        const msg = "Data de validade é obrigatória.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      const dataValidade = new Date(validadeProduto + "T00:00:00");
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      if (dataValidade <= hoje) {
+        const msg = "A data de validade deve ser posterior a hoje.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      let fornecedorAutorizado = null;
+      if (req.session?.user?.role === "supplier") {
+        fornecedorAutorizado = await this.fornecedoresModel.buscarPorUsuarioId(req.session.user.id);
+        if (!fornecedorAutorizado) {
+          const msg = "Fornecedor não vinculado ao usuário logado.";
+          if (wantsJson) return res.status(403).json({ ok: false, msg });
+          return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+        }
+      }
+
+      const sqlItens = `
+        SELECT 
+          ic.itc_id_produto AS produtoId,
+          ic.itc_quantidade AS quantidade,
+          c.com_id_fornecedor AS fornecedorId
+        FROM tb_Itens_Compra ic
+        INNER JOIN tb_Compra c ON c.com_id = ic.itc_id_compra
+        WHERE ic.itc_id_compra = ?
+      `;
+
+      const itens = await this.database.ExecutaComando(sqlItens, [compraId]);
+
+      if (!itens || itens.length === 0) {
+        const msg = "Compra não possui itens para receber.";
+        if (wantsJson) return res.status(400).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      if (
+        fornecedorAutorizado &&
+        itens.some((item) => Number(item.fornecedorId) !== Number(fornecedorAutorizado.id))
+      ) {
+        const msg = "Você não tem permissão para receber esta compra.";
+        if (wantsJson) return res.status(403).json({ ok: false, msg });
+        return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+      }
+
+      for (const item of itens) {
+        const produtoId = Number(item.produtoId);
+        const quantidade = Number(item.quantidade);
+        const fornecedorId = item.fornecedorId ? Number(item.fornecedorId) : null;
+
+        if (!produtoId || Number.isNaN(produtoId)) {
+          throw new Error("Produto inválido dentro da compra.");
+        }
+
+        if (!quantidade || Number.isNaN(quantidade) || quantidade <= 0) {
+          throw new Error(`Quantidade inválida para o produto ID ${produtoId}.`);
+        }
+
+        const produto = await this.produtosModel.buscarPorId(produtoId);
+
+        if (!produto) {
+          throw new Error(`Produto ID ${produtoId} não existe mais no cadastro.`);
+        }
+
+        await this.lotesModel.criarLoteInicial({
+          produtoId,
+          quantidade,
+          numeroLote: loteProduto.trim(),
+          dataValidade: validadeProduto,
+          fornecedorId,
+        });
+      }
+
+      const statusAtualizado = await this.compraModel.atualizarStatus(
+        compraId,
+        "recebido"
+      );
+
+      if (!statusAtualizado) {
+        throw new Error("Não foi possível atualizar o status da compra.");
+      }
+
+      if (wantsJson) {
+        return res.json({
+          ok: true,
+          msg: "Compra recebida com sucesso.",
+        });
+      }
+
+      return res.redirect("/dashboard?flash=compra-recebimento-sucesso#compras");
+    } catch (err) {
+      console.error("Erro ao receber compra:", err);
+
+      const msg = err.message || "Erro ao receber compra.";
+
+      if (wantsJson) {
+        return res.status(500).json({
+          ok: false,
+          msg,
+        });
+      }
+
+      return res.redirect("/dashboard?flash=compra-recebimento-erro#compras");
+    }
   }
 }
 
