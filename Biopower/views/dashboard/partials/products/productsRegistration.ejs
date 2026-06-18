@@ -136,31 +136,36 @@
 								<div class="adm-form-group">
 									<label>Categoria *</label>
 									<select name="categoria" required class="adm-input">
-										<option value="">Selecione…</option>
-										<option>Creatina</option>
-										<option>Whey</option>
-										<option>Pré-treino</option>
-										<option>Termogênico</option>
-										<option>BCAA</option>
-										<option>Glutamina</option>
-										<option>Hipercalórico</option>
-										<option>Vitaminas</option>
-										<option>Outros</option>
+										<option value="">Selecione uma categoria</option>
+										<% (typeof categorias !== 'undefined' ? categorias : []).forEach(function(c) { %>
+											<option value="<%= c.id %>"><%= c.nome %></option>
+										<% }); %>
 									</select>
 								</div>
 
 								<div class="adm-form-group">
 									<label>Marca</label>
+									<select name="marca" class="adm-input">
+										<option value="">Selecione uma marca</option>
+										<% (typeof laboratorios !== 'undefined' ? laboratorios : []).forEach(function(l) { %>
+											<option value="<%= l.id %>"><%= l.nome %></option>
+										<% }); %>
+									</select>
+								</div>
+
+								<div class="adm-form-group">
+									<label>Preço *</label>
 									<input
 										type="text"
-										name="marca"
-										placeholder="Ex: Growth Supplements"
+										name="preco"
+										required
+										placeholder="Ex: R$129,90"
 										class="adm-input"
 									/>
 								</div>
 
 								<div class="adm-form-group">
-									<label>Sabor / descrição curta</label>
+									<label>Descrição</label>
 									<input
 										type="text"
 										name="sabor"
@@ -170,26 +175,18 @@
 								</div>
 
 								<div class="adm-form-group">
-									<label>Preço *</label>
+									<label>Promoção (%)</label>
 									<input
-										type="text"
-										name="preco"
-										required
-										placeholder="Ex: 129,90"
+										type="number"
+										name="desconto"
+										min="0"
+										max="100"
+										step="0.01"
+										value="0"
+										placeholder="Ex: 10"
 										class="adm-input"
 									/>
 								</div>
-
-								<div class="adm-form-group">
-									<label>Texto de crédito (opcional)</label>
-									<input
-										type="text"
-										name="credito"
-										placeholder="Ex: ou R$144,30 no cartão em 6x"
-										class="adm-input"
-									/>
-								</div>
-
 								<div class="adm-form-group adm-form-group--full">
 									<label>Imagem do produto</label>
 									<input
@@ -199,9 +196,10 @@
 										class="adm-input"
 									/>
 									<small style="color:#6b7280;margin-top:4px;display:block">
-										JPEG, PNG, WEBP ou GIF · até 5 MB
+										JPEG, PNG, WEBP ou GIF · máx. 5 MB
 									</small>
 								</div>
+
 							</div>
 
 							<div class="adm-dialog-footer" style="margin-top:12px">
