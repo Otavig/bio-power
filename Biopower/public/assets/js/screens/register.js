@@ -369,7 +369,10 @@ window.addEventListener("load", () => {
   fieldOrder.forEach(field => {
     const input = document.getElementById(field);
     if (!input) return;
-    input.value = "";
+    if (input.tagName === "INPUT") {
+      input.value = "";
+    }
+
     input.classList.remove("readonly-style", "is-invalid");
     const feedback = document.getElementById(`error-${field}`);
     if (feedback) {
@@ -501,6 +504,7 @@ function initStepper() {
   });
 
   document.getElementById("next-2")?.addEventListener("click", () => {
+    collectFormValues();
     const stepErr = validateStep(2);
     if (Object.keys(stepErr).length) {
       Object.entries(stepErr).forEach(([f, msg]) => setFieldError(f, msg));
@@ -545,6 +549,7 @@ function initCepLookup() {
       Object.entries(mapa).forEach(([id, val]) => {
         const el = document.getElementById(id);
         if (!el) return;
+
         el.value = val;
         el.classList.toggle("readonly-style", Boolean(val));
         if (val || id === "bairro") setFieldError(id, null);
@@ -612,7 +617,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (f !== "terms") setFieldError(f, msg);
     });
 
-    if (Object.keys(errors).length === 0) { formEl.submit(); return; }
+    if (Object.keys(errors).length === 0) {
+      // prossegue com o POST padrão do form (action definido no EJS)
+      formEl.removeEventListener('submit', () => {});
+      formEl.submit();
+      return;
+    }
+
 
     // Navega à etapa do primeiro erro e foca o campo
     const firstErrField = fieldOrder.find((f) => errors[f]);

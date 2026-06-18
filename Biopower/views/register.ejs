@@ -19,6 +19,14 @@
     />
     <link rel="stylesheet" href="../assets/css/screen/register-screen.css" />
   </head>
+  <style>
+    .field-hint {
+      display: block;
+      font-size: .75rem;
+      color: #6c757d;
+      margin-bottom: .5rem;
+    }
+  </style>
   <body>
     <div class="register-wrapper">
       <!-- ─── Painel lateral ─── -->
@@ -352,7 +360,7 @@
                           <option value="divorciado">Divorciado(a)</option>
                           <option value="viuvo">Viúvo(a)</option>
                           <option value="uniao_estavel">União Estável</option>
-                          <option value="prefiro_nao_informar">
+                          <option value="prefiro_nao_informar" selected>
                             Prefiro não informar
                           </option>
                         </select>
@@ -407,6 +415,7 @@
                 <!-- Linha 1: CEP + Cidade + Estado alinhados na base -->
                 <div class="col-12">
                   <div class="row g-3 align-items-end">
+
                     <!-- CEP -->
                     <div class="col-12 col-sm-4">
                       <div class="floating-field">

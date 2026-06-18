@@ -168,6 +168,70 @@ class UsuariosController {
     }
   }
 
+  async registerPost(req, res) {
+    const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
+
+    const nome = (req.body.nome || "").trim();
+    const sobrenome = (req.body.sobrenome || "").trim();
+    const email = (req.body.email || "").trim().toLowerCase();
+    const senha = (req.body.senha || "").trim();
+
+    const cpf = (req.body.cpf || "").replace(/\D/g, "");
+    const cep = (req.body.cep || "").replace(/\D/g, "");
+    const cidade = (req.body.cidade || "").trim();
+    const estado = (req.body.estado || "").trim();
+    const bairro = (req.body.bairro || "").trim();
+    const rua = (req.body.rua || "").trim();
+    const numero = (req.body.numero || "").trim();
+    const complemento = (req.body.complemento || "").trim();
+    const data = (req.body.data || "").trim();
+    const estadoCivil = (req.body.estadoCivil || "").trim();
+    const genero = (req.body.genero || "").trim();
+
+    // Neste projeto, a tabela tb_Usuarios tem apenas campos principais para criação.
+    // Campos de endereço são coletados no front, mas ainda não persistidos aqui.
+    // Mantemos o comportamento mínimo para garantir criação real.
+
+    const fullName = [nome, sobrenome].filter(Boolean).join(" ");
+
+    if (!fullName || !email || !senha) {
+      const msg = "Campos obrigatorios: nome, email e senha.";
+      if (wantsJson) return res.status(400).json({ ok: false, msg });
+      return res.redirect("/register?error=" + encodeURIComponent(msg));
+    }
+
+    try {
+      const usuariosModel = new UsuariosModels();
+
+      // typeId: 3 = client (pelos métodos existentes: listarClientes usa usu_typ_id = 3)
+      const createdId = await usuariosModel.criar({
+        nome: fullName,
+        email,
+        senha,
+        cpfCnpj: cpf || null,
+        typeId: 3,
+        ativo: 1,
+      });
+
+      // opcional: logar o usuário imediatamente (pelo loginPost que monta sessão)
+      req.session.user = {
+        id: createdId,
+        email,
+        role: "client",
+        name: fullName,
+        typeId: 3,
+        roleDisplay: "Cliente",
+      };
+
+      return res.redirect("/");
+    } catch (err) {
+      console.error("Erro no registerPost:", err);
+      const msg = "Erro ao cadastrar usuario.";
+      if (wantsJson) return res.status(500).json({ ok: false, msg });
+      return res.redirect("/register?error=" + encodeURIComponent(msg));
+    }
+  }
+
   async listarUsuarios(req, res) {
       let usuarios = new UsuariosModels();
       let listaUsuarios = await usuarios.listar();

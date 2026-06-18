@@ -126,7 +126,6 @@ CREATE TABLE `tb_Fornecedores` (
 -- tb_Usuarios (UsuariosModels)
 -- Diagrama (imagem 1 e 5): usu_id, usu_nome, usu_email, usu_senha, usu_cpf_cnpj, usu_typ_id, usu_ativo
 --
-DROP TABLE IF EXISTS `tb_Cliente`;
 DROP TABLE IF EXISTS `tb_Usuarios`;
 CREATE TABLE `tb_Usuarios` (
   `usu_id` int NOT NULL AUTO_INCREMENT,
@@ -259,6 +258,7 @@ DROP TABLE IF EXISTS `tb_Promocoes`;
 CREATE TABLE `tb_Promocoes` (
   `pro_id` int NOT NULL AUTO_INCREMENT,
   `pro_nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pro_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ativa',
   `pro_descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `pro_data_inicio` date NOT NULL,
   `pro_data_fim` date NOT NULL,

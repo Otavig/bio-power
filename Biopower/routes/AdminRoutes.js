@@ -88,4 +88,21 @@ router.delete("/users/:id", ensureAdmin, (req, res, next) =>
 
 //efetuar compras
 
+//cupons
+router.get("/cupons", ensureAdmin, (req, res, next) => {
+  Promise.resolve(controller.buscarCupons(req, res)).catch(next);
+});
+
+router.post("/cupons/create", ensureAdmin, (req, res, next) => {
+  Promise.resolve(controller.criarCupons(req, res)).catch(next);
+});
+
+router.put("/cupons/update/:id", ensureAdmin, (req, res, next) => {
+  Promise.resolve(controller.atualizarCupom(req, res)).catch(next);
+});
+router.delete("/cupons/delete/:id", ensureAdmin, (req, res, next) => {
+  Promise.resolve(controller.excluirCupom(req, res)).catch(next);
+});
+
+
 module.exports = router;
