@@ -1,0 +1,187 @@
+<link rel="stylesheet" href="/assets/css/screen/pedidos.css" />
+
+<main class="orders-page">
+  <section class="orders-shell">
+    <%
+      const listaPedidos = pedidos || [];
+      const totalPedidos = listaPedidos.length;
+      const pedidosEntregues = listaPedidos.filter((pedido) => String(pedido.status || "").toLowerCase() === "entregue").length;
+      const pedidosPendentes = listaPedidos.filter((pedido) => {
+        const status = String(pedido.status || "").toLowerCase();
+        return status !== "entregue" && status !== "cancelado";
+      }).length;
+      const valorTotalPedidos = listaPedidos.reduce((total, pedido) => total + Number(pedido.valorTotal || 0), 0);
+    %>
+
+    <div class="orders-header">
+      <div>
+        <span class="orders-kicker">Minha conta</span>
+        <h1>Meus pedidos</h1>
+        <p>Acompanhe suas compras e veja os produtos de cada pedido.</p>
+      </div>
+      <a href="/store" class="orders-store-link">
+        <i class="fa-solid fa-store"></i>
+        Continuar comprando
+      </a>
+    </div>
+
+    <div class="orders-summary-grid">
+      <article class="orders-summary-item">
+        <span>Pedidos</span>
+        <strong><%= totalPedidos %></strong>
+      </article>
+      <article class="orders-summary-item">
+        <span>Em andamento</span>
+        <strong><%= pedidosPendentes %></strong>
+      </article>
+      <article class="orders-summary-item">
+        <span>Entregues</span>
+        <strong><%= pedidosEntregues %></strong>
+      </article>
+      <article class="orders-summary-item">
+        <span>Total comprado</span>
+        <strong><%= valorTotalPedidos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) %></strong>
+      </article>
+    </div>
+
+    <% if (typeof erro !== "undefined" && erro) { %>
+      <div class="orders-alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span><%= erro %></span>
+      </div>
+    <% } %>
+
+    <% if (!listaPedidos.length) { %>
+      <div class="orders-empty">
+        <i class="fa-solid fa-box-open"></i>
+        <h2>Nenhum pedido encontrado</h2>
+        <p>Quando voce finalizar uma compra, ela aparecera aqui.</p>
+        <a href="/store">Ver produtos</a>
+      </div>
+    <% } else { %>
+      <div class="orders-card">
+        <div class="orders-table-wrap">
+          <table class="orders-table" id="myOrdersTable">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Data</th>
+                <th>Pagamento</th>
+                <th>Itens</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% listaPedidos.forEach(function(pedido) { %>
+                <%
+                  const dataPedido = pedido.data
+                    ? new Date(pedido.data).toLocaleDateString("pt-BR", { timeZone: "UTC" })
+                    : "-";
+                  const status = String(pedido.status || "AGUARDANDO").toLowerCase();
+                  const statusClass = status === "entregue" || status === "pago"
+                    ? "success"
+                    : status === "cancelado"
+                      ? "danger"
+                      : "warning";
+                  const podeConfirmarEntrega = status !== "entregue" && status !== "cancelado";
+                %>
+                <tr class="js-my-order-row">
+                  <td>
+                    <div class="order-id-cell">
+                      <span class="order-toggle" aria-hidden="true">
+                        <i class="fa-solid fa-chevron-right"></i>
+                      </span>
+                      <strong><%= pedido.id %></strong>
+                    </div>
+                  </td>
+                  <td><%= dataPedido %></td>
+                  <td>
+                    <strong><%= pedido.metodoPagamentoCodigo || "-" %></strong>
+                    <% if (pedido.metodoPagamentoDescricao) { %>
+                      <span><%= pedido.metodoPagamentoDescricao %></span>
+                    <% } %>
+                  </td>
+                  <td><%= pedido.itens.length %> item<%= pedido.itens.length === 1 ? "" : "s" %></td>
+                  <td>
+                    <strong>
+                      <%= Number(pedido.valorTotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) %>
+                    </strong>
+                  </td>
+                  <td>
+                    <span class="order-status order-status--<%= statusClass %>">
+                      <%= pedido.statusDescricao || pedido.status || "Aguardando" %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (podeConfirmarEntrega) { %>
+                      <button
+                        type="button"
+                        class="order-confirm-delivery"
+                        data-pedido-id="<%= pedido.id %>"
+                      >
+                        <i class="fa-solid fa-check"></i>
+                        Confirmar entrega
+                      </button>
+                    <% } else { %>
+                      <span class="order-action-muted">Finalizado</span>
+                    <% } %>
+                  </td>
+                </tr>
+                <tr class="my-order-detail" style="display:none">
+                  <td colspan="7">
+                    <% if (pedido.itens.length) { %>
+                      <div class="my-order-items">
+                        <% pedido.itens.forEach(function(item) { %>
+                          <article class="my-order-item">
+                            <div class="my-order-product">
+                              <% if (item.imagem) { %>
+                                <div
+                                  class="my-order-thumb"
+                                  style="background-image:url('<%= item.imagem %>')"
+                                ></div>
+                              <% } else { %>
+                                <div class="my-order-thumb my-order-thumb--empty">
+                                  <i class="fa-solid fa-box"></i>
+                                </div>
+                              <% } %>
+                              <div>
+                                <strong><%= item.nome %></strong>
+                                <span>Produto #<%= item.produtoId %></span>
+                              </div>
+                            </div>
+                            <div>
+                              <strong><%= item.quantidade %></strong>
+                              <span>Quantidade</span>
+                            </div>
+                            <div>
+                              <strong>
+                                <%= Number(item.valorUnitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) %>
+                              </strong>
+                              <span>Unitario</span>
+                            </div>
+                            <div>
+                              <strong>
+                                <%= Number(item.subtotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) %>
+                              </strong>
+                              <span>Subtotal</span>
+                            </div>
+                          </article>
+                        <% }); %>
+                      </div>
+                    <% } else { %>
+                      <div class="my-order-empty-detail">Nenhum produto encontrado para este pedido.</div>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<script src="/assets/js/screens/meus-pedidos.js"></script>

@@ -15,6 +15,7 @@ const CategoriasModels = require("./models/categoriasModels");
 
 const adminRoutes = require("./routes/AdminRoutes");
 const recebimentoRouter = require("./routes/recebimentoRouter");
+const pedidosRoutes = require("./routes/PedidosRoutes");
 const server = express();
 const PORT = 5000;
 const categoriasModel = new CategoriasModels();
@@ -57,6 +58,7 @@ server.use("/", servicesRoutes);
 server.use("/receber-compra", recebimentoCompraRoutes);
 server.use("/efetuar-compra", efetuarCompraRoutes);
 server.use("/recebimento", recebimentoRouter);
+server.use("/", pedidosRoutes);
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });

@@ -16,11 +16,11 @@ function normalizarMetodoPagamento(metodo) {
     debito: "DEBITO",
     cartao_debito: "DEBITO",
     pix: "PIX",
-    boleto: "BOLETO",
   };
 
   const chave = String(metodo || "").trim().toLowerCase();
-  return mapa[chave] || String(metodo || "CREDITO").trim().toUpperCase();
+  const normalizado = mapa[chave] || String(metodo || "CREDITO").trim().toUpperCase();
+  return ["CREDITO", "DEBITO", "PIX"].includes(normalizado) ? normalizado : null;
 }
 
 class RecebimentoController {
