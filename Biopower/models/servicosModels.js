@@ -3,7 +3,43 @@ const Database = require("../utils/database");
 const banco = new Database();
 
 class ServicosModels {
+  #serId;
+  #serNome;
+  #serDescricao;
+  #serPreco;
 	#db;
+  get serId() {
+    return this.#serId;
+  }
+
+  set serId(value) {
+    this.#serId = value;
+  }
+
+  get serNome() {
+    return this.#serNome;
+  }
+
+  set serNome(value) {
+    this.#serNome = value;
+  }
+
+  get serDescricao() {
+    return this.#serDescricao;
+  }
+
+  set serDescricao(value) {
+    this.#serDescricao = value;
+  }
+
+  get serPreco() {
+    return this.#serPreco;
+  }
+
+  set serPreco(value) {
+    this.#serPreco = value;
+  }
+
 
 	constructor() {
 		this.#db = banco;
@@ -22,6 +58,23 @@ class ServicosModels {
 			descricao: row.descricao || "",
 			preco: Number(row.preco || 0),
 		}));
+	}
+
+	async buscarPorId(id) {
+		if (!id) return null;
+		const sql = `
+			SELECT ser_id AS id, ser_nome AS nome, ser_descricao AS descricao, ser_preco AS preco
+			FROM tb_Servicos
+			WHERE ser_id = ?;
+		`;
+		const rows = await this.#db.ExecutaComando(sql, [id]);
+		if (!rows.length) return null;
+		return {
+			id: rows[0].id,
+			nome: rows[0].nome,
+			descricao: rows[0].descricao || "",
+			preco: Number(rows[0].preco || 0),
+		};
 	}
 
 	async criar({ nome, descricao, preco }) {

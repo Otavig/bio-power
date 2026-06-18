@@ -1,0 +1,302 @@
+const Database = require("../utils/database");
+
+const banco = new Database();
+
+class ItensServicosModels {
+  #itsId;
+  #itsIdCliente;
+  #itsIdProfissional;
+  #itsIdServico;
+  #itsIdAgendamento;
+  #itsStatus;
+  #itsValorUnitario;
+  #itsQuantidade;
+  #itsValorTotal;
+  #createdAt;
+  #updatedAt;
+  #db;
+  get itsId() {
+    return this.#itsId;
+  }
+
+  set itsId(value) {
+    this.#itsId = value;
+  }
+
+  get itsIdCliente() {
+    return this.#itsIdCliente;
+  }
+
+  set itsIdCliente(value) {
+    this.#itsIdCliente = value;
+  }
+
+  get itsIdProfissional() {
+    return this.#itsIdProfissional;
+  }
+
+  set itsIdProfissional(value) {
+    this.#itsIdProfissional = value;
+  }
+
+  get itsIdServico() {
+    return this.#itsIdServico;
+  }
+
+  set itsIdServico(value) {
+    this.#itsIdServico = value;
+  }
+
+  get itsIdAgendamento() {
+    return this.#itsIdAgendamento;
+  }
+
+  set itsIdAgendamento(value) {
+    this.#itsIdAgendamento = value;
+  }
+
+  get itsStatus() {
+    return this.#itsStatus;
+  }
+
+  set itsStatus(value) {
+    this.#itsStatus = value;
+  }
+
+  get itsValorUnitario() {
+    return this.#itsValorUnitario;
+  }
+
+  set itsValorUnitario(value) {
+    this.#itsValorUnitario = value;
+  }
+
+  get itsQuantidade() {
+    return this.#itsQuantidade;
+  }
+
+  set itsQuantidade(value) {
+    this.#itsQuantidade = value;
+  }
+
+  get itsValorTotal() {
+    return this.#itsValorTotal;
+  }
+
+  set itsValorTotal(value) {
+    this.#itsValorTotal = value;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
+  }
+
+  set createdAt(value) {
+    this.#createdAt = value;
+  }
+
+  get updatedAt() {
+    return this.#updatedAt;
+  }
+
+  set updatedAt(value) {
+    this.#updatedAt = value;
+  }
+
+  constructor() {
+    this.#db = banco;
+  }
+
+  async criar({
+    clienteId,
+    profissionalId,
+    servicoId,
+    agendamentoId,
+    status = "pendente",
+    valorUnitario,
+    quantidade = 1,
+    valorTotal,
+  }) {
+    const totalCalculado =
+      valorTotal !== undefined && valorTotal !== null
+        ? Number(valorTotal)
+        : Number(valorUnitario || 0) * Number(quantidade || 1);
+
+    const sql = `
+      INSERT INTO tb_itens_servicos
+        (its_id_cliente, its_id_profissional, its_id_servico, its_id_agendamento, its_status, its_valor_unitario, its_quantidade, its_valor_total)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+    return this.#db.ExecutaComandoLastInserted(sql, [
+      clienteId,
+      profissionalId,
+      servicoId,
+      agendamentoId,
+      status,
+      Number(valorUnitario || 0),
+      Number(quantidade || 1),
+      totalCalculado,
+    ]);
+  }
+
+  async buscarPorId(id) {
+    if (!id) return null;
+
+    const sql = `
+      SELECT
+        its_id AS id,
+        its_id_agendamento AS agendamentoId,
+        its_id_cliente AS clienteId,
+        its_id_profissional AS profissionalId,
+        its_status AS status,
+        its_valor_total AS valorTotal
+      FROM tb_itens_servicos
+      WHERE its_id = ?
+      LIMIT 1;
+    `;
+
+    const rows = await this.#db.ExecutaComando(sql, [id]);
+    if (!rows.length) return null;
+
+    return {
+      id: rows[0].id,
+      agendamentoId: rows[0].agendamentoId,
+      clienteId: rows[0].clienteId,
+      profissionalId: rows[0].profissionalId,
+      status: rows[0].status,
+      valorTotal: Number(rows[0].valorTotal || 0),
+    };
+  }
+
+  async listarPorCliente(clienteId) {
+    if (!clienteId) return [];
+    const sql = `
+      SELECT
+        i.its_id AS id,
+        i.its_id_agendamento AS agendamentoId,
+        i.its_status AS status,
+        i.its_valor_unitario AS valorUnitario,
+        i.its_quantidade AS quantidade,
+        i.its_valor_total AS valorTotal,
+        i.created_at AS dataCriacao,
+        i.updated_at AS dataAtualizacao,
+        s.ser_nome AS servicoNome,
+        s.ser_descricao AS servicoDescricao,
+        s.ser_preco AS servicoPreco,
+        p.usu_nome AS profissionalNome,
+        a.age_data_agendamento AS dataAgendamento
+      FROM tb_itens_servicos i
+      INNER JOIN tb_Servicos s ON s.ser_id = i.its_id_servico
+      INNER JOIN tb_Usuarios p ON p.usu_id = i.its_id_profissional
+      INNER JOIN tb_agendamentos a ON a.age_id = i.its_id_agendamento
+      WHERE i.its_id_cliente = ?
+      ORDER BY a.age_data_agendamento DESC;
+    `;
+    const rows = await this.#db.ExecutaComando(sql, [clienteId]);
+    return rows.map((row) => ({
+      id: row.id,
+      agendamentoId: row.agendamentoId,
+      status: row.status,
+      valorUnitario: Number(row.valorUnitario || 0),
+      quantidade: Number(row.quantidade || 0),
+      valorTotal: Number(row.valorTotal || 0),
+      dataCriacao: row.dataCriacao,
+      dataAtualizacao: row.dataAtualizacao,
+      servicoNome: row.servicoNome,
+      servicoDescricao: row.servicoDescricao,
+      servicoPreco: Number(row.servicoPreco || 0),
+      profissionalNome: row.profissionalNome,
+      dataAgendamento: row.dataAgendamento,
+    }));
+  }
+
+  async listarTodos(filtro = {}) {
+    const { status } = filtro;
+    const params = [];
+    const where = [];
+
+    if (status) {
+      where.push("i.its_status = ?");
+      params.push(status);
+    }
+
+    const sql = `
+      SELECT
+        i.its_id AS id,
+        i.its_status AS status,
+        i.its_valor_unitario AS valorUnitario,
+        i.its_quantidade AS quantidade,
+        i.its_valor_total AS valorTotal,
+        i.created_at AS dataCriacao,
+        i.updated_at AS dataAtualizacao,
+        s.ser_nome AS servicoNome,
+        s.ser_descricao AS servicoDescricao,
+        s.ser_preco AS servicoPreco,
+        c.usu_id AS clienteId,
+        c.usu_nome AS clienteNome,
+        c.usu_email AS clienteEmail,
+        p.usu_id AS profissionalId,
+        p.usu_nome AS profissionalNome,
+        a.age_id AS agendamentoId,
+        a.age_data_agendamento AS dataAgendamento,
+        a.age_observacoes AS observacoes
+      FROM tb_itens_servicos i
+      INNER JOIN tb_Servicos s ON s.ser_id = i.its_id_servico
+      INNER JOIN tb_Usuarios c ON c.usu_id = i.its_id_cliente
+      INNER JOIN tb_Usuarios p ON p.usu_id = i.its_id_profissional
+      INNER JOIN tb_agendamentos a ON a.age_id = i.its_id_agendamento
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY a.age_data_agendamento DESC;
+    `;
+
+    const rows = await this.#db.ExecutaComando(sql, params);
+    return rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      valorUnitario: Number(row.valorUnitario || 0),
+      quantidade: Number(row.quantidade || 0),
+      valorTotal: Number(row.valorTotal || 0),
+      dataCriacao: row.dataCriacao,
+      dataAtualizacao: row.dataAtualizacao,
+      servicoNome: row.servicoNome,
+      servicoDescricao: row.servicoDescricao,
+      servicoPreco: Number(row.servicoPreco || 0),
+      clienteId: row.clienteId,
+      clienteNome: row.clienteNome,
+      clienteEmail: row.clienteEmail,
+      profissionalId: row.profissionalId,
+      profissionalNome: row.profissionalNome,
+      agendamentoId: row.agendamentoId,
+      dataAgendamento: row.dataAgendamento,
+      observacoes: row.observacoes,
+    }));
+  }
+
+  async atualizarStatus(id, { status, observacoes }) {
+    if (!id || !status) return null;
+
+    const contrato = await this.buscarPorId(id);
+    if (!contrato || !contrato.agendamentoId) return null;
+
+    const sql = `
+      UPDATE tb_itens_servicos
+      SET its_status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE its_id_agendamento = ?;
+    `;
+
+    const atualizouStatus = await this.#db.ExecutaComandoNonQuery(sql, [status, contrato.agendamentoId]);
+
+    if (observacoes !== undefined && observacoes !== null) {
+      const sqlObs = `
+        UPDATE tb_agendamentos
+        SET age_observacoes = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE age_id = ?;
+      `;
+      await this.#db.ExecutaComandoNonQuery(sqlObs, [observacoes, contrato.agendamentoId]);
+    }
+
+    return atualizouStatus;
+  }
+}
+
+module.exports = ItensServicosModels;

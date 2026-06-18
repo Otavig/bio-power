@@ -67,6 +67,9 @@
         <a href="#stock" class="adm-nav-item" data-section="stock">
           <i class="fa-solid fa-warehouse"></i><span>Estoque</span>
         </a>
+        <a href="#compras" class="adm-nav-item" data-section="compras">
+          <i class="fa-solid fa-truck"></i><span>Compras</span>
+        </a>
         <p class="adm-nav-section-label">Gestão</p>
         <a href="#users" class="adm-nav-item" data-section="users">
           <i class="fa-solid fa-users"></i><span>Usuários</span>
@@ -75,7 +78,7 @@
           <i class="fa-solid fa-calendar-check"></i><span>Serviços</span>
         </a>
         <a href="#services-contracts" class="adm-nav-item" data-section="services-contracts">
-          <i class="fa-solid fa-handshake"></i><span>Serviços contratados</span>
+          <i class="fa-solid fa-handshake"></i><span>Agendamentos</span>
         </a>
         <a href="#coupons" class="adm-nav-item" data-section="coupons">
           <i class="fa-solid fa-ticket"></i><span>Cupons & Promoções</span>
@@ -211,12 +214,14 @@
         <%- include('./partials/reports/reports') %>
         <%- include('./partials/settings/settings') %>
         <%- include('./partials/permissions/permissions') %>
+        <%- include('./partials/compras/compras') %>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/assets/js/admin-dashboard.js"></script>
     <script src="/assets/js/screens/admin-products.js"></script>
+    <script src="/assets/js/screens/admin-categories.js"></script>
     <script src="/assets/js/screens/admin-services.js"></script>
     <script src="/assets/js/screens/admin-users.js"></script>
   </body>
