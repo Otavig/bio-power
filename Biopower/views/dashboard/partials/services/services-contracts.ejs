@@ -11,19 +11,8 @@
     <div class="adm-card-header adm-card-header--between adm-contracts-header">
       <div class="adm-card-header-title">
         <h3>Lista de contratos</h3>
-        <p>Controle centralizado com filtro por status.</p>
-      </div>
-      <div class="adm-contracts-filters">
-        <div class="adm-filter-control">
-          <label for="filtroStatusContrato">Status</label>
-          <select id="filtroStatusContrato" class="adm-input adm-input--pill">
-            <option value="">Todos</option>
-            <% (statusServicos || []).forEach(function(st){ %>
-              <option value="<%= st %>"><%= st %></option>
-            <% }) %>
-          </select>
-        </div>
-      </div>
+        <p>Controle centralizado</p>
+      </div>     
     </div>
 
     <% if (!servicosContratados || servicosContratados.length === 0) { %>
