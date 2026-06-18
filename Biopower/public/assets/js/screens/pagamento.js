@@ -75,8 +75,18 @@ document.addEventListener("DOMContentLoaded", function () {
     container.innerHTML = listaItens
       .map((item) => {
         const preco = typeof item.preco === "string" ? parseFloat(item.preco.replace(",", ".")) : Number(item.preco || 0);
+        const precoOriginal = typeof item.precoOriginal === "string"
+          ? parseFloat(item.precoOriginal.replace(",", "."))
+          : Number(item.precoOriginal || preco);
+        const temPromocao = precoOriginal > preco && Number.isFinite(precoOriginal);
         const quantidade = Number(item.quantidade || 1);
         const subtotal = preco * quantidade;
+        const precoHtml = temPromocao
+          ? `<small class="checkout-price-line"><span class="checkout-old-price">${formatarMoeda(precoOriginal)}</span><span class="checkout-new-price">${formatarMoeda(preco)}</span> cada</small>`
+          : `<small>${formatarMoeda(preco)} cada</small>`;
+        const descontoHtml = temPromocao && item.desconto
+          ? `<span class="checkout-discount-badge">${item.desconto} OFF</span>`
+          : "";
 
         return `
           <div class="checkout-item" data-produto="${item.id}">
@@ -84,7 +94,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="checkout-item-main">
               <div class="checkout-item-info">
                 <h6>${item.nome}</h6>
-                <small>${formatarMoeda(preco)} cada</small>
+                ${precoHtml}
+                ${descontoHtml}
                 <div class="checkout-stock-msg" data-stock-msg="${item.id}"></div>
               </div>
             </div>

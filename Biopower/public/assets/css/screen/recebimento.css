@@ -1083,6 +1083,37 @@
       color: var(--color-text-muted);
     }
 
+    .checkout-price-line {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px 7px;
+    }
+
+    .checkout-old-price {
+      color: #c62828;
+      font-weight: var(--font-weight-bold);
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    .checkout-new-price {
+      color: var(--color-text);
+      font-weight: var(--font-weight-extrabold);
+    }
+
+    .checkout-discount-badge {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #ffe8e8;
+      color: #b71c1c;
+      font-size: 0.72rem;
+      font-weight: var(--font-weight-extrabold);
+    }
+
     .checkout-item-actions {
       grid-area: actions;
       display: flex;
@@ -1217,4 +1248,3 @@
       .metodos { grid-template-columns: repeat(3,1fr); }
       .card-preview .card-num { font-size: 0.9rem; letter-spacing: 0.14em; }
     }
-

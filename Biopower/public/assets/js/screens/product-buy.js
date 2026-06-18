@@ -6,18 +6,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const productData = sessionStorage.getItem("selectedProduct");
-  if (!productData) {
+  const product = productData ? JSON.parse(productData) : window.initialProduct;
+
+  if (!product) {
     showAlert({ icon: "warning", title: "Nenhum produto selecionado!" });
-    window.location.href = "home.html";
+    window.location.href = "/";
     return;
   }
 
-  const product = JSON.parse(productData);
+  const temPromocao = Boolean(product.temPromocao || Number(product.descontoNumber || 0) > 0);
+  const precoPromocional = product.precoPromocional || product.preco;
+  const precoOriginal = product.precoOriginal || product.preco;
+  const pricing = document.querySelector(".product-buy-pricing");
 
   document.getElementById("product-name").textContent = product.nome;
-  document.getElementById("product-price").textContent = product.preco;
-  document.getElementById("product-discount").textContent = product.desconto;
+  document.getElementById("product-price").textContent = temPromocao ? precoPromocional : product.preco;
+  document.getElementById("product-old-price").textContent = temPromocao ? precoOriginal : "";
+  document.getElementById("product-discount").textContent = temPromocao ? `${product.desconto} OFF` : "";
   document.getElementById("product-credit").textContent = product.credito;
+  if (pricing) pricing.classList.toggle("has-promo", temPromocao);
 
   const img = document.getElementById("product-image");
   img.src = product.imagem;

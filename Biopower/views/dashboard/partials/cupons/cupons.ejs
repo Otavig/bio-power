@@ -22,6 +22,7 @@
             <th>Descrição</th>
             <th>Desconto</th>
             <th>Validade</th>
+            <th>Aplicação</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
@@ -107,6 +108,22 @@
 
         </div>
 
+        <div class="adm-form-group adm-form-group--full">
+          <label class="adm-check-line">
+            <input type="checkbox" name="coupon_auto_apply" value="1">
+            Aplicar automaticamente em produtos próximos do vencimento
+          </label>
+        </div>
+
+        <div class="adm-form-group adm-form-group--full coupon-auto-days" hidden>
+          <label>Produtos que vencem nos próximos</label>
+          <select class="adm-input" name="coupon_expiration_days">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
+        </div>
+
       </div>
 
 
@@ -177,6 +194,22 @@
         <div class="adm-form-group">
           <label>Data fim *</label>
           <input class="adm-input" type="date" name="coupon_end_date" required>
+        </div>
+
+        <div class="adm-form-group adm-form-group--full">
+          <label class="adm-check-line">
+            <input type="checkbox" name="coupon_auto_apply" value="1">
+            Aplicar automaticamente em produtos próximos do vencimento
+          </label>
+        </div>
+
+        <div class="adm-form-group adm-form-group--full coupon-auto-days" hidden>
+          <label>Produtos que vencem nos próximos</label>
+          <select class="adm-input" name="coupon_expiration_days">
+            <option value="30">30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+          </select>
         </div>
 
         <div class="adm-form-group adm-form-group--full">

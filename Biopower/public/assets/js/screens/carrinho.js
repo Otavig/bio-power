@@ -153,9 +153,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const itensHtml = listaCarrinho
       .map((item) => {
         const precoNumerico = parsePreco(item.preco);
+        const precoOriginal = parsePreco(item.precoOriginal || item.preco);
+        const temPromocao = precoOriginal > precoNumerico;
         const quantidade = Number(item.quantidade || 1);
         const subtotal = precoNumerico * quantidade;
         valorTotal += subtotal;
+        const precoUnitarioHtml = temPromocao
+          ? `<span class="cart-drawer-unit-price"><span class="cart-drawer-old-price">${formatarMoeda(precoOriginal)}</span><span>${formatarMoeda(precoNumerico)} cada</span></span>`
+          : "";
+        const descontoHtml = temPromocao && item.desconto
+          ? `<span class="cart-drawer-discount">${item.desconto} OFF</span>`
+          : "";
 
         return `
           <article class="cart-drawer-item">
@@ -171,6 +179,8 @@ document.addEventListener("DOMContentLoaded", function () {
                   <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
+              ${precoUnitarioHtml}
+              ${descontoHtml}
               <span class="cart-drawer-price">${formatarMoeda(subtotal)}</span>
             </div>
             <button data-produto="${item.id}" class="cart-drawer-remove excluirCarrinho" type="button" aria-label="Remover produto">
@@ -203,6 +213,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const produtoId = card.dataset.id;
     const nome = card.dataset.name;
     const preco = parsePreco(card.dataset.price);
+    const precoOriginal = parsePreco(card.dataset.originalPrice || card.dataset.price);
+    const desconto = card.dataset.discountLabel || "";
     const imagem = card.querySelector("img")?.src || "/assets/imgs/product/default.png";
     const quantidade = lerQuantidadeCard(card);
 
@@ -215,6 +227,8 @@ document.addEventListener("DOMContentLoaded", function () {
       id: produtoId,
       nome,
       preco,
+      precoOriginal,
+      desconto,
       imagem,
       quantidade
     };
@@ -229,6 +243,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const existente = listaCarrinho.find((produto) => String(produto.id) === String(produtoId));
     if (existente) {
       existente.quantidade = Number(existente.quantidade || 1) + quantidade;
+      existente.preco = preco;
+      existente.precoOriginal = precoOriginal;
+      existente.desconto = desconto;
+      existente.imagem = imagem;
     } else {
       listaCarrinho.push(item);
     }

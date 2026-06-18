@@ -172,13 +172,16 @@
           <% if (products && products.length) { %>
             <% products.forEach((product, index) => { %>
               <%
-                const precoNum = Number(product.precoNumber) || parseFloat(
+                const precoNum = Number(product.precoPromocionalNumber || product.precoNumber) || parseFloat(
                   String(product.preco || '0').replace(/[^\d,]/g, '').replace(',', '.')
                 ) || 0;
-                const temDesconto = !!product.desconto;
+                const precoOriginalNum = Number(product.precoOriginalNumber || product.precoNumber || precoNum) || precoNum;
+                const temDesconto = !!product.temPromocao || Number(product.descontoNumber || 0) > 0;
               %>
               <div class="product-card"
                    data-price="<%= precoNum %>"
+                   data-original-price="<%= precoOriginalNum %>"
+                   data-discount-label="<%= product.desconto || '' %>"
                    data-id="<%= product.id %>"
                    data-name="<%= product.nome %>"
                    data-category="<%= product.categoriaId || product.categoria %>"
@@ -202,10 +205,13 @@
                   </div>
 
                   <div class="product-pricing">
-                    <% if (product.desconto) { %>
-                      <span class="product-old-price"><%= product.desconto %></span>
+                    <% if (temDesconto) { %>
+                      <span class="product-old-price"><%= product.precoOriginal || product.preco %></span>
+                      <span class="product-price"><%= product.precoPromocional || product.preco %></span>
+                      <span class="product-discount-badge"><%= product.desconto %> OFF</span>
+                    <% } else { %>
+                      <span class="product-price"><%= product.preco %></span>
                     <% } %>
-                    <span class="product-price"><%= product.preco %></span>
                   </div>
 
                   <% if (product.credito) { %>

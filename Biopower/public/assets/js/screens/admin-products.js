@@ -28,6 +28,13 @@ document.addEventListener("DOMContentLoaded", function () {
     return Promise.resolve();
   };
 
+  function recarregarProdutos() {
+    if (window.location.hash !== "#products") {
+      window.location.hash = "products";
+    }
+    window.location.reload();
+  }
+
   function resetBordas() {
     [nome, preco, categoria, marca, sabor, desconto, imagem]
       .filter(Boolean)

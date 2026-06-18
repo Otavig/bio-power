@@ -113,6 +113,35 @@
   margin-top: 8px;
 }
 
+.cart-drawer-unit-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--cart-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cart-drawer-old-price {
+  color: #c62828;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.cart-drawer-discount {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ffe8e8;
+  color: #b71c1c;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .cart-drawer-qty {
   display: inline-grid;
   grid-template-columns: 28px 34px 28px;
