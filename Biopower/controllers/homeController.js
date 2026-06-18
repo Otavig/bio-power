@@ -6,7 +6,7 @@ const products = [
     {
         nome: "Creatina Monohidratada 250g",
         preco: "R$79,92",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$88,80 no cartão em até 6x de R$14,80",
         imagem: "/assets/imgs/product/product1.png",
         alt: "Creatina Verde",
@@ -17,7 +17,7 @@ const products = [
     {
         nome: "Whey Protein Baunilha 900g",
         preco: "R$129,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$144,30 no cartão em até 6x de R$24,05",
         imagem: "/assets/imgs/product/product2.png",
         alt: "Whey Baunilha",
@@ -28,7 +28,7 @@ const products = [
     {
         nome: "Pré-Treino Explosivo DUX 300g",
         preco: "R$98,50",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$109,90 no cartão em até 5x de R$21,98",
         imagem: "/assets/imgs/product/product3.png",
         alt: "Pré-treino DUX",
@@ -39,7 +39,7 @@ const products = [
     {
         nome: "Creatina Dark Lab 300g",
         preco: "R$89,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$99,90 no cartão em até 4x de R$24,97",
         imagem: "/assets/imgs/product/product4.png",
         alt: "Creatina Dark",
@@ -50,7 +50,7 @@ const products = [
     {
         nome: "Termogênico Black Skull 60 caps",
         preco: "R$59,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$66,60 no cartão em até 3x de R$22,20",
         imagem: "/assets/imgs/product/product5.png",
         alt: "Termogênico Black Skull",
@@ -61,7 +61,7 @@ const products = [
     {
         nome: "Whey Protein Chocolate 1kg",
         preco: "R$134,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$149,90 no cartão em até 6x de R$24,98",
         imagem: "/assets/imgs/product/product6.png",
         alt: "Whey Chocolate",
@@ -72,7 +72,7 @@ const products = [
     {
         nome: "Pré-Treino Insano 280g",
         preco: "R$89,99",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$99,99 no cartão em até 5x de R$20,00",
         imagem: "/assets/imgs/product/product7.png",
         alt: "Pré-Treino Insano",
@@ -83,7 +83,7 @@ const products = [
     {
         nome: "Creatina Universal 300g",
         preco: "R$109,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$119,90 no cartão em até 4x de R$29,97",
         imagem: "/assets/imgs/product/product8.png",
         alt: "Creatina Universal",
@@ -94,7 +94,7 @@ const products = [
     {
         nome: "Termogênico Kimera 60 caps",
         preco: "R$69,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$79,90 no cartão em até 3x de R$26,63",
         imagem: "/assets/imgs/product/product9.png",
         alt: "Termogênico Kimera",
@@ -105,7 +105,7 @@ const products = [
     {
         nome: "Whey Blend 3W 900g",
         preco: "R$119,00",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$132,00 no cartão em até 6x de R$22,00",
         imagem: "/assets/imgs/product/product10.png",
         alt: "Whey 3W",
@@ -116,7 +116,7 @@ const products = [
     {
         nome: "Pré-Treino C4 Original 195g",
         preco: "R$139,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$149,90 no cartão em até 5x de R$29,98",
         imagem: "/assets/imgs/product/product11.png",
         alt: "Pré-Treino C4",
@@ -127,7 +127,7 @@ const products = [
     {
         nome: "Creatina Hardcore Reload 300g",
         preco: "R$94,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$104,90 no cartão em até 4x de R$26,23",
         imagem: "/assets/imgs/product/product12.png",
         alt: "Creatina Hardcore Reload",
@@ -138,7 +138,7 @@ const products = [
     {
         nome: "Termogênico Thermo Flame 120 caps",
         preco: "R$79,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$89,90 no cartão em até 3x de R$29,96",
         imagem: "/assets/imgs/product/product13.png",
         alt: "Thermo Flame",
@@ -149,7 +149,7 @@ const products = [
     {
         nome: "Whey Isolado 900g",
         preco: "R$189,90",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$209,90 no cartão em até 6x de R$34,98",
         imagem: "/assets/imgs/product/product14.png",
         alt: "Whey Isolado",
@@ -160,7 +160,7 @@ const products = [
     {
         nome: "Pré-Treino Psycho 280g",
         preco: "R$84,50",
-        desconto: "no boleto ou pix",
+        desconto: "no pix ou cartao",
         credito: "ou R$94,50 no cartão em até 3x de R$31,50",
         imagem: "/assets/imgs/product/product15.png",
         alt: "Pré-Treino Psycho",
@@ -190,3 +190,4 @@ class homeController {
 }
 
 module.exports = homeController;
+

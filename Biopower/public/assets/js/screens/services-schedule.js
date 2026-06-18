@@ -22,9 +22,26 @@
   const descontosEl = document.getElementById("descontos");
   const totalEl = document.getElementById("total");
   const btnCheckout = document.getElementById("btnCheckout");
+  const dataAgendamento = document.getElementById("dataAgendamento");
 
   function toMoney(v) {
     return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function formatDateTimeLocal(date) {
+    const pad = (value) => String(value).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  function atualizarDataMinima() {
+    if (dataAgendamento) dataAgendamento.min = formatDateTimeLocal(new Date());
+  }
+
+  function dataAgendamentoValida(value) {
+    if (!value) return false;
+    const selecionada = new Date(value);
+    const agora = new Date();
+    return !Number.isNaN(selecionada.getTime()) && selecionada >= agora;
   }
 
   function getSelectedService() {
@@ -106,7 +123,8 @@
   });
 
   btnCheckout?.addEventListener("click", async function () {
-    const dataAgendamentoInput = document.getElementById("dataAgendamento").value;
+    atualizarDataMinima();
+    const dataAgendamentoInput = dataAgendamento?.value || "";
     const profissionalId = Number(document.getElementById("profissionalId").value);
     const observacoes = document.getElementById("observacoes").value || null;
 
@@ -115,10 +133,16 @@
       return;
     }
 
-    const dataAgendamento = dataAgendamentoInput.replace("T", " ") + ":00";
+    if (!dataAgendamentoValida(dataAgendamentoInput)) {
+      alert("Selecione uma data de agendamento a partir de agora.");
+      dataAgendamento?.focus();
+      return;
+    }
+
+    const dataAgendamentoSql = dataAgendamentoInput.replace("T", " ") + ":00";
 
     const payload = {
-      dataAgendamento,
+      dataAgendamento: dataAgendamentoSql,
       profissionalId,
       observacoes,
       itens: items.map((i) => ({ servicoId: i.servicoId, quantidade: i.quantidade })),
@@ -145,6 +169,7 @@
     if (existeOpcao) serviceSelect.value = String(preselectedServiceId);
   }
 
+  atualizarDataMinima();
   renderServicePreview();
   render();
 })();
