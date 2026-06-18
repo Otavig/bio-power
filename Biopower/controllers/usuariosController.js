@@ -34,6 +34,8 @@ class UsuariosController {
       let roleDisplay = "Cliente";
       if (Number(usuario.usuTypeId) === 1) { role = "admin"; roleDisplay = "Administrador"; }
       else if (Number(usuario.usuTypeId) === 2) { role = "staff"; roleDisplay = "Funcionario"; }
+      else if (Number(usuario.usuTypeId) === 3) { role = "professional"; roleDisplay = "Profissional"; }
+      else if (Number(usuario.usuTypeId) === 5) { role = "supplier"; roleDisplay = "Fornecedor"; }
 
       req.session.user = {
         id: usuario.usuId,
@@ -44,7 +46,10 @@ class UsuariosController {
         roleDisplay,
       };
 
-      const redirectTo = (role === "admin" || role === "staff") ? "/dashboard" : "/";
+      let redirectTo = "/";
+      if (role === "admin" || role === "staff") redirectTo = "/dashboard";
+      else if (role === "supplier") redirectTo = "/dashboard#compras";
+      else if (role === "professional") redirectTo = "/dashboard#services-contracts";
       return res.redirect(redirectTo);
     } catch (err) {
       console.error("Erro no login:", err);

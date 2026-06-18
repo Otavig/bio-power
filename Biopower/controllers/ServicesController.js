@@ -72,7 +72,7 @@ class ServicesController {
       if (!servico) return res.status(404).json({ ok: false, msg: "Servico nao encontrado." });
 
       const usuarios = await this.usuariosModel.listar();
-      const profissional = usuarios.find((u) => Number(u.usuTypeId) === 2 && Number(u.usuAtivo) === 1);
+      const profissional = usuarios.find((u) => Number(u.usuTypeId) === 3 && Number(u.usuAtivo) === 1);
       if (!profissional) {
         return res.status(400).json({ ok: false, msg: "Nenhum profissional ativo disponivel no momento." });
       }
@@ -119,7 +119,7 @@ class ServicesController {
       services = await this.servicosModel.listar();
       const usuarios = await this.usuariosModel.listar();
       profissionais = usuarios
-        .filter((u) => Number(u.usuTypeId) === 2 && Number(u.usuAtivo) === 1)
+        .filter((u) => Number(u.usuTypeId) === 3 && Number(u.usuAtivo) === 1)
         .map((u) => ({ id: u.usuId, nome: u.usuNome }));
     } catch (err) {
       console.error("Erro ao carregar tela de agendamento:", err);
@@ -140,9 +140,18 @@ class ServicesController {
       return res.status(400).json({ ok: false, msg: "Dados de agendamento invalidos." });
     }
 
+    const dataAgendamentoDate = new Date(String(dataAgendamento).replace(" ", "T"));
+    if (Number.isNaN(dataAgendamentoDate.getTime())) {
+      return res.status(400).json({ ok: false, msg: "Data de agendamento invalida." });
+    }
+
+    if (dataAgendamentoDate < new Date()) {
+      return res.status(400).json({ ok: false, msg: "Nao e permitido agendar para antes de hoje." });
+    }
+
     try {
       const profissionais = (await this.usuariosModel.listar()).filter(
-        (u) => Number(u.usuTypeId) === 2 && Number(u.usuAtivo) === 1
+        (u) => Number(u.usuTypeId) === 3 && Number(u.usuAtivo) === 1
       );
       const profissionalExiste = profissionais.some((p) => Number(p.usuId) === profissionalIdNum);
       if (!profissionalExiste) return res.status(400).json({ ok: false, msg: "Profissional invalido." });

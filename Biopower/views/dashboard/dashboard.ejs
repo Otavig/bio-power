@@ -45,6 +45,17 @@
         </div>
       </div>
       <nav class="adm-nav">
+        <% if (isSupplierPanel) { %>
+          <p class="adm-nav-section-label">Fornecedor</p>
+          <a href="#compras" class="adm-nav-item adm-nav-item--active" data-section="compras">
+            <i class="fa-solid fa-truck"></i><span>Compras</span>
+          </a>
+        <% } else if (isProfessionalPanel) { %>
+          <p class="adm-nav-section-label">Profissional</p>
+          <a href="#services-contracts" class="adm-nav-item adm-nav-item--active" data-section="services-contracts">
+            <i class="fa-solid fa-handshake"></i><span>Agendamentos</span>
+          </a>
+        <% } else { %>
         <p class="adm-nav-section-label">Principal</p>
         <a
           href="#overview"
@@ -57,6 +68,12 @@
           <i class="fa-solid fa-box-open"></i><span>Produtos</span
           ><span class="adm-nav-badge"><%= products.length %></span>
         </a>
+        <a href="#estoque" class="adm-nav-item" data-section="estoque">
+          <i class="fa-solid fa-warehouse"></i><span>Estoque</span>
+        </a>
+        <a href="#descartes" class="adm-nav-item" data-section="descartes">
+          <i class="fa-solid fa-trash-can"></i><span>Descarte</span>
+        </a>
         <a href="#categories" class="adm-nav-item" data-section="categories">
           <i class="fa-solid fa-tags"></i><span>Categorias</span>
         </a>
@@ -67,6 +84,9 @@
           <i class="fa-solid fa-truck"></i><span>Compras</span>
         </a>
         <p class="adm-nav-section-label">Gestão</p>
+        <a href="#fornecedores" class="adm-nav-item" data-section="fornecedores">
+          <i class="fa-solid fa-industry"></i><span>Fornecedores</span>
+        </a>
         <a href="#users" class="adm-nav-item" data-section="users">
           <i class="fa-solid fa-users"></i><span>Usuários</span>
         </a>
@@ -90,6 +110,7 @@
         <a href="#permissions" class="adm-nav-item" data-section="permissions">
           <i class="fa-solid fa-shield-halved"></i><span>Permissões</span>
         </a>
+        <% } %>
       </nav>
       <a class="adm-sidebar-logout" href="/logout">
         <i class="fa-solid fa-right-from-bracket"></i
@@ -198,18 +219,27 @@
       </header>
 
       <main class="adm-main">
-        <%- include('./partials/overview/overview') %>
-        <%- include('./partials/products/products') %>
-        <%- include('./partials/categories/categories') %>
-        <%- include('./partials/orders/orders') %>
-        <%- include('./partials/users/users') %>
-        <%- include('./partials/services/services') %>
-        <%- include('./partials/services/services-contracts') %>
-        <%- include('./partials/cupons/cupons') %>
-        <%- include('./partials/reports/reports') %>
-        <%- include('./partials/settings/settings') %>
-        <%- include('./partials/permissions/permissions') %>
-        <%- include('./partials/compras/compras') %>
+        <% if (isSupplierPanel) { %>
+          <%- include('./partials/compras/compras') %>
+        <% } else if (isProfessionalPanel) { %>
+          <%- include('./partials/services/services-contracts') %>
+        <% } else { %>
+          <%- include('./partials/overview/overview') %>
+          <%- include('./partials/products/products') %>
+          <%- include('./partials/categories/categories') %>
+          <%- include('./partials/orders/orders') %>
+          <%- include('./partials/estoque/estoque') %>
+          <%- include('./partials/descartes/descartes') %>
+          <%- include('./partials/fornecedores/fornecedores') %>
+          <%- include('./partials/users/users') %>
+          <%- include('./partials/services/services') %>
+          <%- include('./partials/services/services-contracts') %>
+          <%- include('./partials/compras/compras') %>
+          <%- include('./partials/cupons/cupons') %>
+          <%- include('./partials/reports/reports') %>
+          <%- include('./partials/settings/settings') %>
+          <%- include('./partials/permissions/permissions') %>
+        <% } %>
 
       </main>
     </div>
@@ -219,10 +249,16 @@
 
     <script src="/assets/js/admin-dashboard.js"></script>
 
-    <script src="/assets/js/screens/admin-products.js"></script>
-    <script src="/assets/js/screens/admin-categories.js"></script>
-    <script src="/assets/js/screens/admin-services.js"></script>
-    <script src="/assets/js/screens/admin-users.js"></script>
-    <script src="/assets/js/screens/admin-cupons.js"></script>
+    <% if (isProfessionalPanel) { %>
+      <script src="/assets/js/screens/admin-services.js"></script>
+    <% } else if (!isSupplierPanel) { %>
+      <script src="/assets/js/screens/admin-products.js"></script>
+      <script src="/assets/js/screens/admin-categories.js"></script>
+      <script src="/assets/js/screens/admin-services.js"></script>
+      <script src="/assets/js/screens/admin-users.js"></script>
+      <script src="/assets/js/screens/admin-fornecedores.js"></script>
+      <script src="/assets/js/screens/admin-descartes.js"></script>
+      <script src="/assets/js/screens/admin-cupons.js"></script>
+    <% } %>
   </body>
 </html>

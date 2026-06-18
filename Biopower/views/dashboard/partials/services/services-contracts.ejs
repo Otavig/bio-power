@@ -1,5 +1,5 @@
 ﻿<!-- SERVIÇOS CONTRATADOS -->
-<section class="adm-section" id="services-contracts">
+<section class="adm-section <%= isProfessionalPanel ? 'adm-section--active' : '' %>" id="services-contracts">
   <div class="adm-page-header">
     <div>
       <h1>Agendamentos</h1>
@@ -89,37 +89,38 @@
                   </div>
                 </div>
               <% }) %>
-              <div style="margin-top:16px;">
-                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--color-text);">Produtos vinculados ao atendimento</label>
-                <div class="adm-contract-product-form">
-                  <select class="adm-input js-produto-select" style="min-width:220px">
-                    <option value="">Escolha um produto...</option>
-                    <% (products || []).forEach(function(p){ %>
-                      <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.nome %> (Estoque: <%= p.estoque %>)</option>
-                    <% }) %>
-                  </select>
-                  <input type="number" class="adm-input js-produto-qty adm-contract-product-qty" min="1" value="1" />
-                  <button type="button" class="adm-btn adm-btn--primary js-add-produto">
-                    <i class="fa-solid fa-plus"></i> Adicionar
-                  </button>
-                </div>
-
-                <div class="js-produtos-list" style="margin-top:8px">
-                  <!-- selected products will appear here -->
-                </div>
-
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px">
-                  <div>
-                    <strong>Total:</strong> <span class="js-produtos-total">R$ 0,00</span>
-                  </div>
-                  <div>
-                    <button type="button" class="adm-btn adm-btn--primary js-cobrar">
-                      <i class="fa-solid fa-check"></i> Cobrar
+              <% if (!isProfessionalPanel) { %>
+                <div style="margin-top:16px;">
+                  <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--color-text);">Produtos vinculados ao atendimento</label>
+                  <div class="adm-contract-product-form">
+                    <select class="adm-input js-produto-select" style="min-width:220px">
+                      <option value="">Escolha um produto...</option>
+                      <% (products || []).forEach(function(p){ %>
+                        <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.nome %> (Estoque: <%= p.estoque %>)</option>
+                      <% }) %>
+                    </select>
+                    <input type="number" class="adm-input js-produto-qty adm-contract-product-qty" min="1" value="1" />
+                    <button type="button" class="adm-btn adm-btn--primary js-add-produto">
+                      <i class="fa-solid fa-plus"></i> Adicionar
                     </button>
                   </div>
-                </div>
 
-              </div>
+                  <div class="js-produtos-list" style="margin-top:8px">
+                    <!-- selected products will appear here -->
+                  </div>
+
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px">
+                    <div>
+                      <strong>Total:</strong> <span class="js-produtos-total">R$ 0,00</span>
+                    </div>
+                    <div>
+                      <button type="button" class="adm-btn adm-btn--primary js-cobrar">
+                        <i class="fa-solid fa-check"></i> Cobrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
             </td>
           </tr>
           <% }) %>

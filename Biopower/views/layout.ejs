@@ -54,8 +54,8 @@
         <!-- Links centrais -->
         <div class="navbar-links" id="navbarLinks">
           <a href="/store">Loja</a>
-          <% if (sessionUser?.role === "admin") { %>
-            <a href="/dashboard/dashboard">Painel</a>
+          <% if (sessionUser && ['admin', 'staff', 'supplier', 'professional'].includes(sessionUser.role)) { %>
+            <a href="<%= sessionUser.role === 'supplier' ? '/dashboard#compras' : (sessionUser.role === 'professional' ? '/dashboard#services-contracts' : '/dashboard/dashboard') %>">Painel</a>
           <% } %>
           <a href="/services">Serviços</a>
           <a href="/about-us">Sobre Nós</a>
@@ -100,6 +100,10 @@
                       <i class="fa-solid fa-shield-halved"></i> Admin
                     <% } else if (sessionUser.role === 'staff') { %>
                       <i class="fa-solid fa-briefcase"></i> Funcionário
+                    <% } else if (sessionUser.role === 'supplier') { %>
+                      <i class="fa-solid fa-truck"></i> Fornecedor
+                    <% } else if (sessionUser.role === 'professional') { %>
+                      <i class="fa-solid fa-user-doctor"></i> Profissional
                     <% } else { %>
                       <i class="fa-solid fa-user"></i> Cliente
                     <% } %>
@@ -119,11 +123,10 @@
                   </div>
                 </div>
                 <div class="profile-dropdown-content">
-                  <% if (sessionUser.role === 'admin' || sessionUser.role === 'staff') { %>
-                    <a href="/dashboard/dashboard"><i class="fa-solid fa-chart-line"></i> Painel Admin</a>
+                  <% if (['admin', 'staff', 'supplier', 'professional'].includes(sessionUser.role)) { %>
+                    <a href="<%= sessionUser.role === 'supplier' ? '/dashboard#compras' : (sessionUser.role === 'professional' ? '/dashboard#services-contracts' : '/dashboard/dashboard') %>"><i class="fa-solid fa-chart-line"></i> Painel</a>
                   <% } %>
                   <a href="/pedidos"><i class="fas fa-box"></i> Meus Pedidos</a>
-                  <a href="/recebimento"><i class="fas fa-box"></i> Recebimento de Pedidos</a>
                   <a href="#"><i class="fas fa-cog"></i> Configurações</a>
                   <div class="dropdown-divider"></div>
                   <a href="/logout" class="logout-item"><i class="fas fa-sign-out-alt"></i> Sair</a>
@@ -201,14 +204,18 @@
                         <i class="fa-solid fa-shield-halved"></i> Administrador
                       <% } else if (sessionUser.role === 'staff') { %>
                         <i class="fa-solid fa-briefcase"></i> Funcionário
+                      <% } else if (sessionUser.role === 'supplier') { %>
+                        <i class="fa-solid fa-truck"></i> Fornecedor
+                      <% } else if (sessionUser.role === 'professional') { %>
+                        <i class="fa-solid fa-user-doctor"></i> Profissional
                       <% } else { %>
                         <i class="fa-solid fa-user"></i> Cliente
                       <% } %>
                     </span>
                   </div>
                 </div>
-                <% if (sessionUser.role === 'admin' || sessionUser.role === 'staff') { %>
-                  <a href="/dashboard/dashboard" class="mobile-settings-link"><i class="fa-solid fa-chart-line"></i> Painel Admin</a>
+                <% if (['admin', 'staff', 'supplier', 'professional'].includes(sessionUser.role)) { %>
+                  <a href="<%= sessionUser.role === 'supplier' ? '/dashboard#compras' : (sessionUser.role === 'professional' ? '/dashboard#services-contracts' : '/dashboard/dashboard') %>" class="mobile-settings-link"><i class="fa-solid fa-chart-line"></i> Painel</a>
                 <% } %>
                 <a href="/pedidos" class="mobile-settings-link"><i class="fas fa-box"></i> Meus Pedidos</a>
                 <a href="/logout" class="mobile-logout-button"><i class="fas fa-sign-out-alt"></i> Sair</a>

@@ -1,117 +1,87 @@
-
 <link rel="stylesheet" href="/assets/css/screen/compras/comprasCss.css">
 
-<div id="novaCompra" class="modal nova-compra-modal">
-  <div class="modal-content nova-compra-card">
-    <button type="button" id="fecharNovaCompra" class="modal-close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-
-    <div class="nova-compra-header">
-      <span class="nova-compra-tag">Nova compra</span>
-      <h2>Registrar nova compra</h2>
-      <p>Escolha os produtos que deseja comprar e informe a quantidade antes de finalizar.</p>
+<div class="adm-dialog" id="novaCompra">
+  <div class="adm-dialog-backdrop" id="novaCompraBackdrop"></div>
+  <div class="adm-dialog-panel adm-dialog-panel--compra">
+    <div class="adm-dialog-header">
+      <h2 id="novaCompraTitle"><i class="fa-solid fa-truck-ramp-box"></i> Nova compra</h2>
+      <button
+        class="adm-dialog-close"
+        type="button"
+        id="fecharNovaCompra"
+        aria-label="Fechar"
+      >
+        &#x2715;
+      </button>
     </div>
 
-    <form class="nova-compra-form" id="novaCompraForm">
-      <div class="form-row">
-        <label for="abrirPickerProdutos">Produtos</label>
-        <button type="button" id="abrirPickerProdutos" class="picker-input">
-          Clique para selecionar produtos
-        </button>
+    <form class="adm-form nova-compra-form" id="novaCompraForm" method="POST" action="/dashboard/compras">
+      <div class="adm-form-grid">
+        <div class="adm-form-group">
+          <label>Fornecedor *</label>
+          <select class="adm-input" name="fornecedorId" id="novaCompraFornecedor" required>
+            <option value="">Selecione um fornecedor...</option>
+            <% (fornecedores || []).forEach(function(fornecedor) { %>
+              <option value="<%= fornecedor.id %>"><%= fornecedor.nome %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="adm-form-group">
+          <label>Quantidade total</label>
+          <input class="adm-input" id="totalQuantidade" type="number" name="totalQuantidade" readonly placeholder="0" />
+        </div>
       </div>
 
-      <div class="selected-items-wrapper">
-        <div class="section-title">
-          <h3>Produtos selecionados</h3>
-          <p>Ajuste a quantidade dos itens escolhidos.</p>
+      <div class="adm-form-group adm-form-group--full">
+        <label>Produtos *</label>
+        <div class="adm-contract-product-form nova-compra-product-form">
+          <select class="adm-input" id="novaCompraProdutoSelect">
+            <option value="">Escolha um produto...</option>
+            <% (products || []).forEach(function(produto) { %>
+              <option
+                value="<%= produto.id %>"
+                data-nome="<%= produto.nome %>"
+                data-preco="<%= produto.precoNumber %>"
+                data-estoque="<%= produto.estoque %>"
+              >
+                <%= produto.nome %> (Estoque: <%= produto.estoque %>)
+              </option>
+            <% }) %>
+          </select>
+          <input type="number" class="adm-input nova-compra-qty" id="novaCompraProdutoQty" min="1" value="1" placeholder="Qtd" />
+          <button type="button" class="adm-btn adm-btn--primary" id="novaCompraAddProduto">
+            <i class="fa-solid fa-plus"></i> Adicionar
+          </button>
         </div>
+      </div>
+
+      <div class="adm-form-group adm-form-group--full">
+        <label>Produtos selecionados</label>
         <div id="novaCompraSelectedList" class="selected-items">
-          <p class="empty-state">Nenhum produto selecionado.</p>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="totalQuantidade">Quantidade total</label>
-          <input id="totalQuantidade" type="number" name="totalQuantidade" readonly placeholder="0" />
+          <p class="empty-state" style="text-align:center;padding:1rem;color:var(--color-text-muted)">Nenhum produto selecionado.</p>
         </div>
       </div>
 
-      <input type="hidden" name="selectedProducts" id="novaCompraSelectedProducts" />
+      <input type="hidden" name="produtos" id="novaCompraSelectedProducts" />
       <p id="novaCompraError" class="form-error"></p>
 
-      <div class="form-actions">
-        <button type="button" id="btnConfirmarCompra" class="btn-submit">Confirmar compra</button>
+      <div class="adm-dialog-footer">
+        <button
+          type="button"
+          class="adm-btn adm-btn--ghost"
+          id="cancelarNovaCompra"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="btnFinalizarCompra"
+          class="adm-btn adm-btn--primary"
+        >
+          <i class="fa-solid fa-check"></i> <span>Registrar compra</span>
+        </button>
       </div>
     </form>
   </div>
 </div>
-
-<div id="productPickerModal" class="modal product-picker-modal">
-  <div class="modal-content product-picker-card">
-    <button type="button" id="fecharProductPicker" class="modal-close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div class="nova-compra-header">
-      <span class="nova-compra-tag">Selecionar produtos</span>
-      <h2>Produtos da loja</h2>
-      <p>Escolha os produtos que serão adicionados ao pedido.</p>
-    </div>
-    <div class="product-list" id="productPickerList">
-      <% (products || []).forEach((produto, index) => { %>
-        <article class="product-card" data-index="<%= index %>">
-          <div class="product-summary">
-            <div>
-              <strong><%= produto.nome %></strong>
-              <span><%= produto.categoria %> • <%= produto.marca %></span>
-            </div>
-            <div class="product-stock-info">
-              <span class="product-stock <%= produto.estoque < 5 ? 'stock-low' : '' %>">Estoque: <%= produto.estoque %></span>
-              <% if (produto.estoque < 5) { %>
-                <span class="stock-warning">Estoque baixo</span>
-              <% } %>
-            </div>
-          </div>
-          <div class="product-actions">
-            <span class="product-price"><%= produto.preco %></span>
-            <button type="button" class="btn-select-product" data-index="<%= index %>">Selecionar</button>
-          </div>
-        </article>
-      <% }) %>
-    </div>
-  </div>
-</div>
-
-<div id="resumoCompraModal" class="modal resumo-compra-modal">
-  <div class="modal-content resumo-compra-card">
-    <button type="button" id="fecharResumoCompra" class="modal-close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div class="nova-compra-header">
-      <span class="nova-compra-tag">Resumo da compra</span>
-      <h2>Produtos escolhidos</h2>
-      <p>Confira os produtos e quantidades antes de finalizar.</p>
-    </div>
-    <div id="resumoCompraList" class="selected-items"></div>
-    <div class="resumo-infos">
-      <p><strong>Total:</strong> <span id="resumoTotal"></span></p>
-    </div>
-    <div class="form-actions">
-      <button type="button" id="btnCancelarResumo" class="adm-btn adm-btn--secondary">Editar</button>
-      <button type="button" id="btnFinalizarCompra" class="btn-submit">Finalizar compra</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  window.__productData = <%- JSON.stringify((products || []).map(p => ({
-    id: p._id || p.id,
-    nome: p.nome,
-    preco: p.preco,
-    estoque: p.estoque || 0,
-    marca: p.marca,
-    categoria: p.categoria
-  }))) %>;
-</script>
-
-<script src="/assets/js/compras/cadastrar.js"></script>

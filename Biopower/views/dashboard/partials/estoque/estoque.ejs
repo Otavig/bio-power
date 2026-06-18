@@ -1,0 +1,142 @@
+<!-- ESTOQUE -->
+<section class="adm-section" id="estoque">
+  <div class="adm-page-header">
+    <div>
+      <h1>Estoque</h1>
+      <p>Gestão de inventário e reposição de produtos.</p>
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <div class="adm-card-header adm-card-header--between">
+      <div class="adm-card-header-title">
+        <h3>Produtos em Estoque</h3>
+      </div>
+    </div>
+
+    <% if (!estoque || estoque.length === 0) { %>
+      <div class="adm-empty-state" style="margin-bottom:0">
+        <i class="fa-solid fa-box"></i>
+        <h2>Nenhum produto em estoque</h2>
+        <p>Quando compras forem recebidas, os produtos aparecerão aqui.</p>
+      </div>
+    <% } else { %>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Quantidade</th>
+              <th>Validade</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% estoque.forEach(function(item) { %>
+              <% 
+                const quantidade = Number(item.quantidade || 0);
+                let statusClass = 'success';
+                let statusLabel = 'Em estoque';
+                
+                if (quantidade === 0) {
+                  statusClass = 'danger';
+                  statusLabel = 'Sem estoque';
+                } else if (quantidade <= 5) {
+                  statusClass = 'warning';
+                  statusLabel = 'Baixo estoque';
+                }
+              %>
+              <tr class="js-stock-row">
+                <td>
+                  <div class="adm-product-cell">
+                    <span class="adm-stock-toggle">+</span>
+                    <% if (item.imagem) { %>
+                      <div
+                        class="adm-product-thumb"
+                        style="background-image:url('<%= item.imagem %>');background-size:cover;background-position:center;"
+                      ></div>
+                    <% } else { %>
+                      <div class="adm-product-thumb" style="background-color:var(--color-border);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-box" style="color:var(--color-text-muted);"></i>
+                      </div>
+                    <% } %>
+                    <div>
+                      <strong><%= item.nome %></strong>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="adm-badge adm-badge--info">
+                    <%= item.categoria || "Sem categoria" %>
+                  </span>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <strong style="font-size:1.1em"><%= quantidade %></strong>
+                    <span style="color:var(--color-text-muted);font-size:0.9em">unid.</span>
+                  </div>
+                </td>
+                <td>
+                  <% if (item.lotesValidade && item.lotesValidade.length) { %>
+                    <div class="stock-expiry-cell">
+                      <strong><%= item.proximaValidade || "Sem validade" %></strong>
+                      <span><%= item.lotesValidade.length %> lote<%= item.lotesValidade.length === 1 ? "" : "s" %></span>
+                    </div>
+                  <% } else { %>
+                    <span class="text-muted">Sem lote ativo</span>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="adm-badge adm-badge--<%= statusClass %>">
+                    <%= statusLabel %>
+                  </span>
+                </td>
+                <td>
+                  <div class="adm-actions">
+                    <button
+                      type="button"
+                      class="adm-btn-icon btn-repor-estoque"
+                      title="Repor estoque"
+                      data-produto-id="<%= item.id %>"
+                      data-produto-nome="<%= item.nome %>"
+                    >
+                      <i class="fa-solid fa-plus-circle"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr class="adm-stock-detail" style="display:none">
+                <td colspan="6">
+                  <% if (item.lotesValidade && item.lotesValidade.length) { %>
+                    <div class="stock-lot-list">
+                      <% item.lotesValidade.forEach(function(lote) { %>
+                        <article class="stock-lot-item">
+                          <div>
+                            <strong><%= lote.numero %></strong>
+                            <span>Lote</span>
+                          </div>
+                          <div>
+                            <strong><%= lote.quantidade %> un.</strong>
+                            <span>Quantidade</span>
+                          </div>
+                          <div>
+                            <strong><%= lote.validade %></strong>
+                            <span>Validade</span>
+                          </div>
+                        </article>
+                      <% }); %>
+                    </div>
+                  <% } else { %>
+                    <div class="stock-lot-empty">Nenhum lote ativo para este produto.</div>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>
