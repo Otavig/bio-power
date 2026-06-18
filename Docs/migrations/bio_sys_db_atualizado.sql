@@ -14,6 +14,7 @@ USE `bio_sys_db`;
 
 DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Venda`;
 DROP TABLE IF EXISTS `tb_Fluxo_Caixa_Compra`;
+DROP TABLE IF EXISTS `tb_pagamento`;
 
 -- ========================================================
 -- TABELAS BASE (sem dependências)
@@ -208,6 +209,15 @@ CREATE TABLE `tb_Cliente` (
   CONSTRAINT `fk_cliente_usuario` FOREIGN KEY (`cli_usu_id`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+LOCK TABLES `tb_Cliente` WRITE;
+INSERT INTO `tb_Cliente`
+  (`cli_id`, `cli_usu_id`, `cli_sobrenome`, `cli_genero`, `cli_telefone`, `cli_data_nascimento`, `cli_estado_civil`, `cli_cep`, `cli_cidade`, `cli_estado`, `cli_bairro`, `cli_rua`, `cli_numero`, `cli_complemento`)
+VALUES
+(1,6,'Silva','masculino','11988887777','1995-05-12','solteiro','01001000','Sao Paulo','SP','Se','Praca da Se','100','Apto 12'),
+(2,7,'Paula','feminino','21977776666','1992-09-21','casado','20040002','Rio de Janeiro','RJ','Centro','Rua da Assembleia','45',NULL),
+(3,8,'Mendes','masculino','31966665555','1988-02-03','solteiro','30140071','Belo Horizonte','MG','Savassi','Rua Pernambuco','900','Sala 2');
+UNLOCK TABLES;
+
 --
 -- tb_Profissional (Profissional)
 -- Diagrama (imagem 1): pro_id, pro_id_usuario
@@ -220,6 +230,13 @@ CREATE TABLE `tb_Profissional` (
   KEY `fk_prof_usuario` (`pro_id_usuario`),
   CONSTRAINT `fk_prof_usuario` FOREIGN KEY (`pro_id_usuario`) REFERENCES `tb_Usuarios` (`usu_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Profissional` WRITE;
+INSERT INTO `tb_Profissional` (`pro_id`, `pro_id_usuario`) VALUES
+(1,13),
+(2,14),
+(3,15);
+UNLOCK TABLES;
 
 -- ========================================================
 -- PRODUTOS
@@ -257,6 +274,7 @@ VALUES
 (1,'Creatina Monohidratada 250g','Em breve',79.92,0.00,1,1,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (2,'Whey Protein Baunilha 900g','Em breve',129.90,0.00,2,2,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (3,'Pré-Treino Explosivo DUX 300g','Em breve',98.50,0.00,3,3,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(4,'Hipercalórico Mass Titanium 3kg','Em breve',159.90,0.00,5,6,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (5,'Termogênico Black Skull 60 caps','Em breve',59.90,0.00,4,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (6,'Whey Protein Chocolate 1kg','Em breve',134.50,0.00,2,6,'2026-03-25 19:41:26','2026-03-26 14:43:18'),
 (7,'Pré-Treino Insano 280g','Em breve',89.99,0.00,3,5,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
@@ -278,30 +296,25 @@ DROP TABLE IF EXISTS `tb_Promocoes`;
 CREATE TABLE `tb_Promocoes` (
   `pro_id` int NOT NULL AUTO_INCREMENT,
   `pro_nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `pro_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ativa',
+  `pro_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1',
+  `pro_automatico` tinyint(1) NOT NULL DEFAULT '0',
+  `pro_dias_vencimento` int DEFAULT NULL,
   `pro_descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `pro_data_inicio` date NOT NULL,
   `pro_data_fim` date NOT NULL,
   `pro_percentual` decimal(5,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`pro_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- tb_Itens_Promocao (Itens_Promoção)
--- Diagrama (imagem 4): itp_id, itp_id_produto, itp_id_lote, itp_valor_desconto
---
-DROP TABLE IF EXISTS `tb_Itens_Promocao`;
-CREATE TABLE `tb_Itens_Promocao` (
-  `itp_id` int NOT NULL AUTO_INCREMENT,
-  `itp_id_produto` int NOT NULL,
-  `itp_id_lote` int NOT NULL,
-  `itp_valor_desconto` float NOT NULL DEFAULT '0',
-  PRIMARY KEY (`itp_id`),
-  KEY `fk_itp_produto` (`itp_id_produto`),
-  KEY `fk_itp_lote` (`itp_id_lote`),
-  CONSTRAINT `fk_itp_produto` FOREIGN KEY (`itp_id_produto`) REFERENCES `tb_Produtos` (`pro_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_itp_lote` FOREIGN KEY (`itp_id_lote`) REFERENCES `tb_Lotes_Estoque` (`lot_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `tb_Promocoes` WRITE;
+INSERT INTO `tb_Promocoes`
+  (`pro_id`, `pro_nome`, `pro_status`, `pro_automatico`, `pro_dias_vencimento`, `pro_descricao`, `pro_data_inicio`, `pro_data_fim`, `pro_percentual`)
+VALUES
+(1,'BCAA10','1',0,NULL,'10% em suplementos selecionados',DATE_SUB(CURDATE(), INTERVAL 10 DAY),DATE_ADD(CURDATE(), INTERVAL 60 DAY),10.00),
+(2,'CREATINA20','1',0,NULL,'20% em creatinas',DATE_SUB(CURDATE(), INTERVAL 5 DAY),DATE_ADD(CURDATE(), INTERVAL 30 DAY),20.00),
+(3,'VALIDADE15','1',1,30,'15% automático para produtos próximos do vencimento',DATE_SUB(CURDATE(), INTERVAL 1 DAY),DATE_ADD(CURDATE(), INTERVAL 90 DAY),15.00),
+(4,'INATIVO5','0',0,NULL,'Cupom inativo para teste',DATE_SUB(CURDATE(), INTERVAL 20 DAY),DATE_ADD(CURDATE(), INTERVAL 20 DAY),5.00);
+UNLOCK TABLES;
 
 -- ========================================================
 -- ESTOQUE
@@ -336,6 +349,7 @@ INSERT INTO `tb_Lotes_Estoque` VALUES
 (1,1,'LOT-001',3,'2026-01-15','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (2,2,'LOT-002',47,'2026-07-10','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (3,3,'LOT-003',22,'2026-06-27','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
+(4,4,'LOT-004',14,'2026-09-18','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (5,5,'LOT-005',6,'2026-06-20','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (6,6,'LOT-006',31,'2026-06-25','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
 (7,7,'LOT-007',8,'2026-07-18','2026-03-25 19:41:26',NULL,'2026-03-25 19:41:26','2026-03-25 19:41:26'),
@@ -351,6 +365,30 @@ INSERT INTO `tb_Lotes_Estoque` VALUES
 UNLOCK TABLES;
 
 --
+-- tb_Itens_Promocao (Itens_Promoção)
+-- Diagrama (imagem 4): itp_id, itp_id_produto, itp_id_lote, itp_valor_desconto
+--
+DROP TABLE IF EXISTS `tb_Itens_Promocao`;
+CREATE TABLE `tb_Itens_Promocao` (
+  `itp_id` int NOT NULL AUTO_INCREMENT,
+  `itp_id_produto` int NOT NULL,
+  `itp_id_lote` int NOT NULL,
+  `itp_valor_desconto` float NOT NULL DEFAULT '0',
+  PRIMARY KEY (`itp_id`),
+  KEY `fk_itp_produto` (`itp_id_produto`),
+  KEY `fk_itp_lote` (`itp_id_lote`),
+  CONSTRAINT `fk_itp_produto` FOREIGN KEY (`itp_id_produto`) REFERENCES `tb_Produtos` (`pro_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_itp_lote` FOREIGN KEY (`itp_id_lote`) REFERENCES `tb_Lotes_Estoque` (`lot_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Itens_Promocao` WRITE;
+INSERT INTO `tb_Itens_Promocao` (`itp_id`, `itp_id_produto`, `itp_id_lote`, `itp_valor_desconto`) VALUES
+(1,1,1,10),
+(2,3,3,15),
+(3,5,5,12);
+UNLOCK TABLES;
+
+--
 -- tb_Produto_Fornecedores (relação N:N ProdutosModels <-> FornecedoresModels)
 --
 DROP TABLE IF EXISTS `tb_Produto_Fornecedores`;
@@ -363,6 +401,13 @@ CREATE TABLE `tb_Produto_Fornecedores` (
   CONSTRAINT `fk_pf_produto` FOREIGN KEY (`pf_id_produto`) REFERENCES `tb_Produtos` (`pro_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_pf_fornecedor` FOREIGN KEY (`pf_id_fornecedor`) REFERENCES `tb_Fornecedores` (`for_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Produto_Fornecedores` WRITE;
+INSERT INTO `tb_Produto_Fornecedores` (`pf_id_produto`, `pf_id_fornecedor`, `pf_preco_compra`) VALUES
+(1,1,49.90),(2,1,89.90),(4,1,129.90),(5,1,39.90),(7,1,59.90),
+(6,2,92.50),(8,2,79.90),(9,2,45.90),(11,2,99.90),(14,2,154.90),
+(3,3,69.90),(10,3,83.00),(12,3,68.50),(13,3,52.90),(15,3,64.35);
+UNLOCK TABLES;
 
 -- ========================================================
 -- DESCARTES
@@ -391,6 +436,12 @@ CREATE TABLE `tb_Descartes` (
   CONSTRAINT `fk_des_responsavel` FOREIGN KEY (`des_id_responsavel`) REFERENCES `tb_Usuarios` (`usu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+LOCK TABLES `tb_Descartes` WRITE;
+INSERT INTO `tb_Descartes` (`des_id`, `des_id_lote`, `des_id_produto`, `des_quantidade`, `des_motivo`, `des_id_responsavel`, `des_data`) VALUES
+(1,5,5,1,'Teste de descarte por vencimento proximo',2,DATE_SUB(CURDATE(), INTERVAL 1 DAY)),
+(2,9,9,1,'Embalagem avariada',3,CURDATE());
+UNLOCK TABLES;
+
 --
 -- tb_Itens_Descarte (Itens_Descarte)
 -- Diagrama (imagem 4): idt_id, idt_id_produto, idt_id_responsavel, idt_id_lote,
@@ -414,6 +465,12 @@ CREATE TABLE `tb_Itens_Descarte` (
   CONSTRAINT `fk_idt_responsavel` FOREIGN KEY (`idt_id_responsavel`) REFERENCES `tb_Usuarios` (`usu_id`),
   CONSTRAINT `fk_idt_lote` FOREIGN KEY (`idt_id_lote`) REFERENCES `tb_Lotes_Estoque` (`lot_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Itens_Descarte` WRITE;
+INSERT INTO `tb_Itens_Descarte` (`idt_id`, `idt_id_produto`, `idt_id_responsavel`, `idt_id_lote`, `idt_quantidade`, `idt_motivo`, `idt_valor_unitario`, `idt_data`) VALUES
+(1,5,2,5,1,'Teste de descarte por vencimento proximo',59,CURDATE()),
+(2,9,3,9,1,'Embalagem avariada',69,CURDATE());
+UNLOCK TABLES;
 
 -- ========================================================
 -- COMPRAS
@@ -443,6 +500,13 @@ CREATE TABLE `tb_Pedidos_Compra` (
   CONSTRAINT `fk_ped_responsavel` FOREIGN KEY (`ped_id_responsavel`) REFERENCES `tb_Usuarios` (`usu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+LOCK TABLES `tb_Pedidos_Compra` WRITE;
+INSERT INTO `tb_Pedidos_Compra` (`ped_id`, `ped_id_fornecedor`, `ped_id_responsavel`, `ped_data_pedido`, `ped_data_entrega_prevista`, `ped_status_id`, `created_at`, `updated_at`) VALUES
+(1,1,2,DATE_SUB(NOW(), INTERVAL 6 DAY),DATE_ADD(CURDATE(), INTERVAL 4 DAY),21,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+(2,2,3,DATE_SUB(NOW(), INTERVAL 3 DAY),DATE_ADD(CURDATE(), INTERVAL 7 DAY),21,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+(3,3,4,DATE_SUB(NOW(), INTERVAL 12 DAY),DATE_SUB(CURDATE(), INTERVAL 2 DAY),22,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+UNLOCK TABLES;
+
 --
 -- tb_Itens_Pedido_Compra (Itens_Pedido)
 -- Diagrama (imagem 4): itp_id, itp_id_produto, itp_quantidade, itp_valor_unitario
@@ -460,6 +524,16 @@ CREATE TABLE `tb_Itens_Pedido_Compra` (
   CONSTRAINT `fk_itp_pedido` FOREIGN KEY (`itp_id_pedido`) REFERENCES `tb_Pedidos_Compra` (`ped_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_itp_produto_compra` FOREIGN KEY (`itp_id_produto`) REFERENCES `tb_Produtos` (`pro_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Itens_Pedido_Compra` WRITE;
+INSERT INTO `tb_Itens_Pedido_Compra` (`itp_id`, `itp_id_pedido`, `itp_id_produto`, `itp_quantidade`, `itp_valor_unitario`) VALUES
+(1,1,1,10,49.90),
+(2,1,2,6,89.90),
+(3,2,8,8,79.90),
+(4,2,14,3,154.90),
+(5,3,3,5,69.90),
+(6,3,12,4,68.50);
+UNLOCK TABLES;
 
 --
 -- tb_Compra (Compra)
@@ -578,7 +652,7 @@ INSERT INTO `tb_Vendas` (`ven_id`, `ven_id_cliente`, `ven_data`, `ven_valor_tota
 (1, 6, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 209.82, 'AGUARDANDO', 17, 0, 13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (2, 7, DATE_SUB(CURDATE(), INTERVAL 4 DAY), 351.80, 'PAGO', 18, 0, 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (3, 8, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 199.70, 'ENTREGUE', 20, 0, 15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(4, 6, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 409.70, 'CANCELADO', 19, 0, 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 6, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 409.70, 'CANCELADO', 19, 0, 15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (5, 7, CURDATE(), 324.32, 'PAGO', 18, 0, 13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (6, 8, CURDATE(), 322.50, 'AGUARDANDO', 17, 0, 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 UNLOCK TABLES;
@@ -690,6 +764,13 @@ CREATE TABLE `tb_Entrega` (
   CONSTRAINT `fk_ent_venda` FOREIGN KEY (`ent_id_venda`) REFERENCES `tb_Vendas` (`ven_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+LOCK TABLES `tb_Entrega` WRITE;
+INSERT INTO `tb_Entrega` (`ent_id`, `ent_id_venda`, `ent_cep`, `ent_endereco`, `ent_numero`, `ent_complemento`, `ent_bairro`, `ent_cidade`, `ent_uf`, `ent_status`, `ent_data_entrega`) VALUES
+(1,1,'01001-000','Praca da Se','100','Apto 12','Se','Sao Paulo','SP','pendente',NULL),
+(2,2,'20040-002','Rua da Assembleia','45',NULL,'Centro','Rio de Janeiro','RJ','em_transporte',NULL),
+(3,3,'30140-071','Rua Pernambuco','900','Sala 2','Savassi','Belo Horizonte','MG','entregue',DATE_SUB(CURDATE(), INTERVAL 1 DAY));
+UNLOCK TABLES;
+
 --
 -- tb_Itens_Entrega (Itens_Entrega)
 -- Diagrama (imagem 5): ite_id, ite_id_entrega, ite_id_lote, ite_id_produto,
@@ -711,6 +792,14 @@ CREATE TABLE `tb_Itens_Entrega` (
   CONSTRAINT `fk_ite_lote` FOREIGN KEY (`ite_id_lote`) REFERENCES `tb_Lotes_Estoque` (`lot_id`),
   CONSTRAINT `fk_ite_produto` FOREIGN KEY (`ite_id_produto`) REFERENCES `tb_Produtos` (`pro_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Itens_Entrega` WRITE;
+INSERT INTO `tb_Itens_Entrega` (`ite_id`, `ite_id_entrega`, `ite_id_lote`, `ite_id_produto`, `ite_quantidade`, `ite_sub_total`) VALUES
+(1,1,1,1,1,79.92),
+(2,1,2,2,1,129.90),
+(3,2,3,3,2,197.00),
+(4,3,9,9,2,139.80);
+UNLOCK TABLES;
 
 -- ========================================================
 -- SERVIÇOS E AGENDAMENTOS
@@ -765,9 +854,9 @@ CREATE TABLE `tb_agendamentos` (
 
 LOCK TABLES `tb_agendamentos` WRITE;
 INSERT INTO `tb_agendamentos` VALUES
-(1,1,4,'2026-03-27',200.00,'Avaliação física inicial','2026-03-26 15:00:00','2026-03-26 15:00:00'),
-(2,6,5,'2026-03-27',250.00,'Acompanhamento mensal','2026-03-26 15:10:00','2026-03-26 15:10:00'),
-(3,7,12,'2026-03-28',180.00,'Consulta nutricional','2026-03-26 15:20:00','2026-03-26 15:20:00');
+(1,6,13,DATE_ADD(CURDATE(), INTERVAL 2 DAY),200.00,'Avaliação física inicial','2026-03-26 15:00:00','2026-03-26 15:00:00'),
+(2,6,14,DATE_ADD(CURDATE(), INTERVAL 5 DAY),250.00,'Acompanhamento mensal','2026-03-26 15:10:00','2026-03-26 15:10:00'),
+(3,7,15,DATE_ADD(CURDATE(), INTERVAL 8 DAY),180.00,'Consulta nutricional','2026-03-26 15:20:00','2026-03-26 15:20:00');
 UNLOCK TABLES;
 
 --
@@ -819,9 +908,9 @@ CREATE TABLE `tb_itens_servicos` (
 
 LOCK TABLES `tb_itens_servicos` WRITE;
 INSERT INTO `tb_itens_servicos` VALUES
-(1,1,4,1,1,'finalizado',200.00,1,200.00,'2026-03-26 15:00:00','2026-03-26 15:00:00'),
-(2,6,5,4,2,'em_andamento',250.00,1,250.00,'2026-03-26 15:10:00','2026-03-26 15:10:00'),
-(3,7,12,2,3,'aprovado',180.00,1,180.00,'2026-03-26 15:20:00','2026-03-26 15:20:00');
+(1,6,13,1,1,'finalizado',200.00,1,200.00,'2026-03-26 15:00:00','2026-03-26 15:00:00'),
+(2,6,14,4,2,'em_andamento',250.00,1,250.00,'2026-03-26 15:10:00','2026-03-26 15:10:00'),
+(3,7,15,2,3,'aprovado',180.00,1,180.00,'2026-03-26 15:20:00','2026-03-26 15:20:00');
 UNLOCK TABLES;
 
 -- ========================================================
@@ -843,6 +932,35 @@ CREATE TABLE `tb_Caixa` (
   KEY `fk_cx_responsavel` (`cx_id_responsavel`),
   CONSTRAINT `fk_cx_responsavel` FOREIGN KEY (`cx_id_responsavel`) REFERENCES `tb_Usuarios` (`usu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Caixa` WRITE;
+INSERT INTO `tb_Caixa` (`cx_id`, `cx_id_responsavel`, `cx_data_abertura`, `cx_data_fechamento`, `cx_valor_total`) VALUES
+(1,2,DATE_SUB(CURDATE(), INTERVAL 1 DAY),NULL,1500.00),
+(2,3,CURDATE(),NULL,850.00);
+UNLOCK TABLES;
+
+--
+-- tb_pagamento
+-- Tabela legada ainda usada por recebimentoModels.
+--
+DROP TABLE IF EXISTS `tb_pagamento`;
+CREATE TABLE `tb_pagamento` (
+  `pag_id` int NOT NULL AUTO_INCREMENT,
+  `ped_id` int DEFAULT NULL,
+  `pag_metodo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pag_valor` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `pag_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pendente',
+  `pag_codigo_pix` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pag_data` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pag_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_pagamento` WRITE;
+INSERT INTO `tb_pagamento` (`pag_id`, `ped_id`, `pag_metodo`, `pag_valor`, `pag_status`, `pag_codigo_pix`, `pag_data`) VALUES
+(1,1,'PIX',209.82,'pendente','PIX-DEMO-001',CURRENT_TIMESTAMP),
+(2,2,'CREDITO',351.80,'aprovado',NULL,CURRENT_TIMESTAMP),
+(3,3,'DEBITO',199.70,'aprovado',NULL,CURRENT_TIMESTAMP);
+UNLOCK TABLES;
 
 --
 -- tb_Fluxo_Caixa (FluxoCaixaModels)
@@ -897,6 +1015,13 @@ CREATE TABLE `tb_Fluxo_Caixa_Venda` (
   CONSTRAINT `fk_fcv_venda` FOREIGN KEY (`fcv_id_venda`) REFERENCES `tb_Vendas` (`ven_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+LOCK TABLES `tb_Fluxo_Caixa_Venda` WRITE;
+INSERT INTO `tb_Fluxo_Caixa_Venda` (`fcv_id`, `fcv_id_fluxo`, `fcv_id_venda`) VALUES
+(1,4,1),
+(2,5,2),
+(3,6,3);
+UNLOCK TABLES;
+
 --
 -- tb_Fluxo_Caixa_Compra
 -- Vincula lancamentos financeiros de despesa as compras.
@@ -912,6 +1037,13 @@ CREATE TABLE `tb_Fluxo_Caixa_Compra` (
   CONSTRAINT `fk_fcc_fluxo` FOREIGN KEY (`fcc_id_fluxo`) REFERENCES `tb_Fluxo_Caixa` (`flu_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fcc_compra` FOREIGN KEY (`fcc_id_compra`) REFERENCES `tb_Compra` (`com_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+LOCK TABLES `tb_Fluxo_Caixa_Compra` WRITE;
+INSERT INTO `tb_Fluxo_Caixa_Compra` (`fcc_id`, `fcc_id_fluxo`, `fcc_id_compra`) VALUES
+(1,1,1),
+(2,2,2),
+(3,3,3);
+UNLOCK TABLES;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

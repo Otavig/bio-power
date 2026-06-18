@@ -114,14 +114,16 @@ class itensPedidoCompraModels {
 
   async atualizar() {
     let sql = `
-        UPDATE produto
-        SET produtoQuantidade = ?
-        WHERE produtoId = ?
+        INSERT INTO tb_Lotes_Estoque
+          (lot_id_produto, lot_numero_lote, lot_quantidade_atual, lot_data_validade)
+        VALUES (?, ?, ?, ?)
     `;
 
     return await banco.ExecutaComandoNonQuery(sql, [
-      this.produtoQuantidade,
       this.produtoId,
+      `PED-${this.pedidoId || "COMPRA"}-PROD-${this.produtoId}`,
+      this.pedidoItemQuantidade || this.itpQuantidade || 0,
+      this.pedidoItemDataValidade || "2099-12-31",
     ]);
   }
 }

@@ -295,6 +295,19 @@ class ProdutosModels {
     return this.#mapRowToView(rows[0], 0);
   }
 
+  async buscarProduto(id) {
+    const produto = await this.buscarPorId(id);
+    if (!produto) return null;
+
+    return {
+      ...produto,
+      produtoId: produto.id,
+      produtoNome: produto.nome,
+      produtoValor: Number(produto.precoPromocionalNumber || produto.precoNumber || 0),
+      produtoQuantidade: Number(produto.estoque || 0),
+    };
+  }
+
   async consultarEstoque(id) {
     if (!id) return 0;
     const rows = await this.#db.ExecutaComando(

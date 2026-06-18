@@ -44,13 +44,32 @@ class efetuarCompraModels {
   }
 
   async registrarCompra() {
-    let sql = `INSERT INTO tb_Lotes_Estoque(lot_id_produto, lot_qtd, lot_data_validade, lot_num_lote) VALUES(?, ?, ?, ?)`;
+    if (this.pedidoId) {
+      const sql = `
+        INSERT INTO tb_Itens_Pedido_Compra
+          (itp_id_pedido, itp_id_produto, itp_quantidade, itp_valor_unitario)
+        VALUES (?, ?, ?, ?)
+      `;
+
+      return await banco.ExecutaComandoNonQuery(sql, [
+        this.pedidoId,
+        this.#produtoId || this.produtoId,
+        this.#quantidade || this.pedidoItemQuantidade,
+        this.pedidoItemValor || 0,
+      ]);
+    }
+
+    let sql = `
+      INSERT INTO tb_Lotes_Estoque
+        (lot_id_produto, lot_numero_lote, lot_quantidade_atual, lot_data_validade)
+      VALUES (?, ?, ?, ?)
+    `;
 
     let valores = [
       this.#produtoId,
+      this.#numeroLote || `LOTE-${Date.now()}`,
       this.#quantidade,
-      this.#dataValidade,
-      this.#numeroLote,
+      this.#dataValidade || "2099-12-31",
     ];
 
     return await banco.ExecutaComandoNonQuery(sql, valores);
@@ -58,9 +77,14 @@ class efetuarCompraModels {
 
   async buscarItensPedido(pedidoId) {
     let sql = `
-        SELECT *
-        FROM pedido_item
-        WHERE pedidoId = ?
+        SELECT
+          itp_id AS itemId,
+          itp_id_pedido AS pedidoId,
+          itp_id_produto AS produtoId,
+          itp_quantidade AS pedidoItemQuantidade,
+          itp_valor_unitario AS pedidoItemValor
+        FROM tb_Itens_Pedido_Compra
+        WHERE itp_id_pedido = ?
     `;
 
     let rows = await banco.ExecutaComando(sql, [pedidoId]);

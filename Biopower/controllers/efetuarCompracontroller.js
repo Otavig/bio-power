@@ -10,16 +10,20 @@ class efetuarCompraController {
 
     if (req.body.length > 0) {
       let pedidoCompra = new pedidoCompraModels();
+      pedidoCompra.pedIdFornecedor = Number(req.body.fornecedorId || req.body[0]?.fornecedorId || 1);
+      pedidoCompra.pedIdResponsavel = Number(req.session?.usuario?.usu_id || req.session?.usuario?.id || 1);
       let pedidoId = await pedidoCompra.gravar();
       pedidoCompra.pedidoValorTotal = 0;
       if (pedidoId) {
-        let produtosModels = new produtosModels();
+        let produtosModel = new produtosModels();
         for (let i = 0; i < req.body.length; i++) {
-          let produtoPedido = await produtosModels.buscarProduto(req.body[i].id);
+          let produtoPedido = await produtosModel.buscarProduto(req.body[i].id || req.body[i].produtoId);
+          if (!produtoPedido) continue;
+
           let item = new efetuarCompraModel();
           item.pedidoId = pedidoId;
           item.produtoId = produtoPedido.produtoId;
-          item.pedidoItemQuantidade = req.body[i].quantidade;
+          item.pedidoItemQuantidade = Number(req.body[i].quantidade || 1);
           item.pedidoItemValor = produtoPedido.produtoValor;
           item.pedidoItemValorTotal =
             item.pedidoItemQuantidade * item.pedidoItemValor;

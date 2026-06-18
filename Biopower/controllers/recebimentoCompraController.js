@@ -1,6 +1,8 @@
 const pedidoCompraModels = require("../models/pedidoCompraModels");
-const produtoModels = require("../models/produtosModels");
-const efetuarCompraModel = require("../models/efetuarCompraModels");
+const efetuarCompraModels = require("../models/efetuarCompraModels");
+const Database = require("../utils/database");
+
+const banco = new Database();
 
 class recebimentoCompraController {
   async cadastrar(req, res) {
@@ -17,16 +19,22 @@ class recebimentoCompraController {
       let itens = await itensPedidoCompraModels.buscarItensPedido(pedidoId);
 
       if (itens.length > 0) {
-        let produtoModels = new produtoModels();
         for (let i = 0; i < itens.length; i++) {
-          let produto = await produtoModels.buscarProduto(itens[i].produtoId);
-
-          produto.produtoQuantidade += itens[i].pedidoItemQuantidade;
-          await produto.atualizar();
+          await banco.ExecutaComandoNonQuery(
+            `INSERT INTO tb_Lotes_Estoque
+              (lot_id_produto, lot_numero_lote, lot_quantidade_atual, lot_data_validade)
+             VALUES (?, ?, ?, ?)`,
+            [
+              itens[i].produtoId,
+              req.body.numeroLote || `PED-${pedidoId}-PROD-${itens[i].produtoId}`,
+              Number(itens[i].pedidoItemQuantidade || 0),
+              req.body.dataValidade || "2099-12-31",
+            ],
+          );
         }
         let pedidoCompra = new pedidoCompraModels();
 
-        pedidoCompra.pedidoId = pedidoId;
+        pedidoCompra.pedId = pedidoId;
         pedidoCompra.pedidoStatus = "Recebido";
         await pedidoCompra.atualizar();
 
