@@ -2,6 +2,7 @@ function validCPF(cpf) {
     const v = /^\d{11}$/; 
 
     cpf = cpf.replace(/\D/g, '');
+    const strCPF = cpf;
 
     if(!v.test(cpf)) return false;
 
