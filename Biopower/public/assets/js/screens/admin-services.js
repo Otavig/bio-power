@@ -213,15 +213,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function filtrarContratos() {
     if (!tabelaContratos) return;
-    const statusFiltro = filtroStatusContrato?.value || "";
+    const statusFiltro = (filtroStatusContrato?.value || "").trim().toLowerCase();
     const linhas = tabelaContratos.querySelectorAll("tbody tr.js-contract-row");
     linhas.forEach((tr) => {
-      const status = tr.dataset.status || "";
+      const status = (tr.dataset.status || "").trim().toLowerCase();
       const visivel = !statusFiltro || status === statusFiltro;
       tr.style.display = visivel ? "table-row" : "none";
       const detalhe = tr.nextElementSibling;
-      if (detalhe && detalhe.classList.contains("adm-contract-detail") && !visivel) {
-        detalhe.style.display = "none";
+      if (detalhe && detalhe.classList.contains("adm-contract-detail")) {
+        detalhe.style.display = visivel && detalhe.dataset.expanded === "true" ? "table-row" : "none";
+        if (!visivel) syncToggleIcon(tr, false);
       }
     });
   }
@@ -259,6 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const detalhe = row.nextElementSibling;
       if (!detalhe || !detalhe.classList.contains("adm-contract-detail")) return;
       const expandido = detalhe.style.display === "none" || !detalhe.style.display;
+      detalhe.dataset.expanded = expandido ? "true" : "false";
       detalhe.style.display = expandido ? "table-row" : "none";
       syncToggleIcon(row, expandido);
     });
@@ -342,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
         el.dataset.produtoId = p.produtoId;
         el.dataset.quantidade = p.quantidade;
         el.style = "display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);";
-        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='btn-link btn-remove-prod' data-idx='${idx}'>Remover</button></div>`;
+        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='adm-btn-icon adm-btn-icon--danger btn-remove-prod' data-idx='${idx}' title='Remover'><i class='fa-solid fa-trash'></i></button></div>`;
         list.appendChild(el);
       });
       // update total display if present
@@ -423,7 +425,7 @@ document.addEventListener("DOMContentLoaded", function () {
         el.dataset.produtoId = p.produtoId;
         el.dataset.quantidade = p.quantidade;
         el.style = "display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);";
-        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='btn-link btn-remove-prod' data-idx='${idx}'>Remover</button></div>`;
+        el.innerHTML = `<div><strong>${p.nome}</strong> <small style='color:var(--color-text-muted)'>x ${p.quantidade}</small></div><div><button type='button' class='adm-btn-icon adm-btn-icon--danger btn-remove-prod' data-idx='${idx}' title='Remover'><i class='fa-solid fa-trash'></i></button></div>`;
         list.appendChild(el);
       });
       // update total display after delegated add
@@ -442,5 +444,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (filtroStatusContrato) {
     filtroStatusContrato.addEventListener("change", filtrarContratos);
+    filtrarContratos();
   }
 });
