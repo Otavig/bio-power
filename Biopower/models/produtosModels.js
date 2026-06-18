@@ -126,6 +126,35 @@ class ProdutosModels {
     return `data:${mime};base64,${imageBuffer.toString("base64")}`;
   }
 
+  static #normalizarTexto(valor) {
+    return String(valor || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  static #fallbackImagemProduto(row, index = 0) {
+    const texto = ProdutosModels.#normalizarTexto(`${row.nome || ""} ${row.categoria || ""}`);
+
+    const regras = [
+      { re: /hardcore reload|creatina/, img: "product12.png" },
+      { re: /whey|protein|proteico/, img: "product2.png" },
+      { re: /pre treino|pretreino|c4|psycho/, img: "product3.png" },
+      { re: /termo|thermo|kimera/, img: "product5.png" },
+      { re: /bcaa|amino/, img: "product11.png" },
+      { re: /vitamin|multi/, img: "product13.png" },
+      { re: /hipercalorico|massa|blend/, img: "product10.png" },
+    ];
+
+    const regra = regras.find((item) => item.re.test(texto));
+    if (regra) return `/assets/imgs/product/${regra.img}`;
+
+    const fallbackIndex = (Number(index || 0) % 14) + 1;
+    return `/assets/imgs/product/product${fallbackIndex}.png`;
+  }
+
   async listarParaInterface() {
     const sql = `
       SELECT
@@ -176,7 +205,7 @@ class ProdutosModels {
       desconto: temDesconto ? `${descontoNumero}%` : "",
       descontoNumber: descontoNumero,
       credito: "",
-      imagem: ProdutosModels.#imageDataUrl(row.imagem),
+      imagem: row.imagem ? ProdutosModels.#imageDataUrl(row.imagem) : ProdutosModels.#fallbackImagemProduto(row, index),
       alt: row.nome,
       estoque: Number(row.estoque || 0),
       estoqueMin: 10,
@@ -207,6 +236,19 @@ class ProdutosModels {
     const rows = await this.#db.ExecutaComando(sql, [id]);
     if (!rows.length) return null;
     return this.#mapRowToView(rows[0], 0);
+  }
+
+  async consultarEstoque(id) {
+    if (!id) return 0;
+    const rows = await this.#db.ExecutaComando(
+      `
+        SELECT COALESCE(SUM(lot_quantidade_atual), 0) AS estoque
+        FROM tb_Lotes_Estoque
+        WHERE lot_id_produto = ?;
+      `,
+      [id],
+    );
+    return Number(rows?.[0]?.estoque || 0);
   }
 
   async #buscarCategoriaIdPorNome(nome) {

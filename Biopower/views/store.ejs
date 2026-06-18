@@ -21,9 +21,32 @@
     <link rel="stylesheet" href="/assets/css/navbar.css" />
     <link rel="stylesheet" href="/assets/css/rodape.css" />
     <link rel="stylesheet" href="/assets/css/screen/product-list-screen.css" />
+    <link rel="stylesheet" href="/assets/css/screen/carrinho.css" />
   </head>
 
   <body>
+    <%
+      const listaProdutos = products || [];
+      const laboratoriosFiltro = Array.from(
+        new Map(
+          listaProdutos
+            .filter((p) => p.laboratorioId || p.marca)
+            .map((p) => [String(p.laboratorioId || p.marca), { id: p.laboratorioId || p.marca, nome: p.marca || 'Sem marca' }])
+        ).values()
+      ).sort((a, b) => a.nome.localeCompare(b.nome));
+
+      const categoriasFonte = (typeof categorias !== 'undefined' && categorias && categorias.length)
+        ? categorias
+        : listaProdutos
+            .filter((p) => p.categoriaId || p.categoria)
+            .map((p) => ({ id: p.categoriaId || p.categoria, nome: p.categoria || 'Sem categoria' }));
+      const categoriasFiltro = Array.from(
+        new Map(categoriasFonte.map((c) => [String(c.id || c.nome), { id: c.id || c.nome, nome: c.nome || 'Sem categoria' }]))
+      .values()).sort((a, b) => a.nome.localeCompare(b.nome));
+
+      const precoMaximo = Math.max(...listaProdutos.map((p) => Number(p.precoNumber || 0)), 0);
+      const precoMaxFiltro = Math.max(50, Math.ceil(precoMaximo / 10) * 10);
+    %>
 
     <!-- ===== BANNER DA LOJA ===== -->
     <section class="store-banner">
@@ -60,20 +83,44 @@
         <!-- Busca rápida -->
         <div class="sidebar-search">
           <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="buscaRapida" placeholder="Buscar produto..." />
+          <input type="text" id="buscaRapida" placeholder="Buscar produto, categoria ou laboratório..." />
         </div>
 
-        <!-- Marcas -->
+        <!-- Laboratórios -->
         <div class="filter-section">
           <button class="filter-toggle" aria-expanded="true">
-            <span>Marcas</span><i class="fa-solid fa-chevron-down"></i>
+            <span>Laboratórios</span><i class="fa-solid fa-chevron-down"></i>
           </button>
           <div class="filter-body">
-            <label><input type="checkbox" name="marca" value="Growth" /> Growth</label>
-            <label><input type="checkbox" name="marca" value="DUX" /> DUX</label>
-            <label><input type="checkbox" name="marca" value="Dark Lab" /> Dark Lab</label>
-            <label><input type="checkbox" name="marca" value="Integral Médica" /> Integral Médica</label>
-            <label><input type="checkbox" name="marca" value="Black Skull" /> Black Skull</label>
+            <% if (laboratoriosFiltro.length) { %>
+              <% laboratoriosFiltro.forEach((lab) => { %>
+                <label>
+                  <input type="checkbox" name="laboratorio" value="<%= lab.id %>" />
+                  <%= lab.nome %>
+                </label>
+              <% }); %>
+            <% } else { %>
+              <span class="filter-empty">Nenhum laboratório cadastrado.</span>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Categorias -->
+        <div class="filter-section">
+          <button class="filter-toggle" aria-expanded="true">
+            <span>Categorias</span><i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="filter-body">
+            <% if (categoriasFiltro.length) { %>
+              <% categoriasFiltro.forEach((categoria) => { %>
+                <label>
+                  <input type="checkbox" name="categoria" value="<%= categoria.id %>" />
+                  <%= categoria.nome %>
+                </label>
+              <% }); %>
+            <% } else { %>
+              <span class="filter-empty">Nenhuma categoria cadastrada.</span>
+            <% } %>
           </div>
         </div>
 
@@ -84,89 +131,15 @@
           </button>
           <div class="filter-body">
             <div class="price-range-wrap">
-              <input type="range" id="filtroPreco" min="0" max="500" value="500" />
+              <input type="range" id="filtroPreco" min="0" max="<%= precoMaxFiltro %>" value="<%= precoMaxFiltro %>" />
               <div class="price-range-labels">
                 <span>R$0</span>
-                <span id="precoLabel" class="price-max-label">R$500</span>
+                <label class="price-input-inline" for="precoMaxInput">
+                  <span>R$</span>
+                  <input type="number" id="precoMaxInput" min="0" max="<%= precoMaxFiltro %>" step="1" value="<%= precoMaxFiltro %>" inputmode="decimal" />
+                </label>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Sabores -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Sabor</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="sabor" value="Chocolate" /> Chocolate</label>
-            <label><input type="checkbox" name="sabor" value="Baunilha" /> Baunilha</label>
-            <label><input type="checkbox" name="sabor" value="Doce de Leite" /> Doce de Leite</label>
-            <label><input type="checkbox" name="sabor" value="Uva" /> Uva</label>
-            <label><input type="checkbox" name="sabor" value="Sem sabor" /> Sem sabor</label>
-          </div>
-        </div>
-
-        <!-- Proteína -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Proteína</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="categoria" value="Whey Protein" /> Whey Protein</label>
-            <label><input type="checkbox" name="categoria" value="Albumina" /> Albumina</label>
-            <label><input type="checkbox" name="categoria" value="Caseína" /> Caseína</label>
-            <label><input type="checkbox" name="categoria" value="Blend de Proteína" /> Blend de Proteína</label>
-            <label><input type="checkbox" name="categoria" value="Proteína de Soja" /> Proteína de Soja</label>
-          </div>
-        </div>
-
-        <!-- Aminoácidos -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Aminoácidos</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="categoria" value="BCAA" /> BCAA</label>
-            <label><input type="checkbox" name="categoria" value="Creatina" /> Creatina</label>
-            <label><input type="checkbox" name="categoria" value="Glutamina" /> Glutamina</label>
-            <label><input type="checkbox" name="categoria" value="Leucina" /> Leucina</label>
-          </div>
-        </div>
-
-        <!-- Carboidratos -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Carboidratos</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="categoria" value="Waxy Maize" /> Waxy Maize</label>
-            <label><input type="checkbox" name="categoria" value="Dextrose" /> Dextrose</label>
-            <label><input type="checkbox" name="categoria" value="Maltodextrina" /> Maltodextrina</label>
-          </div>
-        </div>
-
-        <!-- Veganos -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Veganos</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="categoria" value="Proteína de Arroz" /> Proteína de Arroz</label>
-            <label><input type="checkbox" name="categoria" value="Proteína da Ervilha" /> Proteína da Ervilha</label>
-            <label><input type="checkbox" name="categoria" value="Aminoácidos Veganos" /> Aminoácidos Veganos</label>
-          </div>
-        </div>
-
-        <!-- Vitaminas -->
-        <div class="filter-section">
-          <button class="filter-toggle" aria-expanded="false">
-            <span>Vitaminas</span><i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="filter-body" style="display:none">
-            <label><input type="checkbox" name="categoria" value="Complexo B" /> Complexo B</label>
-            <label><input type="checkbox" name="categoria" value="Multivitamínico" /> Multivitamínico</label>
-            <label><input type="checkbox" name="categoria" value="Carnitina" /> Carnitina</label>
           </div>
         </div>
 
@@ -199,8 +172,8 @@
           <% if (products && products.length) { %>
             <% products.forEach((product, index) => { %>
               <%
-                const precoNum = parseFloat(
-                  (product.preco || '0').replace(/[^\d,]/g, '').replace(',', '.')
+                const precoNum = Number(product.precoNumber) || parseFloat(
+                  String(product.preco || '0').replace(/[^\d,]/g, '').replace(',', '.')
                 ) || 0;
                 const temDesconto = !!product.desconto;
               %>
@@ -208,6 +181,9 @@
                    data-price="<%= precoNum %>"
                    data-id="<%= product.id %>"
                    data-name="<%= product.nome %>"
+                   data-category="<%= product.categoriaId || product.categoria %>"
+                   data-brand="<%= product.laboratorioId || product.marca %>"
+                   data-search="<%= [product.nome, product.categoria, product.marca].filter(Boolean).join(' ') %>"
                    data-index="<%= index %>">
 
                 <% if (temDesconto) { %>
@@ -235,6 +211,16 @@
                   <% if (product.credito) { %>
                     <p class="product-credit"><%= product.credito %></p>
                   <% } %>
+
+                  <div class="product-qty" aria-label="Quantidade">
+                    <button class="product-qty-btn" type="button" data-acao="menos" aria-label="Diminuir quantidade">
+                      <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <input class="product-qty-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantidade do produto" />
+                    <button class="product-qty-btn" type="button" data-acao="mais" aria-label="Aumentar quantidade">
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
 
                   <div class="product-actions">
                     <button data-produto="<%= product.id %>" class="btn-buy" type="button">
@@ -268,7 +254,7 @@
     </div>
 
     <script src="/assets/js/navbar-script.js"></script>
-    <script src="/assets/js/screens/carrinho.js">
+    <script>
       // ======== SIDEBAR MOBILE ========
       const toggleBtn  = document.getElementById('sidebarToggle');
       const closeBtn   = document.getElementById('sidebarClose');
@@ -296,11 +282,35 @@
 
       // ======== RANGE DE PREÇO ========
       const rangeInput  = document.getElementById('filtroPreco');
-      const precoLabel  = document.getElementById('precoLabel');
+      const precoMaxInput = document.getElementById('precoMaxInput');
+
+      function limitarPreco(valor) {
+        const max = Number(rangeInput.max || 0);
+        const min = Number(rangeInput.min || 0);
+        const numero = Number(String(valor || '').replace(',', '.'));
+        if (!Number.isFinite(numero)) return max;
+        return Math.min(Math.max(numero, min), max);
+      }
+
+      function atualizarFiltroPreco(valor, aplicar = true) {
+        const preco = limitarPreco(valor);
+        rangeInput.value = preco;
+        if (precoMaxInput) precoMaxInput.value = Math.round(preco);
+        if (aplicar) aplicarFiltros();
+      }
+
       rangeInput.addEventListener('input', () => {
-        precoLabel.textContent = 'R$' + rangeInput.value;
-        aplicarFiltros();
+        atualizarFiltroPreco(rangeInput.value);
       });
+
+      if (precoMaxInput) {
+        precoMaxInput.addEventListener('input', () => {
+          atualizarFiltroPreco(precoMaxInput.value);
+        });
+        precoMaxInput.addEventListener('blur', () => {
+          atualizarFiltroPreco(precoMaxInput.value, false);
+        });
+      }
 
       // ======== FILTROS E BUSCA ========
       const buscaInput   = document.getElementById('buscaRapida');
@@ -313,26 +323,50 @@
       buscaInput.addEventListener('input', aplicarFiltros);
       checkboxes.forEach(cb => cb.addEventListener('change', aplicarFiltros));
 
+      function aplicarFiltrosDaUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const categoriaUrl = params.get('categoria');
+        const buscaUrl = params.get('q');
+
+        if (buscaUrl) {
+          buscaInput.value = buscaUrl;
+        }
+
+        if (categoriaUrl) {
+          const categoriaCheckbox = [...document.querySelectorAll('input[name="categoria"]')]
+            .find((checkbox) => String(checkbox.value) === String(categoriaUrl));
+          if (categoriaCheckbox) categoriaCheckbox.checked = true;
+        }
+      }
+
+      function normalizarTexto(valor) {
+        return String(valor || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim();
+      }
+
       function aplicarFiltros() {
-        const termo      = buscaInput.value.toLowerCase().trim();
+        const termo      = normalizarTexto(buscaInput.value);
         const precoMax   = parseFloat(rangeInput.value);
-        const marcasSel  = [...document.querySelectorAll('input[name="marca"]:checked')].map(c => c.value);
-        const catsSel    = [...document.querySelectorAll('input[name="categoria"]:checked')].map(c => c.value);
-        const saboresSel = [...document.querySelectorAll('input[name="sabor"]:checked')].map(c => c.value);
+        const labsSel    = [...document.querySelectorAll('input[name="laboratorio"]:checked')].map(c => String(c.value));
+        const catsSel    = [...document.querySelectorAll('input[name="categoria"]:checked')].map(c => String(c.value));
 
         let visiveis = 0;
 
         cards.forEach(card => {
-          const nome  = (card.dataset.name || '').toLowerCase();
+          const texto = normalizarTexto(card.dataset.search || card.dataset.name);
           const preco = parseFloat(card.dataset.price) || 0;
+          const laboratorio = String(card.dataset.brand || '');
+          const categoria = String(card.dataset.category || '');
 
-          const passaBusca  = !termo || nome.includes(termo);
-          const passaPreco  = preco <= precoMax;
-          const passaMarca  = marcasSel.length === 0 || marcasSel.some(m => nome.includes(m.toLowerCase()));
-          const passaCat    = catsSel.length === 0;   // sem dados de categoria por ora
-          const passaSabor  = saboresSel.length === 0; // sem dados de sabor por ora
+          const passaBusca = !termo || texto.includes(termo);
+          const passaPreco = preco <= precoMax;
+          const passaLab = labsSel.length === 0 || labsSel.includes(laboratorio);
+          const passaCat = catsSel.length === 0 || catsSel.includes(categoria);
 
-          const visivel = passaBusca && passaPreco && passaMarca && passaCat && passaSabor;
+          const visivel = passaBusca && passaPreco && passaLab && passaCat;
           card.style.display = visivel ? '' : 'none';
           if (visivel) visiveis++;
         });
@@ -345,9 +379,9 @@
       // ======== LIMPAR FILTROS ========
       document.getElementById('limparFiltros').addEventListener('click', () => {
         checkboxes.forEach(cb => cb.checked = false);
-        rangeInput.value = 500;
-        precoLabel.textContent = 'R$500';
+        atualizarFiltroPreco(rangeInput.max, false);
         buscaInput.value = '';
+        window.history.replaceState({}, '', window.location.pathname);
         aplicarFiltros();
       });
 
@@ -365,6 +399,9 @@
 
         cardsArr.forEach(c => parent.appendChild(c));
       });
+
+      aplicarFiltrosDaUrl();
+      aplicarFiltros();
     </script>
   </body>
 </html>

@@ -622,3 +622,25 @@ main {
     gap: 12px;
   }
 }
+
+/* Ajustes finais da loja: mantem a sidebar alinhada e rolando sozinha */
+@media (min-width: 901px) {
+  .store-layout {
+    align-items: flex-start;
+    gap: 24px;
+    max-width: var(--container-max, 1320px);
+    padding-inline: 20px;
+  }
+
+  .store-layout > .sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+
+  .products-area {
+    padding-left: 0;
+  }
+}

@@ -1,3 +1,7 @@
+const CategoriasModels = require("../models/categoriasModels");
+
+const categoriasModel = new CategoriasModels();
+
 const products = [
     {
         nome: "Creatina Monohidratada 250g",
@@ -166,9 +170,22 @@ const products = [
     },
 ];
 
+products.forEach((product, index) => {
+    product.id = index + 1;
+});
+
 class homeController {
-    home(req, res) {
-        res.render("home", { products });
+    async home(req, res) {
+        let categorias = [];
+
+        try {
+            categorias = await categoriasModel.listar();
+        } catch (err) {
+            console.error("Erro ao listar categorias da home:", err);
+            categorias = [];
+        }
+
+        res.render("home", { products, categorias });
     }
 }
 

@@ -26,12 +26,12 @@
 
     <link
       rel="stylesheet"
-      href="../public/bootstrap-5.0.2-dist/css/bootstrap.min.css"
+      href="/bootstrap-5.0.2-dist/css/bootstrap.min.css"
     />
 
-    <link rel="stylesheet" href="../assets/css/navbar.css" />
-    <link rel="stylesheet" href="../assets/css/rodape.css" />
-    <link rel="stylesheet" href="../assets/css/screen/carrinho.css">
+    <link rel="stylesheet" href="/assets/css/navbar.css" />
+    <link rel="stylesheet" href="/assets/css/rodape.css" />
+    <link rel="stylesheet" href="/assets/css/screen/carrinho.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   </head>
 
@@ -228,80 +228,59 @@
             <h2>Categorias</h2>
             <span class="fechar">&times;</span>
           </div>
-          <div class="categorias-container">
-            <div class="categoria-coluna">
-              <h3>Proteína</h3>
-              <ul>
-                <li><a href="#">Whey Protein</a></li>
-                <li><a href="#">Albumina</a></li>
-                <li><a href="#">Caseína</a></li>
-                <li><a href="#">Blend de Proteína</a></li>
-                <li><a href="#">Proteína de Soja</a></li>
-              </ul>
-            </div>
-
-            <div class="categoria-coluna">
-              <h3>Aminoácidos</h3>
-              <ul>
-                <li><a href="#">BCAA</a></li>
-                <li><a href="#">Creatina</a></li>
-                <li><a href="#">Glutamina</a></li>
-                <li><a href="#">Leucina</a></li>
-              </ul>
-            </div>
-
-            <div class="categoria-coluna">
-              <h3>Carboidratos</h3>
-              <ul>
-                <li><a href="#">Waxy Maize</a></li>
-                <li><a href="#">Dextrose</a></li>
-                <li><a href="#">Maltodextrina</a></li>
-              </ul>
-            </div>
-
-            <div class="categoria-coluna">
-              <h3>indispo</h3>
-              <ul>
-                <li><a href="#">Proteína de Arroz</a></li>
-                <li><a href="#">Proteína da Ervilha</a></li>
-                <li><a href="#">Aminoácidos indispo</a></li>
-              </ul>
-            </div>
-
-            <div class="categoria-coluna">
-              <h3>Vitaminas</h3>
-              <ul>
-                <li><a href="#">Complexo B</a></li>
-                <li><a href="#">Multivitamínico</a></li>
-                <li><a href="#">Carnitina</a></li>
-              </ul>
-            </div>
+          <div class="categorias-container categorias-container--lista">
+            <% if (layoutCategorias && layoutCategorias.length) { %>
+              <% layoutCategorias.forEach((categoria) => { %>
+                <a class="categoria-link" href="/store?categoria=<%= encodeURIComponent(categoria.id) %>">
+                  <i class="fa-solid fa-tag"></i>
+                  <span><%= categoria.nome %></span>
+                </a>
+              <% }); %>
+            <% } else { %>
+              <a class="categoria-link" href="/store">
+                <i class="fa-solid fa-store"></i>
+                <span>Ver produtos</span>
+              </a>
+            <% } %>
           </div>
         </div>
       </div>
-
       <!--Model de Carrinho-->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrinho" aria-labelledby="offcanvasCarrinhoLabel">
-  <div class="offcanvas-header">
-    <span>Carrinho de Compras</span>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <div id="modalCarrinhoCorpo">
-      <p class="store-banner-sub">Seus produtos aparecerão aqui...</p>
-    </div>
-  </div>
-  <div class="offcanvas-footer p-3 border-top">
-    <h3>Valor total: R$ 0,00</h3>
-    <button onclick="window.location.href = '/recebimento'" class="btn-buy btn-comprar">Finalizar Compra</button>
-  </div>
-</div>
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrinho" aria-labelledby="offcanvasCarrinhoLabel" data-bs-backdrop="false">
+        <div class="offcanvas-header">
+          <div class="cart-drawer-heading">
+            <h2 class="cart-drawer-title" id="offcanvasCarrinhoLabel">Carrinho de compras</h2>
+            <span class="cart-drawer-subtitle">Revise seus produtos antes de finalizar</span>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar carrinho"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div id="modalCarrinhoCorpo">
+            <div class="cart-drawer-empty">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <strong>Seu carrinho está vazio</strong>
+              <span>Seus produtos aparecerão aqui.</span>
+            </div>
+          </div>
+        </div>
+        <div class="offcanvas-footer">
+          <div class="cart-drawer-total">
+            <span>Total</span>
+            <strong>R$ 0,00</strong>
+          </div>
+          <button onclick="window.location.href = '/recebimento'" class="cart-drawer-checkout" type="button">
+            <i class="fa-solid fa-lock"></i>
+            Finalizar compra
+          </button>
+        </div>
+      </div>
+
 
       <div><%- body %></div>
 
       <%- include('rodape') %>
     </div>
-    <script src="/js/screens/carrinho.js"></script>
-    <script src="../public/assets/js/navbar-script.js"></script>
+    <script src="/assets/js/screens/carrinho.js"></script>
+    <script src="/assets/js/navbar-script.js"></script>
   </body>
 </html>
