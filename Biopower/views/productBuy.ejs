@@ -41,8 +41,12 @@
             <small id="rating-count">(50 avaliações)</small>
           </div>
 
-          <p class="price-main" id="product-price"><%= product ? product.preco : '' %></p>
-          <p class="price-discount" id="product-discount"><%= product ? product.desconto : '' %></p>
+          <% const temPromocaoDetalhe = product && (product.temPromocao || Number(product.descontoNumber || 0) > 0); %>
+          <div class="product-buy-pricing <%= temPromocaoDetalhe ? 'has-promo' : '' %>">
+            <p class="price-old" id="product-old-price"><%= temPromocaoDetalhe ? (product.precoOriginal || product.preco) : '' %></p>
+            <p class="price-main" id="product-price"><%= temPromocaoDetalhe ? (product.precoPromocional || product.preco) : (product ? product.preco : '') %></p>
+            <p class="price-discount" id="product-discount"><%= temPromocaoDetalhe && product.desconto ? `${product.desconto} OFF` : '' %></p>
+          </div>
           <p class="price-credit" id="product-credit"><%= product ? product.credito : '' %></p>
 
           <div class="buttons">

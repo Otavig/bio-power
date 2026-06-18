@@ -55,16 +55,48 @@ body {
   margin-left: 5px;
 }
 
+.product-buy-pricing {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0.5rem 0 0.25rem;
+}
+
 .price-main {
   font-size: 2.4rem;
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  margin: 0.5rem 0 0.25rem;
+  margin: 0;
+}
+
+.price-old {
+  display: none;
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-bold);
+  color: #c62828;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  margin: 0;
+}
+
+.product-buy-pricing.has-promo .price-old {
+  display: inline-block;
 }
 
 .price-discount {
-  font-size: 1rem;
-  color: var(--gray-700);
+  display: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #ffe8e8;
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-bold);
+  color: #b71c1c;
+  margin: 0;
+}
+
+.product-buy-pricing.has-promo .price-discount {
+  display: inline-flex;
 }
 
 .price-credit {

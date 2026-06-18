@@ -1,6 +1,8 @@
 const CategoriasModels = require("../models/categoriasModels");
+const ProdutosModels = require("../models/produtosModels");
 
 const categoriasModel = new CategoriasModels();
+const produtosModel = new ProdutosModels();
 
 const products = [
     {
@@ -177,6 +179,7 @@ products.forEach((product, index) => {
 class homeController {
     async home(req, res) {
         let categorias = [];
+        let listaProdutos = products;
 
         try {
             categorias = await categoriasModel.listar();
@@ -185,7 +188,14 @@ class homeController {
             categorias = [];
         }
 
-        res.render("home", { products, categorias });
+        try {
+            listaProdutos = await produtosModel.listarParaInterface();
+        } catch (err) {
+            console.error("Erro ao listar produtos da home:", err);
+            listaProdutos = products;
+        }
+
+        res.render("home", { products: listaProdutos, categorias });
     }
 }
 

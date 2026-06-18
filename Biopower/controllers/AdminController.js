@@ -956,7 +956,9 @@ class AdminController {
       pro_descricao,
       pro_data_inicio,
       pro_data_fim,
-      pro_percentual
+      pro_percentual,
+      pro_automatico,
+      pro_dias_vencimento
     } = req.body || {};
 
     const pcm = new PromocaoCuponsModel(
@@ -966,7 +968,9 @@ class AdminController {
       pro_data_inicio,
       pro_data_fim,
       pro_percentual,
-      1 
+      1,
+      pro_automatico,
+      pro_dias_vencimento
     );
 
     try {
@@ -989,7 +993,9 @@ class AdminController {
       pro_data_inicio,
       pro_data_fim,
       pro_percentual,
-      pro_status // Captura o status caso venha do front-end
+      pro_status, // Captura o status caso venha do front-end
+      pro_automatico,
+      pro_dias_vencimento
     } = req.body || {};
 
     if (Number.isNaN(id)) {
@@ -1003,7 +1009,9 @@ class AdminController {
       pro_data_inicio,
       pro_data_fim,
       pro_percentual,
-      pro_status !== undefined ? Number(pro_status) : undefined
+      pro_status !== undefined ? Number(pro_status) : undefined,
+      pro_automatico,
+      pro_dias_vencimento
     );
 
     try {
@@ -1073,5 +1081,4 @@ class AdminController {
 }
 
 module.exports = AdminController;
-
 

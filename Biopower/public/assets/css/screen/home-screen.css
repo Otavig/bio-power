@@ -231,17 +231,37 @@ body {
 }
 
 .home-product-price {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-extrabold);
-  color: var(--color-primary-dark);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   margin-bottom: 2px;
 }
 
+.home-product-new-price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-dark);
+}
+
+.home-product-old-price {
+  font-size: 0.86rem;
+  font-weight: var(--font-weight-bold);
+  color: #c62828;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
 .home-product-desconto {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ffe8e8;
   font-size: 0.8rem;
-  font-weight: var(--font-weight-normal);
-  color: var(--gray-700);
+  font-weight: var(--font-weight-bold);
+  color: #b71c1c;
 }
 
 .home-product-credito {
@@ -648,17 +668,23 @@ body {
 }
 
 .home-product-price {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--color-primary-dark);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   margin-bottom: 2px;
 }
 
 .home-product-desconto {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ffe8e8;
   font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--gray-600);
+  font-weight: 700;
+  color: #b71c1c;
 }
 
 .home-product-credito {

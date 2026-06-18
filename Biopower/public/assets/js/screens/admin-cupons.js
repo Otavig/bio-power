@@ -15,6 +15,30 @@ function formatarDataParaInput(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
+function configurarAplicacaoAutomatica(form) {
+  const check = form.querySelector('[name="coupon_auto_apply"]');
+  const grupoDias = form.querySelector(".coupon-auto-days");
+  const selectDias = form.querySelector('[name="coupon_expiration_days"]');
+  if (!check || !grupoDias || !selectDias) return;
+
+  const atualizarVisibilidade = () => {
+    grupoDias.hidden = !check.checked;
+    selectDias.disabled = !check.checked;
+  };
+
+  if (!check.dataset.autoApplyReady) {
+    check.addEventListener("change", atualizarVisibilidade);
+    check.dataset.autoApplyReady = "1";
+  }
+  atualizarVisibilidade();
+}
+
+function textoAplicacaoAutomatica(c) {
+  const automatico = Number(c.pro_automatico || 0) === 1;
+  if (!automatico) return "Manual";
+  return `Automático (${c.pro_dias_vencimento || 30} dias)`;
+}
+
 function linhaCupom(c) {
   const statusAtual = c.pro_status !== undefined && c.pro_status !== null ? Number(c.pro_status) : 1;
   const desativado = statusAtual === 0;
@@ -42,6 +66,7 @@ function linhaCupom(c) {
       <td>${c.pro_descricao || ""}</td>
       <td>${c.pro_percentual || 0}%</td>
       <td>${formatarData(c.pro_data_fim)}</td>
+      <td>${textoAplicacaoAutomatica(c)}</td>
       <td>
         <span class="adm-badge ${badgeClasse}">
           ${badgeTexto}
@@ -87,9 +112,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // EVENTO: CRIAR CUPOM (POST)
   // -------------------------------------------------------------
   const formCreate = document.getElementById("formCreateCoupon");
+  configurarAplicacaoAutomatica(formCreate);
   formCreate.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(formCreate);
+    const automatico = fd.get("coupon_auto_apply") === "1";
 
     const dados = {
       pro_nome: fd.get("coupon_code"),
@@ -97,6 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
       pro_percentual: fd.get("coupon_discount"),
       pro_data_inicio: fd.get("coupon_start_date"),
       pro_data_fim: fd.get("coupon_end_date"),
+      pro_automatico: automatico ? 1 : 0,
+      pro_dias_vencimento: automatico ? Number(fd.get("coupon_expiration_days")) : null,
     };
 
     try {
@@ -108,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const json = await res.json();
 
       formCreate.reset();
+      configurarAplicacaoAutomatica(formCreate);
       document.getElementById("dialog-novo-cupom").classList.remove("adm-dialog--open");
 
       if (json.ok) {
@@ -128,10 +158,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // EVENTO: ATUALIZAR CUPOM (PUT)
   // -------------------------------------------------------------
   const formEdit = document.getElementById("formEditCoupon");
+  configurarAplicacaoAutomatica(formEdit);
   formEdit.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(formEdit);
     const id = fd.get("coupon_id");
+    const automatico = fd.get("coupon_auto_apply") === "1";
 
     const dados = {
       pro_nome: fd.get("coupon_code"),
@@ -139,7 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
       pro_percentual: fd.get("coupon_discount"),
       pro_data_inicio: fd.get("coupon_start_date"),
       pro_data_fim: fd.get("coupon_end_date"),
-      pro_status: Number(fd.get("coupon_status")) // Envia o status atualizado do select (0 ou 1)
+      pro_status: Number(fd.get("coupon_status")), // Envia o status atualizado do select (0 ou 1)
+      pro_automatico: automatico ? 1 : 0,
+      pro_dias_vencimento: automatico ? Number(fd.get("coupon_expiration_days")) : null,
     };
 
     try {
@@ -183,6 +217,9 @@ document.addEventListener("DOMContentLoaded", () => {
       formEdit.querySelector('[name="coupon_discount"]').value = cupom.pro_percentual || 0;
       formEdit.querySelector('[name="coupon_start_date"]').value = formatarDataParaInput(cupom.pro_data_inicio);
       formEdit.querySelector('[name="coupon_end_date"]').value = formatarDataParaInput(cupom.pro_data_fim);
+      formEdit.querySelector('[name="coupon_auto_apply"]').checked = Number(cupom.pro_automatico || 0) === 1;
+      formEdit.querySelector('[name="coupon_expiration_days"]').value = cupom.pro_dias_vencimento || 30;
+      formEdit.querySelector('[name="coupon_auto_apply"]').dispatchEvent(new Event("change"));
       
       const statusElement = formEdit.querySelector('[name="coupon_status"]');
       if (statusElement) {

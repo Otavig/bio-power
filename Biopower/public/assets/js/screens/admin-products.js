@@ -28,6 +28,13 @@ document.addEventListener("DOMContentLoaded", function () {
     return Promise.resolve();
   };
 
+  function recarregarProdutos() {
+    if (window.location.hash !== "#products") {
+      window.location.hash = "products";
+    }
+    window.location.reload();
+  }
+
   function resetBordas() {
     [nome, preco, categoria, marca, sabor, desconto, imagem]
       .filter(Boolean)
@@ -148,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (resposta.ok && corpo.ok) {
         dialogProduto?.classList.remove("adm-dialog--open");
-        window.location.href = "/dashboard#products";
+        recarregarProdutos();
       } else {
         await showAlert({ icon: "error", title: corpo.msg || "Erro ao cadastrar produto." });
       }

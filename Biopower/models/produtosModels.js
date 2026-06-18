@@ -155,7 +155,54 @@ class ProdutosModels {
     return `/assets/imgs/product/product${fallbackIndex}.png`;
   }
 
+  async #garantirColunasCuponsAutomaticos() {
+    const colunas = await this.#db.ExecutaComando("SHOW COLUMNS FROM tb_Promocoes;", []);
+    const nomes = new Set(colunas.map((coluna) => coluna.Field));
+
+    if (!nomes.has("pro_automatico")) {
+      await this.#db.ExecutaComandoNonQuery(
+        "ALTER TABLE tb_Promocoes ADD COLUMN pro_automatico TINYINT(1) NOT NULL DEFAULT 0 AFTER pro_status;",
+        [],
+      );
+    }
+
+    if (!nomes.has("pro_dias_vencimento")) {
+      await this.#db.ExecutaComandoNonQuery(
+        "ALTER TABLE tb_Promocoes ADD COLUMN pro_dias_vencimento INT NULL AFTER pro_automatico;",
+        [],
+      );
+    }
+  }
+
+  async #aplicarCuponsAutomaticosAtivos() {
+    await this.#garantirColunasCuponsAutomaticos();
+    await this.#db.ExecutaComandoNonQuery(
+      `
+        UPDATE tb_Produtos p
+        INNER JOIN (
+          SELECT
+            le.lot_id_produto AS produto_id,
+            MAX(pr.pro_percentual) AS percentual
+          FROM tb_Promocoes pr
+          INNER JOIN tb_Lotes_Estoque le
+            ON le.lot_quantidade_atual > 0
+           AND le.lot_data_validade BETWEEN CURRENT_DATE()
+               AND DATE_ADD(CURRENT_DATE(), INTERVAL pr.pro_dias_vencimento DAY)
+          WHERE pr.pro_automatico = 1
+            AND pr.pro_status = 1
+            AND CURRENT_DATE() BETWEEN pr.pro_data_inicio AND pr.pro_data_fim
+          GROUP BY le.lot_id_produto
+        ) promo ON promo.produto_id = p.pro_id
+        SET p.pro_porcentagem_promocao = promo.percentual
+        WHERE COALESCE(p.pro_porcentagem_promocao, 0) = 0;
+      `,
+      [],
+    );
+  }
+
   async listarParaInterface() {
+    await this.#aplicarCuponsAutomaticosAtivos();
+
     const sql = `
       SELECT
         p.pro_id AS id,
@@ -189,6 +236,9 @@ class ProdutosModels {
     const precoNumber = Number(row.preco || 0);
     const descontoNumero = Number(row.desconto || 0);
     const temDesconto = descontoNumero > 0;
+    const precoPromocionalNumber = temDesconto
+      ? Math.max(precoNumber - (precoNumber * descontoNumero / 100), 0)
+      : precoNumber;
 
     return {
       id: row.id,
@@ -204,6 +254,11 @@ class ProdutosModels {
       sabor: row.descricao || "Sem sabor",
       desconto: temDesconto ? `${descontoNumero}%` : "",
       descontoNumber: descontoNumero,
+      temPromocao: temDesconto,
+      precoOriginal: ProdutosModels.#formatCurrency(precoNumber),
+      precoOriginalNumber: precoNumber,
+      precoPromocional: ProdutosModels.#formatCurrency(precoPromocionalNumber),
+      precoPromocionalNumber,
       credito: "",
       imagem: row.imagem ? ProdutosModels.#imageDataUrl(row.imagem) : ProdutosModels.#fallbackImagemProduto(row, index),
       alt: row.nome,
@@ -214,6 +269,8 @@ class ProdutosModels {
 
   async buscarPorId(id) {
     if (!id) return null;
+    await this.#aplicarCuponsAutomaticosAtivos();
+
     const sql = `
       SELECT
         p.pro_id AS id,
