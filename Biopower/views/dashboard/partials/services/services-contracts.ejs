@@ -2,7 +2,7 @@
 <section class="adm-section" id="services-contracts">
   <div class="adm-page-header">
     <div>
-      <h1>agendamentos</h1>
+      <h1>Agendamentos</h1>
       <p>Visualize solicitações e atualize status/observações.</p>
     </div>
   </div>
@@ -91,15 +91,17 @@
               <% }) %>
               <div style="margin-top:16px;">
                 <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--color-text);">Produtos vinculados ao atendimento</label>
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+                <div class="adm-contract-product-form">
                   <select class="adm-input js-produto-select" style="min-width:220px">
                     <option value="">Escolha um produto...</option>
                     <% (products || []).forEach(function(p){ %>
-                      <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.id %> - <%= p.nome %> (Estoque: <%= p.estoque %>)</option>
+                      <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.nome %> (Estoque: <%= p.estoque %>)</option>
                     <% }) %>
                   </select>
-                  <input type="number" class="adm-input js-produto-qty" min="1" value="1" style="width:96px" />
-                  <button type="button" class="btn-primary js-add-produto">Adicionar</button>
+                  <input type="number" class="adm-input js-produto-qty adm-contract-product-qty" min="1" value="1" />
+                  <button type="button" class="adm-btn adm-btn--primary js-add-produto">
+                    <i class="fa-solid fa-plus"></i> Adicionar
+                  </button>
                 </div>
 
                 <div class="js-produtos-list" style="margin-top:8px">
