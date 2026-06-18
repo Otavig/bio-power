@@ -1,8 +1,8 @@
-<!-- SERVIÇOS CONTRATADOS -->
+﻿<!-- SERVIÇOS CONTRATADOS -->
 <section class="adm-section" id="services-contracts">
   <div class="adm-page-header">
     <div>
-      <h1>Serviços contratados</h1>
+      <h1>agendamentos</h1>
       <p>Visualize solicitações e atualize status/observações.</p>
     </div>
   </div>
@@ -38,28 +38,27 @@
         <thead>
           <tr>
             <th>Cliente</th>
-            <th>Serviço</th>
+            <th>Profissional</th>
             <th class="col-status">Status</th>
             <th class="col-valor">Valor</th>
-            <th class="col-date">Contratado em</th>
+            <th class="col-date">Agendamento</th>
             <th class="col-obs">Obs.</th>
-            <th class="col-actions">Ações</th>
           </tr>
         </thead>
         <tbody>
           <% servicosContratados.forEach(function(c){ %>
-          <tr data-contrato-id="<%= c.id %>" data-status="<%= c.status %>">
+          <tr class="js-contract-row" data-contrato-id="<%= c.id %>" data-status="<%= c.status %>">
             <td>
-              <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="adm-contract-toggle" style="font-weight:700;color:var(--color-text-muted);flex-shrink:0">▲</span>
+                <div style="display:flex;flex-direction:column;gap:2px">
                 <strong><%= c.clienteNome %></strong>
                 <span style="font-size:0.85rem;color:var(--color-text-muted)"><%= c.clienteEmail %></span>
+                </div>
               </div>
             </td>
             <td>
-              <div style="display:flex;flex-direction:column;gap:2px">
-                <strong><%= c.servicoNome %></strong>
-                <span style="font-size:0.85rem;color:var(--color-text-muted)"><%= c.servicoDescricao || "-" %></span>
-              </div>
+              <strong><%= c.profissionalNome || '-' %></strong>
             </td>
             <td>
               <select class="adm-input adm-select-status js-contrato-status status-<%= c.status %>" data-id="<%= c.id %>">
@@ -68,19 +67,54 @@
                 <% }) %>
               </select>
             </td>
-            <td><strong>R$ <%= Number(c.servicoPreco || 0).toFixed(2) %></strong></td>
+            <td><strong>R$ <%= Number(c.valorTotal || 0).toFixed(2) %></strong></td>
             <td>
-              <span class="adm-date-main"><%= new Date(c.dataContratacao).toLocaleDateString('pt-BR') %></span>
-              <span class="adm-date-sub">Atualizado: <%= new Date(c.dataAtualizacao || c.dataContratacao).toLocaleDateString('pt-BR') %></span>
+              <span class="adm-date-main"><%= new Date(c.dataAgendamento).toLocaleDateString('pt-BR') %></span>
+              <span class="adm-date-sub">Atualizado: <%= new Date(c.dataAtualizacao || c.dataAgendamento).toLocaleDateString('pt-BR') %></span>
             </td>
             <td>
               <input type="text" class="adm-input adm-input--ghost js-contrato-obs" placeholder="Obs. opcional" value="<%= c.observacoes || '' %>" />
             </td>
-            <td>
-              <div class="adm-actions">
-                <button type="button" class="adm-btn adm-btn--ghost js-atualizar-contrato" data-id="<%= c.id %>">
-                  <i class="fa-solid fa-rotate"></i> Atualizar
-                </button>
+          </tr>
+          <tr class="adm-contract-detail" style="display:none">
+            <td colspan="6">
+              <% (c.servicos || []).forEach(function(s){ %>
+                <div style="display:flex;justify-content:space-between;gap:24px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--color-border);">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <strong><%= s.nome %></strong>
+                    <span style="font-size:0.9rem;color:var(--color-text-muted)">Quantidade: <%= Number(s.quantidade || 0) %></span>
+                  </div>
+                  <div style="font-size:0.9rem;color:var(--color-text-muted)">
+                    Valor Unitário: <strong style="color:var(--color-text)">R$ <%= Number(s.valorUnitario || 0).toFixed(2) %></strong>
+                  </div>
+                </div>
+              <% }) %>
+              <div style="margin-top:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--color-text);">Produtos vinculados ao atendimento</label>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+                  <select class="adm-input js-produto-select" style="min-width:220px">
+                    <option value="">Escolha um produto...</option>
+                    <% (products || []).forEach(function(p){ %>
+                      <option value="<%= p.id %>" data-nome="<%= p.nome %>" data-preco="<%= p.precoNumber %>"><%= p.id %> - <%= p.nome %> (Estoque: <%= p.estoque %>)</option>
+                    <% }) %>
+                  </select>
+                  <input type="number" class="adm-input js-produto-qty" min="1" value="1" style="width:96px" />
+                  <button type="button" class="adm-input js-add-produto">Adicionar</button>
+                </div>
+
+                <div class="js-produtos-list" style="margin-top:8px">
+                  <!-- selected products will appear here -->
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px">
+                  <div>
+                    <strong>Total:</strong> <span class="js-produtos-total">R$ 0,00</span>
+                  </div>
+                  <div>
+                    <button type="button" class="adm-input js-cobrar">Cobrar</button>
+                  </div>
+                </div>
+
               </div>
             </td>
           </tr>
