@@ -144,10 +144,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const id = row?.dataset?.contratoId;
     if (!id) return;
 
-    const statusSelect = row.querySelector(".js-contrato-status");
-    const obsInput = row.querySelector(".js-contrato-obs");
-    const status = statusSelect?.value;
-    const observacoes = obsInput?.value?.trim() || null;
+  const statusSelect = row.querySelector(".js-contrato-status");
+  const obsInput = row.querySelector(".js-contrato-obs");
+  const metodoSelect = row.nextElementSibling?.querySelector(".js-metodo-pagamento");
+  const status = statusSelect?.value;
+  const observacoes = obsInput?.value?.trim() || null;
+  const metodoPagamentoId = metodoSelect ? (metodoSelect.value ? Number(metodoSelect.value) : null) : null;
 
     // gather produtos from the dynamic list if present (detail row)
     const detailNode = row.nextElementSibling;
@@ -168,10 +170,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
+      const payload = { status, observacoes, produtos };
+      if (metodoPagamentoId) payload.metodoPagamentoId = metodoPagamentoId;
+
       const resposta = await fetch(`/dashboard/services/contratos/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ status, observacoes, produtos }),
+        body: JSON.stringify(payload),
       });
       const corpo = await resposta.json().catch(() => ({ ok: false, msg: "Erro ao ler resposta." }));
       if (resposta.ok && corpo.ok) {

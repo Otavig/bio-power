@@ -968,7 +968,9 @@ class AdminController {
   async updateContractedServiceStatus(req, res) {
     const wantsJson = req.is("application/json") || req.headers.accept?.includes("application/json");
     const id = parseInt(req.params.id, 10);
-    const { status, observacoes } = req.body;
+  const { status, observacoes } = req.body;
+  // optional payment method id provided from admin UI when finalizing and charging
+  const metodoPagamentoIdBody = req.body.metodoPagamentoId ? Number(req.body.metodoPagamentoId) : null;
 
     if (Number.isNaN(id)) {
       const msg = "Serviço contratado inválido.";
@@ -1039,11 +1041,12 @@ class AdminController {
 
       if (status === "finalizado" && produtosValidos.length) {
         vendaTotal = produtosValidos.reduce((sum, item) => sum + item.valorTotal, 0);
+        const metodoPagamentoIdToUse = metodoPagamentoIdBody || 13; // keep existing default 13 if not provided
         vendaId = await this.vendasModel.criar({
           clienteId: contrato.clienteId,
           valorTotal: vendaTotal,
           statusId: 17,
-          metodoPagamentoId: 13,
+          metodoPagamentoId: metodoPagamentoIdToUse,
           enderecoEntrega: null,
           frete: 0,
         });
